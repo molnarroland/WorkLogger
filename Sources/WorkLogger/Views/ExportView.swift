@@ -16,8 +16,8 @@ struct ExportView: View {
     var body: some View {
         let logs = selection
         let ready = TempoExport.exportable(logs)
-        let missing = logs.filter { $0.issueKey == nil && $0.duration > 0 }
-        let total = ready.reduce(0) { $0 + $1.duration }
+        let missing = logs.missingIssue
+        let total = ready.totalDuration
 
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 2) {

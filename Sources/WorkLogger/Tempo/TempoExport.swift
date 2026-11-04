@@ -57,7 +57,7 @@ enum TempoExport {
     static func markdown(_ logs: [Worklog], from: String, to: String, jiraBaseURL: String) -> String {
         let ready = exportable(logs).sorted { $0.start < $1.start }
         let days = Dictionary(grouping: ready, by: \.day)
-        let total = ready.reduce(0) { $0 + $1.duration }
+        let total = ready.totalDuration
         let site = jiraBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
         let myWork = site.isEmpty ? "Jira → Apps → Tempo → My Work"
             : "\(site)/plugins/servlet/ac/io.tempo.jira/tempo-app#!/my-work/week?type=TIME&date=\(from)"
@@ -94,7 +94,7 @@ enum TempoExport {
         """
         for day in days.keys.sorted() {
             let list = days[day]!
-            md += "| \(day) | \(DurationFormat.string(list.reduce(0) { $0 + $1.duration })) | \(list.count) |\n"
+            md += "| \(day) | \(DurationFormat.string(list.totalDuration)) | \(list.count) |\n"
         }
         for day in days.keys.sorted() {
             let list = days[day]!
@@ -102,7 +102,7 @@ enum TempoExport {
 
             ## \(DayKey.title(day)) — \(day)
 
-            Day total: **\(DurationFormat.string(list.reduce(0) { $0 + $1.duration }))**
+            Day total: **\(DurationFormat.string(list.totalDuration))**
 
             | # | Issue | Start | Duration | Description |
             | --- | --- | --- | --- | --- |

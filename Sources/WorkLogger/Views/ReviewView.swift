@@ -69,8 +69,8 @@ struct DayHeader: View {
     let target: Int?
 
     var body: some View {
-        let total = logs.reduce(0) { $0 + $1.duration }
-        let missing = logs.filter { $0.issueKey == nil && $0.duration > 0 }.count
+        let total = logs.totalDuration
+        let missing = logs.missingIssue.count
         HStack(spacing: 12) {
             Text(DayKey.title(day)).font(.headline)
             if let record = state.dayRecords[day], !record.label.isEmpty {

@@ -20,7 +20,7 @@ struct TimesheetView: View {
     var body: some View {
         let weeks = weeks
         let inRange = Set(DayKey.days(from: state.from, to: state.to))
-        let logged = state.worklogs.reduce(0) { $0 + $1.duration }
+        let logged = state.worklogs.totalDuration
         let expected = inRange.reduce(0) { $0 + state.expected(day: $1) }
 
         HStack(spacing: 0) {
@@ -105,17 +105,6 @@ struct TimesheetView: View {
 
 // MARK: Day cell
 
-/// Dragged entries travel as "worklogs:1,2,3" so unrelated text drops are ignored.
-enum WorklogDrag {
-    static func payload(_ logs: [Worklog]) -> String {
-        "worklogs:" + logs.filter { $0.status != .exported }.map { String($0.id) }.joined(separator: ",")
-    }
-    static func ids(_ text: String) -> [Int64] {
-        guard text.hasPrefix("worklogs:") else { return [] }
-        return text.dropFirst("worklogs:".count).split(separator: ",").compactMap { Int64($0) }
-    }
-}
-
 private struct DayCell: View {
     @Environment(AppState.self) private var state
     let day: String
@@ -125,13 +114,13 @@ private struct DayCell: View {
 
     var body: some View {
         let logs = state.worklogs.filter { $0.day == day }
-        let logged = logs.reduce(0) { $0 + $1.duration }
+        let logged = logs.totalDuration
         let expected = state.expected(day: day)
         let record = state.dayRecords[day]
         let isAbsence = record?.status.isAbsence ?? false
-        let unresolved = logs.contains { $0.issueKey == nil && $0.duration > 0 }
+        let unresolved = logs.contains(where: \.needsIssue)
         let isFuture = day > DayKey.key(Date())
-        let color = statusColor(logged: logged, expected: expected, absence: isAbsence, future: isFuture)
+        let color = color(for: DayProgress(logged: logged, expected: expected, absence: isAbsence, future: isFuture))
         let period = state.makeBuilder().period(for: day)
 
         VStack(alignment: .leading, spacing: 4) {
@@ -157,7 +146,7 @@ private struct DayCell: View {
             }
             // Time per kind of work (coding, meetings…) as icon + duration; issues are listed in the day panel.
             // One line per kind (a two-column grid was too narrow for the numbers); at most 3 fit the card.
-            ForEach(sourceTotals(logs).prefix(3), id: \.0) { source, seconds in
+            ForEach(logs.totalsBySource.prefix(3), id: \.source) { source, seconds in
                 HStack(spacing: 4) {
                     Image(systemName: source.icon).foregroundStyle(.secondary).frame(width: 14)
                     Spacer(minLength: 2)
@@ -202,19 +191,15 @@ private struct DayCell: View {
         .contentShape(.rect)
     }
 
-    private func statusColor(logged: Int, expected: Int, absence: Bool, future: Bool) -> Color {
-        if absence { return .purple }
-        if expected == 0 { return logged > 0 ? .blue : .gray }
-        if logged >= expected { return .green }
-        if future { return .gray }
-        return logged == 0 ? .red : .orange
-    }
-
-    private func sourceTotals(_ logs: [Worklog]) -> [(WorklogSource, Int)] {
-        Dictionary(grouping: logs, by: \.source)
-            .map { ($0.key, $0.value.reduce(0) { $0 + $1.duration }) }
-            .filter { $0.1 > 0 }
-            .sorted { $0.1 > $1.1 }
+    private func color(for progress: DayProgress) -> Color {
+        switch progress {
+        case .absence: return .purple
+        case .extra: return .blue
+        case .free, .upcoming: return .gray
+        case .complete: return .green
+        case .empty: return .red
+        case .partial: return .orange
+        }
     }
 }
 
@@ -257,7 +242,7 @@ private struct DayDetail: View {
 
     private func dayEntries(_ day: String) -> some View {
         let logs = state.worklogs.filter { $0.day == day }.sorted { $0.start < $1.start }
-        let logged = logs.reduce(0) { $0 + $1.duration }
+        let logged = logs.totalDuration
         let expected = state.expected(day: day)
         return VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {

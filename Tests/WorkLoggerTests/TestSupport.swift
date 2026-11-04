@@ -56,7 +56,3 @@ enum Fixture {
         Repo(id: id, path: "/tmp/\(name)", name: name, issueKey: issueKey, projectKey: projectKey, enabled: true)
     }
 }
-
-extension Array where Element == Worklog {
-    var totalDuration: Int { reduce(0) { $0 + $1.duration } }
-}

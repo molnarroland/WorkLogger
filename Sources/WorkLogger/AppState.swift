@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import AppKit
 import UniformTypeIdentifiers
 import EventKit
 
@@ -27,16 +26,33 @@ final class AppState {
     var dirty: Set<Int64> = []
     var status = "Ready"
     var isBusy = false
-    var googleConnected = GoogleAuth.isSignedIn
+    var googleConnected: Bool
     var calendarAccess: MacCalendarStore.Access = .notDetermined
     var macCalendars: [MacCalendarInfo] = []
 
-    @ObservationIgnored private var googleAuth: GoogleAuth?
-    @ObservationIgnored let macCalendarStore = MacCalendarStore()
+    @ObservationIgnored let services: AppDependencies
+    @ObservationIgnored private var googleAccount: (any GoogleCalendarAccount)?
     @ObservationIgnored private var calendarObserver: NSObjectProtocol?
 
-    /// `databaseURL` defaults to Application Support; previews pass a throwaway file.
-    init(databaseURL: URL? = nil) {
+    init(db: Database, services: AppDependencies) {
+        self.db = db
+        self.services = services
+        settings = db.loadSettings()
+        googleConnected = services.secrets.get(SecretKey.googleRefresh) != nil
+        let month = DateRange.month(containing: services.now())!
+        from = month.from
+        to = month.to
+        reloadAll()
+        refreshCalendars()
+        // New accounts and calendars sync in the background; refresh the list when macOS reports a change.
+        calendarObserver = NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshCalendars() }
+        }
+    }
+
+    /// The app's state: the database in Application Support (or `databaseURL`, e.g. a throwaway file for
+    /// previews) and the real system services.
+    convenience init(databaseURL: URL? = nil) {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("WorkLogger", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -46,17 +62,7 @@ final class AppState {
         } catch {
             fatalError("Cannot open the database: \(error.localizedDescription)")
         }
-        db = database
-        settings = database.loadSettings()
-        let month = DateRange.month(containing: Date())!
-        from = month.from
-        to = month.to
-        reloadAll()
-        refreshCalendars()
-        // New accounts and calendars sync in the background; refresh the list when macOS reports a change.
-        calendarObserver = NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refreshCalendars() }
-        }
+        self.init(db: database, services: .live)
     }
 
     // MARK: Range
@@ -68,7 +74,7 @@ final class AppState {
     var rangeEnd: Date { range.end }
 
     func setRange(_ r: QuickRange) {
-        guard let new = DateRange.quick(r) else { return }
+        guard let new = DateRange.quick(r, now: services.now()) else { return }
         apply(new)
     }
 
@@ -107,7 +113,7 @@ final class AppState {
     var days: [String] { Array(Set(worklogs.map(\.day))).sorted() }
 
     func total(day: String) -> Int {
-        worklogs.filter { $0.day == day }.reduce(0) { $0 + $1.duration }
+        worklogs.filter { $0.day == day }.totalDuration
     }
 
     func makeBuilder() -> WorklogBuilder {
@@ -142,7 +148,7 @@ final class AppState {
         defer { isBusy = false }
 
         var authors = settings.authorEmails
-        if authors.isEmpty, let email = GitScanner.globalUserEmail() {
+        if authors.isEmpty, let email = services.git.globalUserEmail() {
             authors = [email]
             settings.authorEmails = [email]
         }
@@ -154,13 +160,14 @@ final class AppState {
         let enabled = repos.filter(\.enabled)
         let start = rangeStart, end = rangeEnd
         let ignored = settings.ignoredPathPatterns
+        let git = services.git
         status = "Reading git history of \(enabled.count) repositories…"
         let (results, errors) = await Task.detached(priority: .userInitiated) { () -> ([(Int64, [GitCommit])], [String]) in
             var ok: [(Int64, [GitCommit])] = []
             var failed: [String] = []
             for repo in enabled {
                 do {
-                    ok.append((repo.id, try GitLogReader.log(repoPath: repo.path, since: start, until: end, authors: authors)))
+                    ok.append((repo.id, try git.log(repoPath: repo.path, since: start, until: end, authors: authors)))
                 } catch {
                     failed.append("\(repo.name): \(error.localizedDescription)")
                 }
@@ -272,21 +279,15 @@ final class AppState {
     // MARK: Repositories
 
     func chooseWorkspace() {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = false
-        panel.allowsMultipleSelection = false
-        panel.prompt = "Use folder"
-        if panel.runModal() == .OK, let url = panel.url {
-            settings.workspaceRoot = url.path
-            scanWorkspace()
-        }
+        guard let url = services.files.chooseFolder() else { return }
+        settings.workspaceRoot = url.path
+        scanWorkspace()
     }
 
     func scanWorkspace() {
         guard !settings.workspaceRoot.isEmpty else { status = "Choose your workspace folder first."; return }
         let root = URL(fileURLWithPath: (settings.workspaceRoot as NSString).expandingTildeInPath)
-        let found = GitScanner.findRepos(root: root, excluded: settings.excludedFolders)
+        let found = services.git.findRepos(root: root, excluded: settings.excludedFolders)
         attempt("Scanning") {
             for url in found { try db.addRepo(path: url.path, name: url.lastPathComponent) }
         }
@@ -343,11 +344,11 @@ final class AppState {
 
     // MARK: Google Calendar
 
-    private func auth() -> GoogleAuth {
-        let secret = Keychain.get(SecretKey.googleSecret) ?? ""
-        if let a = googleAuth, a.clientId == settings.googleClientId, a.clientSecret == secret { return a }
-        let a = GoogleAuth(clientId: settings.googleClientId, clientSecret: secret)
-        googleAuth = a
+    private func google() -> any GoogleCalendarAccount {
+        let secret = services.secrets.get(SecretKey.googleSecret) ?? ""
+        if let a = googleAccount, a.clientId == settings.googleClientId, a.clientSecret == secret { return a }
+        let a = services.makeGoogle(settings.googleClientId, secret)
+        googleAccount = a
         return a
     }
 
@@ -356,7 +357,7 @@ final class AppState {
         defer { isBusy = false }
         status = "Finish signing in to Google in your browser…"
         do {
-            try await auth().signIn()
+            try await google().signIn()
             googleConnected = true
             status = "Google Calendar connected."
         } catch {
@@ -365,7 +366,7 @@ final class AppState {
     }
 
     func disconnectGoogle() {
-        auth().signOut()
+        google().signOut()
         googleConnected = false
         status = "Google Calendar disconnected."
     }
@@ -381,8 +382,8 @@ final class AppState {
     }
 
     func refreshCalendars() {
-        calendarAccess = macCalendarStore.access
-        macCalendars = calendarAccess == .granted ? macCalendarStore.calendars() : []
+        calendarAccess = services.calendars.access
+        macCalendars = calendarAccess == .granted ? services.calendars.calendars() : []
     }
 
     func signInWithGoogle() {
@@ -392,7 +393,7 @@ final class AppState {
 
     func requestCalendarAccess() async {
         do {
-            let granted = try await macCalendarStore.requestAccess()
+            let granted = try await services.calendars.requestAccess()
             refreshCalendars()
             status = granted ? "Calendar access allowed. Tick the calendars to read."
                              : "Calendar access was not allowed. You can change this in System Settings → Privacy & Security → Calendars."
@@ -419,13 +420,12 @@ final class AppState {
         if googleConnected { active.insert(googleApiCalendarId) }
 
         var count = 0
-        let macEvents = macCalendarStore.meetings(calendarIds: macIds, from: rangeStart, to: rangeEnd)
+        let macEvents = services.calendars.meetings(calendarIds: macIds, from: rangeStart, to: rangeEnd)
         try db.syncMeetings(from: rangeStart, to: rangeEnd, calendarIds: macIds, activeCalendarIds: active, events: macEvents)
         count += macEvents.count
 
         if googleConnected {
-            let events = try await GoogleCalendarClient(auth: auth())
-                .meetings(calendarId: googleApiCalendarId, from: rangeStart, to: rangeEnd)
+            let events = try await google().meetings(calendarId: googleApiCalendarId, from: rangeStart, to: rangeEnd)
             try db.syncMeetings(from: rangeStart, to: rangeEnd, calendarIds: [googleApiCalendarId],
                                 activeCalendarIds: active, events: events)
             count += events.count
@@ -472,16 +472,12 @@ final class AppState {
     }
 
     func copyMarkdown(_ logs: [Worklog]) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(markdown(logs), forType: .string)
+        services.files.copyToPasteboard(markdown(logs))
         status = "Copied the Tempo checklist for \(TempoExport.exportable(logs).count) worklogs. Paste it to Claude with Claude in Chrome."
     }
 
     private func save(_ data: Data, name: String, type: UTType) {
-        let panel = NSSavePanel()
-        panel.nameFieldStringValue = name
-        panel.allowedContentTypes = [type]
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard let url = services.files.saveLocation(suggestedName: name, type: type) else { return }
         attempt("Writing file") {
             try data.write(to: url, options: .atomic)
             status = "Saved \(url.lastPathComponent)."
@@ -504,39 +500,17 @@ final class AppState {
         defer { isBusy = false }
         saveDirty()
         do {
-            let client = try TempoClient(settings: settings)
+            let client = try services.makeTempo(settings)
             if settings.jiraAccountId.isEmpty {
                 status = "Reading your Jira account…"
                 settings.jiraAccountId = try await client.accountId()
             }
-            var done = 0
-            var failures: [String] = []
-            let payloads = TempoExport.payloads(logs, accountId: settings.jiraAccountId)
-            let pending = TempoExport.exportable(logs)
-            for (log, payload) in zip(pending, payloads) {
-                status = "Sending \(done + 1) of \(pending.count) to Tempo…"
-                do {
-                    var p = payload
-                    if let cached = db.cachedIssueId(p.issueKey) {
-                        p.issueId = cached
-                    } else {
-                        let id = try await client.issueId(for: p.issueKey)
-                        try db.cacheIssueId(p.issueKey, id)
-                        p.issueId = id
-                    }
-                    let tempoId = try await client.create(p)
-                    var w = log
-                    w.tempoId = tempoId
-                    w.status = .exported
-                    w.locked = true
-                    try db.updateWorklog(w)
-                    done += 1
-                } catch {
-                    failures.append("\(payload.issueKey) \(payload.startDate): \(error.localizedDescription)")
-                }
+            let outcome = await TempoExporter(db: db, client: client).push(logs, accountId: settings.jiraAccountId) {
+                self.status = "Sending \($0) of \($1) to Tempo…"
             }
             reloadRange()
-            status = "Sent \(done) worklogs to Tempo." + (failures.isEmpty ? "" : " Failed: " + failures.joined(separator: " | "))
+            status = "Sent \(outcome.sent) worklogs to Tempo."
+                + (outcome.failures.isEmpty ? "" : " Failed: " + outcome.failures.joined(separator: " | "))
         } catch {
             status = error.localizedDescription
         }

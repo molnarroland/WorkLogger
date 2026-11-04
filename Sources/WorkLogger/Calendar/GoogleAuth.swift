@@ -114,15 +114,17 @@ final class GoogleAuth {
 
     let clientId: String
     let clientSecret: String
+    let secrets: any SecretStore
+    let http: any HTTPClient
     private var accessToken: String?
     private var expiry = Date.distantPast
 
-    init(clientId: String, clientSecret: String) {
+    init(clientId: String, clientSecret: String, secrets: any SecretStore, http: any HTTPClient) {
         self.clientId = clientId
         self.clientSecret = clientSecret
+        self.secrets = secrets
+        self.http = http
     }
-
-    static var isSignedIn: Bool { Keychain.get(SecretKey.googleRefresh) != nil }
 
     func signIn() async throws {
         guard !clientId.isEmpty, !clientSecret.isEmpty else { throw GoogleAuthError.notConfigured }
@@ -161,19 +163,19 @@ final class GoogleAuth {
             "redirect_uri": redirect, "grant_type": "authorization_code", "code_verifier": verifier,
         ])
         guard let refresh = token.refresh_token else { throw GoogleAuthError.badResponse("no refresh token") }
-        Keychain.set(refresh, for: SecretKey.googleRefresh)
+        secrets.set(refresh, for: SecretKey.googleRefresh)
         accessToken = token.access_token
         expiry = Date().addingTimeInterval(TimeInterval(token.expires_in - 60))
     }
 
     func signOut() {
-        Keychain.set(nil, for: SecretKey.googleRefresh)
+        secrets.set(nil, for: SecretKey.googleRefresh)
         accessToken = nil
     }
 
     func validAccessToken() async throws -> String {
         if let t = accessToken, expiry > Date() { return t }
-        guard let refresh = Keychain.get(SecretKey.googleRefresh) else { throw GoogleAuthError.notSignedIn }
+        guard let refresh = secrets.get(SecretKey.googleRefresh) else { throw GoogleAuthError.notSignedIn }
         let token = try await tokenRequest([
             "refresh_token": refresh, "client_id": clientId, "client_secret": clientSecret,
             "grant_type": "refresh_token",
@@ -195,7 +197,7 @@ final class GoogleAuth {
         req.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         req.httpBody = form.map { "\($0.key)=\(Self.formEncode($0.value))" }
             .joined(separator: "&").data(using: .utf8)
-        let (data, resp) = try await URLSession.shared.data(for: req)
+        let (data, resp) = try await http.send(req)
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
             throw GoogleAuthError.badResponse(String(decoding: data, as: UTF8.self))
         }
@@ -218,5 +220,11 @@ final class GoogleAuth {
             .replacingOccurrences(of: "+", with: "-")
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
+    }
+}
+
+extension GoogleAuth: GoogleCalendarAccount {
+    func meetings(calendarId: String, from: Date, to: Date) async throws -> [Meeting] {
+        try await GoogleCalendarClient(auth: self, http: http).meetings(calendarId: calendarId, from: from, to: to)
     }
 }

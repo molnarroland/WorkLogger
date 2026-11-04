@@ -221,14 +221,15 @@ struct ListField: View {
 
 /// Stores a secret in the Keychain instead of the database.
 struct SecretField: View {
+    @Environment(AppState.self) private var state
     let title: String
     let account: String
     @State private var value = ""
 
     var body: some View {
         SecureField(title, text: $value)
-            .onAppear { value = Keychain.get(account) ?? "" }
-            .onChange(of: value) { Keychain.set(value, for: account) }
+            .onAppear { value = state.services.secrets.get(account) ?? "" }
+            .onChange(of: value) { state.services.secrets.set(value, for: account) }
     }
 }
 

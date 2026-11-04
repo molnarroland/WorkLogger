@@ -2,6 +2,7 @@ import Foundation
 
 struct GoogleCalendarClient {
     let auth: GoogleAuth
+    let http: any HTTPClient
 
     private struct EventsPage: Decodable {
         let items: [Event]?
@@ -57,7 +58,7 @@ struct GoogleCalendarClient {
 
             var req = URLRequest(url: c.url!)
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            let (data, resp) = try await URLSession.shared.data(for: req)
+            let (data, resp) = try await http.send(req)
             guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
                 throw GoogleAuthError.badResponse(String(decoding: data, as: UTF8.self))
             }

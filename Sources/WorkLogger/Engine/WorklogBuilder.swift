@@ -128,9 +128,8 @@ struct WorklogBuilder {
 
     /// Working time of the day: imported sessions minus breaks, or the default workday when nothing was imported.
     func workWindows(_ input: DayInput) -> (windows: [Interval], fromSessions: Bool) {
-        let work = input.sessions.filter { $0.kind == .work }.map { Interval(start: $0.start, end: $0.end) }
-        let pauses = input.sessions.filter { $0.kind == .pause }.map { Interval(start: $0.start, end: $0.end) }
-        if !work.isEmpty { return (Intervals.subtract(work, pauses), true) }
+        let pauses = input.sessions.pauseIntervals
+        if !input.sessions.workIntervals.isEmpty { return (input.sessions.netWork, true) }
         guard let s = DayKey.at(input.day, hm: settings.defaultDayStart),
               let e = DayKey.at(input.day, hm: settings.defaultDayEnd), e > s
         else { return ([], false) }
@@ -208,7 +207,7 @@ struct WorklogBuilder {
 
         // 3. Daily target.
         let target = dailyTarget(day: input.day, info: input.info, windows: windows, fromSessions: fromSessions)
-        let fixedTotal = out.reduce(0) { $0 + $1.duration } + input.kept.reduce(0) { $0 + $1.duration }
+        let fixedTotal = out.totalDuration + input.kept.totalDuration
 
         // Inside a project period all commit time goes to the period's issue, and a workday is filled with it.
         if let period, let issue = JiraKey.normalize(period.issueKey) {

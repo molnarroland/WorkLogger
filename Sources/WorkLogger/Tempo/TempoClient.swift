@@ -12,19 +12,21 @@ enum TempoError: LocalizedError {
 }
 
 /// Jira Cloud (for account and issue ids) + Tempo REST API v4 (for creating worklogs).
-struct TempoClient {
+struct TempoClient: TempoService {
     var jiraBaseURL: String
     var jiraEmail: String
     var jiraToken: String
     var tempoBaseURL: String
     var tempoToken: String
+    var http: any HTTPClient
 
-    init(settings: AppSettings) throws {
+    init(settings: AppSettings, secrets: any SecretStore, http: any HTTPClient) throws {
+        self.http = http
         jiraBaseURL = settings.jiraBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
         jiraEmail = settings.jiraEmail
         tempoBaseURL = settings.tempoBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
-        jiraToken = Keychain.get(SecretKey.jiraToken) ?? ""
-        tempoToken = Keychain.get(SecretKey.tempoToken) ?? ""
+        jiraToken = secrets.get(SecretKey.jiraToken) ?? ""
+        tempoToken = secrets.get(SecretKey.tempoToken) ?? ""
         if jiraBaseURL.isEmpty { throw TempoError.missing("the Jira site URL") }
         if jiraEmail.isEmpty || jiraToken.isEmpty { throw TempoError.missing("the Jira email or API token") }
         if tempoToken.isEmpty { throw TempoError.missing("the Tempo API token") }
@@ -39,7 +41,7 @@ struct TempoClient {
     }
 
     private func send(_ req: URLRequest, _ what: String) async throws -> Data {
-        let (data, resp) = try await URLSession.shared.data(for: req)
+        let (data, resp) = try await http.send(req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
         guard (200..<300).contains(code) else { throw TempoError.http(what, code, String(decoding: data, as: UTF8.self)) }
         return data

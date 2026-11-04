@@ -91,9 +91,8 @@ struct SessionList: View {
             ForEach(days, id: \.self) { day in
                 let items = (byDay[day] ?? []).sorted { $0.start < $1.start }
                 let record = records[day]
-                let work = items.filter { $0.kind == .work }.map { Interval(start: $0.start, end: $0.end) }
-                let pauses = items.filter { $0.kind == .pause }.map { Interval(start: $0.start, end: $0.end) }
-                let net = Int(Intervals.total(Intervals.subtract(work, pauses)))
+                let work = items.workIntervals
+                let net = Int(Intervals.total(items.netWork))
                 Section {
                     ForEach(items, id: \.self) { s in
                         HStack {
