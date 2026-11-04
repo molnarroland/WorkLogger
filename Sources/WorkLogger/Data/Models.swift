@@ -93,7 +93,7 @@ struct Meeting: Identifiable, Hashable {
 }
 
 enum WorklogSource: String, Codable, CaseIterable {
-    case git, meeting, absence, manual, period
+    case git, meeting, absence, manual, period, chat
 
     var icon: String {
         switch self {
@@ -102,6 +102,7 @@ enum WorklogSource: String, Codable, CaseIterable {
         case .absence: return "beach.umbrella"
         case .manual: return "pencil"
         case .period: return "flag"
+        case .chat: return "bubble.left.and.bubble.right"
         }
     }
     var label: String {
@@ -111,6 +112,7 @@ enum WorklogSource: String, Codable, CaseIterable {
         case .absence: return "Absence"
         case .manual: return "Manual"
         case .period: return "Periods"
+        case .chat: return "Chats"
         }
     }
 }

@@ -5,18 +5,28 @@ enum Pane: String, CaseIterable, Identifiable {
     case calendar = "Meetings"
     case sessions = "Work sessions"
     case periods = "Periods"
+    case chats = "Chats"
     case timesheet = "Timesheet"
     case review = "Review"
     case reports = "Totals"
     case export = "Export"
 
     var id: String { rawValue }
+    var module: Module? {
+        switch self {
+        case .repositories: return .git
+        case .calendar: return .calendar
+        case .sessions: return .workTimes
+        default: return nil
+        }
+    }
     var icon: String {
         switch self {
         case .repositories: return "externaldrive.connected.to.line.below"
         case .calendar: return "person.2"
         case .sessions: return "clock.badge.checkmark"
         case .periods: return "flag"
+        case .chats: return "bubble.left.and.bubble.right"
         case .timesheet: return "calendar"
         case .review: return "checklist"
         case .reports: return "chart.bar.xaxis"
@@ -33,10 +43,12 @@ enum Step: String, CaseIterable, Identifiable {
     case finish = "4 · Check & export"
 
     var id: String { rawValue }
-    var panes: [Pane] {
+    func panes(_ modules: Set<Module>) -> [Pane] { allPanes.filter { $0.module.map(modules.contains) ?? true } }
+
+    private var allPanes: [Pane] {
         switch self {
         case .setup: return [.repositories, .calendar]
-        case .gather: return [.sessions, .periods]
+        case .gather: return [.sessions, .periods, .chats]
         case .fill: return [.timesheet, .review]
         case .finish: return [.reports, .export]
         }
@@ -47,18 +59,25 @@ struct ContentView: View {
     @Environment(AppState.self) private var state
     @State private var pane: Pane? = .timesheet
     @State private var showExport = false
+    @State private var showWelcome = false
 
     var body: some View {
         NavigationSplitView {
             List(selection: $pane) {
                 ForEach(Step.allCases) { step in
-                    Section(step.rawValue) {
-                        ForEach(step.panes) { p in
+                    let panes = step.panes(state.settings.modules)
+                    if !panes.isEmpty { Section(step.rawValue) {
+                        ForEach(panes) { p in
                             Label(p.rawValue, systemImage: p.icon).tag(p)
                         }
-                    }
+                    } }
                 }
             }
+            // The sidebar gets no toolbar inset and opens scrolled under the traffic lights, so reserve the
+            // space outside the scroll view and pin the list to its top.
+            // ponytail: fixed 28pt, tune if the header still overlaps.
+            .safeAreaInset(edge: .top, spacing: 0) { Color.clear.frame(height: 28) }
+            .defaultScrollAnchor(.top)
             .navigationSplitViewColumnWidth(min: 190, ideal: 210)
         } detail: {
             Group {
@@ -67,6 +86,7 @@ struct ContentView: View {
                 case .calendar: CalendarView()
                 case .sessions: SessionsView()
                 case .periods: PeriodsView()
+                case .chats: ChatsView()
                 case .timesheet: TimesheetView()
                 case .review: ReviewView()
                 case .reports: ReportsView()
@@ -75,6 +95,11 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .safeAreaInset(edge: .bottom, spacing: 0) { StatusBar() }
+        }
+        .sheet(isPresented: $showWelcome) { WelcomeView() }
+        .onAppear { showWelcome = !state.settings.welcomed }
+        .onChange(of: state.settings.modules) {
+            if let m = pane?.module, !state.settings.modules.contains(m) { pane = .timesheet }
         }
         .toolbar(removing: .title)   // the title is drawn centered as the principal item instead
         .toolbar {
@@ -98,6 +123,8 @@ struct ContentView: View {
             }
             ToolbarSpacer(.fixed, placement: .primaryAction)
             ToolbarItemGroup(placement: .primaryAction) {
+                Button { showWelcome = true } label: { Label("Modules", systemImage: "square.grid.2x2") }
+                    .help("Choose which data sources WorkLogger uses")
                 Button { showExport.toggle() } label: { Label("Export", systemImage: "square.and.arrow.up") }
                     .help("Export to Tempo, Markdown for Claude, CSV or JSON")
                     .popover(isPresented: $showExport, arrowEdge: .bottom) { ExportView() }

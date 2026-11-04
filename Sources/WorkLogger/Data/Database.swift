@@ -237,5 +237,31 @@ final class Database {
             PRAGMA user_version = 2;
             """)
         }
+        if version < 3 {
+            try execute("""
+            CREATE TABLE IF NOT EXISTS chat_conversations(
+                id TEXT PRIMARY KEY,
+                source TEXT NOT NULL,
+                type TEXT NOT NULL DEFAULT '',
+                name TEXT NOT NULL DEFAULT ''
+            );
+            CREATE TABLE IF NOT EXISTS chat_messages(
+                conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+                ts_ms INTEGER NOT NULL,
+                sender TEXT NOT NULL,
+                me INTEGER NOT NULL DEFAULT 0,
+                text TEXT NOT NULL DEFAULT '',
+                PRIMARY KEY(conversation_id, ts_ms, sender)
+            );
+            CREATE INDEX IF NOT EXISTS idx_chat_messages_ts ON chat_messages(ts_ms);
+            PRAGMA user_version = 3;
+            """)
+        }
+        if version < 4 {
+            try execute("""
+            ALTER TABLE chat_messages ADD COLUMN files TEXT NOT NULL DEFAULT '';
+            PRAGMA user_version = 4;
+            """)
+        }
     }
 }

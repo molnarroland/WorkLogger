@@ -12,6 +12,7 @@ final class AppState {
             guard settings != oldValue else { return }
             try? db.saveSettings(settings)
             if settings.excludedFolders != oldValue.excludedFolders { removeHiddenRepos() }
+            if settings.modules != oldValue.modules { reloadRange() }
         }
     }
 
@@ -25,6 +26,7 @@ final class AppState {
     var dayRecords: [String: DayRecord] = [:]
     var dirty: Set<Int64> = []
     var status = "Ready"
+    var chats: [ChatDay] = []
     var isBusy = false
     var googleConnected: Bool
     var calendarAccess: MacCalendarStore.Access = .notDetermined
@@ -103,9 +105,12 @@ final class AppState {
     func reloadRange() {
         attempt("Loading") {
             worklogs = try db.worklogs(fromDay: fromDay, toDay: toDay)
-            meetings = try db.meetings(from: rangeStart, to: rangeEnd)
-            sessions = try db.sessions(fromDay: fromDay, toDay: toDay)
-            dayRecords = Dictionary(uniqueKeysWithValues: try db.dayRecords(fromDay: fromDay, toDay: toDay).map { ($0.day, $0) })
+            let on = settings.modules
+            chats = try db.chatDays(from: rangeStart, to: rangeEnd)
+            meetings = on.contains(.calendar) ? try db.meetings(from: rangeStart, to: rangeEnd) : []
+            sessions = on.contains(.workTimes) ? try db.sessions(fromDay: fromDay, toDay: toDay) : []
+            dayRecords = on.contains(.workTimes)
+                ? Dictionary(uniqueKeysWithValues: try db.dayRecords(fromDay: fromDay, toDay: toDay).map { ($0.day, $0) }) : [:]
         }
         dirty.removeAll()
     }
@@ -147,17 +152,18 @@ final class AppState {
         isBusy = true
         defer { isBusy = false }
 
+        let useGit = settings.modules.contains(.git)
         var authors = settings.authorEmails
-        if authors.isEmpty, let email = services.git.globalUserEmail() {
+        if useGit, authors.isEmpty, let email = services.git.globalUserEmail() {
             authors = [email]
             settings.authorEmails = [email]
         }
-        guard !authors.isEmpty else {
+        guard !useGit || !authors.isEmpty else {
             status = "Add your commit email address under Repositories so only your commits are counted."
             return
         }
 
-        let enabled = repos.filter(\.enabled)
+        let enabled = useGit ? repos.filter(\.enabled) : []
         let start = rangeStart, end = rangeEnd
         let ignored = settings.ignoredPathPatterns
         let git = services.git
@@ -187,13 +193,15 @@ final class AppState {
 
         var meetingCount = 0
         if canReadMeetings {
-            status = "Reading meetings from Google Calendar…"
+            status = "Reading meetings from your calendars…"
             do { meetingCount = try await fetchMeetings() } catch { status = "Calendar: \(error.localizedDescription)" }
         }
 
         rebuild()
-        var summary = "Collected \(commitCount) commits"
-        if canReadMeetings { summary += " and \(meetingCount) meetings" }
+        var parts: [String] = []
+        if useGit { parts.append("\(commitCount) commits") }
+        if canReadMeetings { parts.append("\(meetingCount) meetings") }
+        var summary = parts.isEmpty ? "Nothing to collect" : "Collected " + parts.joined(separator: " and ")
         summary += " for \(fromDay) – \(toDay)."
         if !errors.isEmpty { summary += " Skipped: " + errors.joined(separator: "; ") }
         status = summary
@@ -371,10 +379,11 @@ final class AppState {
         status = "Google Calendar disconnected."
     }
 
-    // MARK: macOS calendars (Google via Internet Accounts)
+    // MARK: macOS calendars (any online account via Internet Accounts)
 
     var canReadMeetings: Bool {
-        googleConnected || (calendarAccess == .granted && !settings.macCalendarIds.isEmpty)
+        settings.modules.contains(.calendar)
+            && (googleConnected || (calendarAccess == .granted && !settings.macCalendarIds.isEmpty))
     }
 
     private var googleApiCalendarId: String {
@@ -386,9 +395,9 @@ final class AppState {
         macCalendars = calendarAccess == .granted ? services.calendars.calendars() : []
     }
 
-    func signInWithGoogle() {
+    func openInternetAccounts() {
         MacCalendarStore.openInternetAccounts()
-        status = "In Internet Accounts choose Add Account… → Google, sign in and keep Calendars switched on."
+        status = "In Internet Accounts choose Add Account…, sign in and keep Calendars switched on."
     }
 
     func requestCalendarAccess() async {
@@ -519,6 +528,54 @@ final class AppState {
     // MARK: Helpers
 
     var databasePath: String { db.path }
+
+    // MARK: Chats
+
+    /// Imports a pasted chat export; returns false (with the reason in the status) when it can't be read.
+    func importChats(_ pasted: String) -> Bool {
+        do {
+            let export = try ChatExport.parse(pasted)
+            let added = try db.importChats(export)
+            reloadRange()
+            status = "Imported \(added) new messages from \(export.conversations.count) conversations."
+            return true
+        } catch {
+            status = "Chat import failed: \(error.localizedDescription)"
+            return false
+        }
+    }
+
+    func chatLines(_ c: ChatDay) -> [ChatLine] {
+        (try? db.chatLines(conversationId: c.conversationId, day: c.day)) ?? []
+    }
+
+    /// The worklog a conversation-day was logged to, if any.
+    func chatWorklog(_ c: ChatDay) -> Worklog? { worklogs.first { $0.source == .chat && $0.sourceRef == c.ref } }
+
+    /// Logs a conversation-day's active time to an issue (or re-targets the existing entry); locked so rebuilds keep it.
+    func logChat(_ c: ChatDay, issue: String) {
+        guard let key = JiraKey.normalize(issue), c.activeSeconds > ChatDay.minLoggable else { return }
+        saveDirty()
+        let minutes = (c.activeSeconds + 59) / 60
+        attempt("Logging chat") {
+            if var w = chatWorklog(c) {
+                guard w.status != .exported else { return }
+                w.issueKey = key
+                try db.updateWorklog(w)
+            } else {
+                try db.insertWorklog(Worklog(id: 0, day: c.day, start: c.times[0], duration: minutes * 60, issueKey: key,
+                                             description: "Chat: \(c.name)", source: .chat, sourceRef: c.ref, repoId: nil,
+                                             estimated: c.activeSeconds, status: .draft, locked: true, tempoId: nil))
+            }
+            status = "Logged \(DurationFormat.string(minutes * 60)) of “\(c.name)” to \(key)."
+        }
+        reloadRange()
+    }
+
+    func clearChatsInRange() {
+        attempt("Clearing chats") { try db.deleteChats(from: rangeStart, to: rangeEnd) }
+        reloadRange()
+    }
 
     private func attempt(_ label: String, _ body: () throws -> Void) {
         do { try body() } catch { status = "\(label) failed: \(error.localizedDescription)" }

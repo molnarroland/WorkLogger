@@ -22,7 +22,7 @@ import Testing
     // MARK: Schema & transactions
 
     @Test func migratesToTheLatestVersion() throws {
-        #expect(try db.query("PRAGMA user_version").first?.intValue("user_version") == 2)
+        #expect(try db.query("PRAGMA user_version").first?.intValue("user_version") == 4)
         #expect(db.path == ":memory:")
     }
 

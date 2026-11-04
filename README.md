@@ -1,6 +1,6 @@
 # WorkLogger
 
-A macOS SwiftUI app that turns your git history, Google Calendar meetings and the monthly report of your
+A macOS SwiftUI app that turns your git history, calendar meetings and the monthly report of your
 work-time logger into reviewed timesheets, stored in a local SQLite file and exported to Tempo.
 
 ## Run it
@@ -25,7 +25,7 @@ Data lives in `~/Library/Application Support/WorkLogger/worklogs.sqlite`. Tokens
 2. **Work sessions** – paste the monthly HTML (page source or copied text) of your work-time logger, choose
    Parse, check the preview, Import. Multiple sessions per day are fine; break rows (lunch, ebéd, szünet…)
    and the gaps between sessions are not working time.
-3. **Calendar** – connect Google Calendar (see below) and add rules such as `standup → INT-12`.
+3. **Calendar** – add your calendar account (see below) and add rules such as `standup → INT-12`.
 4. **Timesheet** – Tempo-style month grid: each day shows logged vs. expected hours (green complete, orange partly,
    red nothing, purple leave). Click a day for its entries; shift-click a second day to mark the stretch as a period.
 5. **Periods** – book a stretch of days to one issue for a larger project: commit time and the rest of each workday
@@ -80,12 +80,14 @@ The day's target is HRmaster's “Ledolgozott órák”, rounded up (Settings �
 
 Run `swift test` to check the parser against fixture rows built from the real page markup.
 
-## Google Calendar
+## Calendars
 
-No Google Cloud project or client ID is needed. The app reads calendars through macOS:
+No client ID or API key is needed. The app reads calendars through macOS, so Any account that syncs calendars to macOS works: Google, Microsoft Exchange / Outlook, iCloud, Yahoo or CalDAV.
 
-1. Calendar page → **Sign in with Google…** opens System Settings → Internet Accounts.
-   Choose Add Account… → Google, sign in on Google's page, keep **Calendars** on.
+
+
+1. Meetings page → **Open Internet Accounts…** opens System Settings → Internet Accounts.
+   Choose Add Account…, sign in on the provider's page, keep **Calendars** on.
 2. **Allow calendar access** (one-time macOS prompt).
 3. Tick the calendars to read (work calendar, shared team calendars…). New accounts may take a minute to sync.
 

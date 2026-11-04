@@ -106,6 +106,47 @@ import Testing
         #expect(app.state.status == "Collected 0 commits and 1 meetings for 2026-03-01 – 2026-03-31.")
     }
 
+    @Test func disabledModulesAreNeitherReadNorBuilt() async throws {
+        var settings = AppSettings()
+        settings.macCalendarIds = ["work"]
+        settings.modules = [.calendar]
+        let app = try AppHarness(settings: settings)
+        let repo = try app.addRepo()
+        app.git.commits[repo.path] = [gitCommit("a", "2026-03-03", "10:00")]
+        app.calendars.access = .granted
+        app.calendars.events = [Fixture.meeting("m1", day: "2026-03-03", "09:00", "10:00", calendarId: "work")]
+        app.state.refreshCalendars()
+
+        await app.state.collect()   // no author email needed without git
+        #expect(app.git.logCalls.isEmpty)
+        #expect(app.state.worklogs.map(\.source) == [.meeting])
+        #expect(app.state.status == "Collected 1 meetings for 2026-03-01 – 2026-03-31.")
+
+        app.state.settings.modules = []
+        #expect(app.state.meetings.isEmpty)
+        app.state.rebuild()
+        #expect(!app.state.worklogs.contains { $0.source == .meeting })
+    }
+
+    @Test func chatsAreLoggedToAnIssueOnceAndSurviveRebuilds() throws {
+        let app = try AppHarness()
+        let json = """
+        {"source":"google-chat","conversations":[{"id":"dm/B","type":"dm","name":"Bea","messages":[
+          {"time":"2026-03-03T09:00:00Z","sender":"me@x","me":true,"text":"second"},
+          {"time":"2026-03-03T08:58:00Z","sender":null,"me":false,"text":"first"}]}]}
+        """
+        #expect(app.state.importChats(json))
+        let chat = try #require(app.state.chats.first)
+        #expect(app.state.chatLines(chat).map(\.text) == ["first", "second"])
+
+        app.state.logChat(chat, issue: "tao-7")
+        app.state.logChat(chat, issue: "TAO-8")
+        app.state.rebuild()
+        let logs = app.state.worklogs.filter { $0.source == .chat }
+        #expect(logs.map(\.issueKey) == ["TAO-8"])
+        #expect(logs.first?.duration == 120)
+    }
+
     // MARK: Editing
 
     @Test func addManualStartsAfterTheLastEntry() throws {

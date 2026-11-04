@@ -4,6 +4,7 @@ struct ReviewView: View {
     @Environment(AppState.self) private var state
     /// Only the selected entry gets the editable row; the rest are plain text, which keeps scrolling smooth.
     @State private var selected: Int64?
+    @State private var chatDay: String?
 
     var body: some View {
         // Group once per render: each section then only builds its own rows (was days × all entries).
@@ -27,6 +28,7 @@ struct ReviewView: View {
                     ForEach(byDay.keys.sorted(), id: \.self) { day in
                         let rows = byDay[day]!.map { (index: $0, log: state.worklogs[$0]) }
                         Section {
+                            ChatDaySummary(day: day) { chatDay = $0 }
                             ForEach(rows, id: \.log.id) { row in
                                 Group {
                                     if selected == row.log.id {
@@ -52,6 +54,7 @@ struct ReviewView: View {
                 .listStyle(.inset)
             }
         }
+        .chatInspector(day: $chatDay)
     }
 
     /// Binding to one entry by index, guarded by id so a row that is being removed never reads a shifted index.

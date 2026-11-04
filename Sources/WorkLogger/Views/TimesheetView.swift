@@ -6,6 +6,7 @@ import AppKit
 struct TimesheetView: View {
     @Environment(AppState.self) private var state
     @State private var selection: Set<String> = []
+    @State private var chatDay: String?
     @State private var anchor: String?
 
     private var weeks: [[String]] {
@@ -45,11 +46,12 @@ struct TimesheetView: View {
             }
             .frame(minWidth: 640)
 
-            DayDetail(selection: selection.sorted()) { selection = [] }
+            DayDetail(selection: selection.sorted(), clear: { selection = [] }, openChats: { chatDay = $0 })
                 .frame(width: 320)
                 .frame(maxHeight: .infinity, alignment: .top)
                 .padding([.top, .trailing, .bottom], 12)
         }
+        .chatInspector(day: $chatDay)
     }
 
     private func header(logged: Int, expected: Int) -> some View {
@@ -113,6 +115,18 @@ private struct DayCell: View {
     @State private var dropTargeted = false
 
     var body: some View {
+        // Only the selected range is loaded, so days of the neighbouring months show just their date.
+        if inRange { cell } else {
+            Text(DayKey.date(day).formatted(.dateTime.day()))
+                .font(.headline).foregroundStyle(.tertiary)
+                .padding(8)
+                .frame(maxWidth: .infinity, minHeight: 104, maxHeight: .infinity, alignment: .topLeading)
+                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary, lineWidth: 1))
+                .opacity(0.5)
+        }
+    }
+
+    @ViewBuilder private var cell: some View {
         let logs = state.worklogs.filter { $0.day == day }
         let logged = logs.totalDuration
         let expected = state.expected(day: day)
@@ -172,8 +186,8 @@ private struct DayCell: View {
         }
         .padding(8)
         .frame(maxWidth: .infinity, minHeight: 104, maxHeight: .infinity, alignment: .topLeading)
-        .background(color.opacity(inRange ? 0.10 : 0.03), in: .rect(cornerRadius: 12))
-        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(color.opacity(inRange ? 0.45 : 0.1), lineWidth: 1))
+        .background(color.opacity(0.10), in: .rect(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(color.opacity(0.45), lineWidth: 1))
         .glassEffect(selected ? .regular.tint(.accentColor.opacity(0.35)).interactive() : .identity, in: .rect(cornerRadius: 12))
         .clipShape(.rect(cornerRadius: 12))
         .overlay {
@@ -183,11 +197,10 @@ private struct DayCell: View {
         }
         .dropDestination(for: String.self) { items, _ in
             let ids = items.flatMap(WorklogDrag.ids)
-            guard inRange, !ids.isEmpty, state.acceptsWork(day) else { return false }
+            guard !ids.isEmpty, state.acceptsWork(day) else { return false }
             state.move(Set(ids), to: day)
             return true
-        } isTargeted: { dropTargeted = $0 && inRange && state.acceptsWork(day) }
-        .opacity(inRange ? 1 : 0.35)
+        } isTargeted: { dropTargeted = $0 && state.acceptsWork(day) }
         .contentShape(.rect)
     }
 
@@ -209,6 +222,7 @@ private struct DayDetail: View {
     @Environment(AppState.self) private var state
     let selection: [String]
     let clear: () -> Void
+    let openChats: (String) -> Void
     @State private var title = ""
     @State private var issue = ""
 
@@ -257,9 +271,11 @@ private struct DayDetail: View {
             if logs.isEmpty {
                 Text("Nothing logged yet. Collect, rebuild drafts, or add an entry.")
                     .font(.callout).foregroundStyle(.secondary)
-            } else {
+            }
+            if !logs.isEmpty || state.chats.contains(where: { $0.day == day }) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 8) {
+                        ChatDaySummary(day: day, open: openChats)
                         ForEach(logs) { w in
                             HStack(alignment: .top, spacing: 8) {
                                 Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary).imageScale(.small)

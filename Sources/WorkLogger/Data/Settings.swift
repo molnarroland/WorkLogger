@@ -30,7 +30,38 @@ struct ProjectPeriod: Codable, Hashable, Identifiable {
     func contains(_ day: String) -> Bool { from <= day && day <= to }
 }
 
+/// Optional data sources, switched on the welcome screen. Off means the source is neither read nor used for drafts.
+enum Module: String, Codable, CaseIterable, Identifiable {
+    case git, calendar, workTimes
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .git: return "Git repositories"
+        case .calendar: return "Calendar meetings"
+        case .workTimes: return "Work times"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .git: return "externaldrive.connected.to.line.below"
+        case .calendar: return "person.2"
+        case .workTimes: return "clock.badge.checkmark"
+        }
+    }
+    var summary: String {
+        switch self {
+        case .git: return "Turns your commits into worklogs. Leave off if you rarely code."
+        case .calendar: return "Logs meetings from any calendar synced to macOS: Google, Outlook / Exchange, iCloud, CalDAV."
+        case .workTimes: return "Imports clock-in times, leave and holidays from HRmaster or another work-time logger."
+        }
+    }
+}
+
 struct AppSettings: Codable, Equatable {
+    // Modules and first-run welcome
+    var modules: Set<Module> = Set(Module.allCases)
+    var welcomed = false
+
     // Git
     var workspaceRoot: String = ""
     var authorEmails: [String] = []
@@ -65,7 +96,7 @@ struct AppSettings: Codable, Equatable {
     // Project periods: workdays inside are logged to the period's issue
     var periods: [ProjectPeriod] = []
 
-    // Calendars read through macOS (Internet Accounts → Google)
+    // Calendars read through macOS (any account in Internet Accounts)
     var macCalendarIds: [String] = []
 
     // Google Calendar API (optional, needs an own OAuth client)

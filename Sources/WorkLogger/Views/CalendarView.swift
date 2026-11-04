@@ -9,7 +9,8 @@ struct CalendarView: View {
     var body: some View {
         @Bindable var state = state
         let builder = state.makeBuilder()
-        HSplitView {
+        // Not HSplitView: its AppKit divider runs up under the toolbar and cuts through the centered title.
+        HStack(spacing: 0) {
             Form {
                 ConnectSection()
                 if state.calendarAccess == .granted {
@@ -71,7 +72,10 @@ struct CalendarView: View {
                 }
             }
             .formStyle(.grouped)
-            .frame(minWidth: 400, idealWidth: 440, maxHeight: .infinity)
+            .frame(width: 440)
+            .frame(maxHeight: .infinity)
+
+            Divider()
 
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
@@ -85,7 +89,7 @@ struct CalendarView: View {
                 Divider()
                 if state.meetings.isEmpty {
                     ContentUnavailableView("No meetings in this range", systemImage: "calendar",
-                                           description: Text(state.canReadMeetings ? "Choose Read meetings to load them." : "Sign in with Google and pick your calendars first."))
+                                           description: Text(state.canReadMeetings ? "Choose Read meetings to load them." : "Add an online account and pick your calendars first."))
                 } else {
                     List(state.meetings) { m in
                         HStack(spacing: 10) {
@@ -114,7 +118,7 @@ struct CalendarView: View {
     }
 }
 
-/// Sign-in runs in Apple's Internet Accounts with Google's own login page, so no OAuth client is needed.
+/// Accounts are added in Apple's Internet Accounts with the provider's own login page, so no OAuth client is needed.
 private struct ConnectSection: View {
     @Environment(AppState.self) private var state
 
@@ -124,13 +128,13 @@ private struct ConnectSection: View {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "1.circle.fill").font(.title2).foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Sign in to your Google account in macOS")
-                    Text("Add Account… → Google, sign in, keep Calendars switched on.")
+                    Text("Add your calendar account in macOS")
+                    Text("Add Account…, sign in, keep Calendars switched on. Any account that syncs calendars to macOS works: Google, Microsoft Exchange / Outlook, iCloud, Yahoo or CalDAV.")
                         .font(.callout).foregroundStyle(.secondary)
                     Button {
-                        state.signInWithGoogle()
+                        state.openInternetAccounts()
                     } label: {
-                        Label("Sign in with Google…", systemImage: "person.crop.circle.badge.plus")
+                        Label("Open Internet Accounts…", systemImage: "person.crop.circle.badge.plus")
                     }
                     .buttonStyle(.borderedProminent)
                 }
@@ -161,9 +165,9 @@ private struct ConnectSection: View {
                 }
             }
         } header: {
-            Text("Google Calendar")
+            Text("Online Accounts")
         } footer: {
-            Text("Read-only. Your Google password stays with macOS; WorkLogger never sees it.")
+            Text("Read-only. Your password stays with macOS; WorkLogger never sees it.")
         }
     }
 }
