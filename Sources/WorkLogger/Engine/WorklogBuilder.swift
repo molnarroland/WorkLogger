@@ -66,28 +66,27 @@ struct WorklogBuilder {
     /// How long the day should add up to, or nil to keep the raw estimates.
     func dailyTarget(day: String, info: DayRecord?, windows: [Interval], fromSessions: Bool) -> Int? {
         let fixed = Int(settings.fixedDailyHours * 3600)
-        let sessionTotal = info?.reportedWorked.flatMap { $0 > 0 ? $0 : nil } ?? Int(Intervals.total(windows))
+        let worked = info?.reportedWorked.flatMap { $0 > 0 ? $0 : nil } ?? Int(Intervals.total(windows))
         let workday = isWorkday(day, info: info)
         let absence = info?.status.isAbsence ?? false
 
-        switch settings.roundingMode {
-        case .estimate:
-            return nil
-        case .fixedHours:
-            if workday { return fixed }
-            if fromSessions { return sessionTotal }      // worked on a rest day: log what was worked
-            return settings.includeWeekends && !absence ? fixed : nil
-        case .sessions:
-            if fromSessions { return sessionTotal }
-            if workday { return fixed }
-            return settings.includeWeekends && !absence ? fixed : nil
+        guard settings.roundingMode != .estimate else { return nil }
+        // Imported work sessions decide the day, rounded up (7h 22m → 7h 30m); the hours per day are only a fallback.
+        if fromSessions {
+            let step = max(1, settings.dayRoundUpMinutes) * 60
+            return Int((Double(worked) / Double(step)).rounded(.up)) * step
         }
+        if workday { return fixed }
+        return settings.includeWeekends && !absence ? fixed : nil
     }
 
-    /// Where a day's commits are logged: the day itself, or for leave (Szabadság…) the closest workday,
-    /// the earlier one on a tie. Leave days themselves only get the absence entry.
-    func commitDay(for day: String, info: (String) -> DayRecord?) -> String {
-        guard info(day)?.status == .leave else { return day }
+    /// Where a day's commits are logged: the day itself, or the closest workday (the earlier one on a tie) for
+    /// leave (Szabadság…) and for rest days without work sessions, so Saturday goes to Friday and Sunday to Monday.
+    /// Leave days themselves only get the absence entry.
+    func commitDay(for day: String, info: (String) -> DayRecord?, worked: (String) -> Bool = { _ in false }) -> String {
+        let leave = info(day)?.status == .leave
+        let idleRestDay = !isWorkday(day, info: info(day)) && !worked(day) && !settings.includeWeekends
+        guard leave || idleRestDay else { return day }
         let date = DayKey.date(day)
         for offset in 1...31 {
             for sign in [-1, 1] {

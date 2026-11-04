@@ -106,7 +106,7 @@ enum WorklogSource: String, Codable, CaseIterable {
     }
     var label: String {
         switch self {
-        case .git: return "Commits"
+        case .git: return "Coding"
         case .meeting: return "Meetings"
         case .absence: return "Absence"
         case .manual: return "Manual"

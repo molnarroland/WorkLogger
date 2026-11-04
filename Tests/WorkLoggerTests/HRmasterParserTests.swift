@@ -114,7 +114,10 @@ final class HRmasterParserTests: XCTestCase {
             let (w, fromSessions) = builder.workWindows(input(day))
             return builder.dailyTarget(day: day, info: days[day], windows: w, fromSessions: fromSessions)
         }
-        XCTAssertEqual(target("2026-03-02"), 8 * 3600)
+        XCTAssertEqual(target("2026-03-02"), 7 * 3600 + 1800)   // worked 7h 22m → 7h 30m
+        XCTAssertEqual(target("2026-03-09"), 9 * 3600 + 2700)   // worked 9h 33m → 9h 45m
+        XCTAssertEqual(target("2026-03-12"), 10 * 3600 + 900)   // worked 10h 08m → 10h 15m
+        XCTAssertEqual(target("2026-03-03"), 8 * 3600)   // no sessions: hours per day
         XCTAssertNil(target("2026-03-01"))
         XCTAssertNil(target("2026-03-04"))
         XCTAssertNil(target("2026-03-15"))
@@ -138,6 +141,11 @@ final class HRmasterParserTests: XCTestCase {
         // 03-04 (Wed) is Szabadság; 03-03 (Tue) has no record and is a weekday, so it wins over 03-05.
         XCTAssertEqual(builder.commitDay(for: "2026-03-04", info: info), "2026-03-03")
         XCTAssertEqual(builder.commitDay(for: "2026-03-02", info: info), "2026-03-02")
+
+        // Weekend without work sessions: Saturday → Friday, Sunday → Monday; a worked Saturday keeps its commits.
+        XCTAssertEqual(builder.commitDay(for: "2026-03-07", info: info), "2026-03-06")
+        XCTAssertEqual(builder.commitDay(for: "2026-03-08", info: info), "2026-03-09")
+        XCTAssertEqual(builder.commitDay(for: "2026-03-07", info: info, worked: { $0 == "2026-03-07" }), "2026-03-07")
 
         let commit = StoredCommit(repoId: 1, hash: "abc", date: DayKey.at("2026-03-04", hm: "10:00")!, author: "", email: "",
                                   subject: "TAO-1 fix", body: "", ref: "", filesChanged: 1, insertions: 10, deletions: 0)

@@ -13,7 +13,11 @@ enum QuickRange: String, CaseIterable {
 final class AppState {
     let db: Database
     var settings: AppSettings {
-        didSet { if settings != oldValue { try? db.saveSettings(settings) } }
+        didSet {
+            guard settings != oldValue else { return }
+            try? db.saveSettings(settings)
+            if settings.excludedFolders != oldValue.excludedFolders { removeHiddenRepos() }
+        }
     }
 
     var from: Date
@@ -125,8 +129,8 @@ final class AppState {
     }
 
     /// The hours a day should add up to under the current rounding mode, if any.
-    func target(day: String) -> Int? {
-        let builder = makeBuilder()
+    func target(day: String, builder: WorklogBuilder? = nil) -> Int? {
+        let builder = builder ?? makeBuilder()
         let input = DayInput(day: day, sessions: sessions.filter { $0.day == day }, commits: [], meetings: [],
                              kept: [], info: dayRecords[day])
         let (windows, fromSessions) = builder.workWindows(input)
@@ -207,22 +211,31 @@ final class AppState {
         attempt("Building worklogs") {
             try db.transaction {
                 try db.deleteRegeneratable(fromDay: fromDay, toDay: toDay)
-                // Commits made on leave days go to the closest workday, which may lie just outside the range.
+                // Commits made on leave days and on rest days without work sessions go to the closest workday,
+                // which may lie just outside the range.
                 let cal = DayKey.calendar
                 func shift(_ d: Date, _ n: Int) -> Date { cal.date(byAdding: .day, value: n, to: d)! }
                 let padFrom = shift(rangeStart, -31), padTo = shift(rangeEnd, 31)
                 // Twice the padding, so the closest-workday search from a padded leave day sees real day types.
                 let records = Dictionary(uniqueKeysWithValues: try db.dayRecords(
                     fromDay: DayKey.key(shift(rangeStart, -62)), toDay: DayKey.key(shift(rangeEnd, 62))).map { ($0.day, $0) })
+                let workedDays = Set(try db.sessions(fromDay: DayKey.key(padFrom), toDay: DayKey.key(padTo))
+                    .filter { $0.kind == .work }.map(\.day))
                 let rangeDays = DayKey.days(from: from, to: to)
                 let inRange = Set(rangeDays)
                 var commitsByDay: [String: [StoredCommit]] = [:]
-                for day in DayKey.days(from: padFrom, to: padTo) where inRange.contains(day) || records[day]?.status == .leave {
-                    commitsByDay[builder.commitDay(for: day, info: { records[$0] }), default: []] += try db.commits(day: day)
+                for day in DayKey.days(from: padFrom, to: padTo) {
+                    let target = builder.commitDay(for: day, info: { records[$0] }, worked: { workedDays.contains($0) })
+                    guard inRange.contains(day) || target != day else { continue }
+                    commitsByDay[target, default: []] += try db.commits(day: day)
                 }
+                // Entries that survived the delete (locked, moved, reviewed) own their commits wherever they now sit.
+                let claimed = Set(try db.worklogs(fromDay: DayKey.key(padFrom), toDay: DayKey.key(padTo)).flatMap(\.refs))
+                for (day, list) in commitsByDay { commitsByDay[day] = list.filter { !claimed.contains($0.hash) } }
                 for day in rangeDays {
                     let input = DayInput(day: day, sessions: try db.sessions(day: day), commits: commitsByDay[day] ?? [],
-                                         meetings: try db.meetings(day: day), kept: try db.worklogs(day: day),
+                                         meetings: try db.meetings(day: day).filter { !claimed.contains($0.id) },
+                                         kept: try db.worklogs(day: day),
                                          info: try db.dayRecord(day: day))
                     for w in builder.build(input) { try db.insertWorklog(w) }
                 }
@@ -263,6 +276,33 @@ final class AppState {
         reloadRange()
     }
 
+    /// Drag & drop on the timesheet: moves entries to another day, after its last entry, and locks them so a rebuild keeps them.
+    func move(_ ids: Set<Int64>, to day: String) {
+        saveDirty()
+        var cursor = worklogs.filter { $0.day == day }.map(\.end).max()
+            ?? DayKey.at(day, hm: settings.defaultDayStart) ?? DayKey.date(day)
+        var moved = 0
+        attempt("Moving") {
+            try db.transaction {
+                for var w in worklogs where ids.contains(w.id) && w.day != day && w.status != .exported {
+                    w.day = day
+                    w.start = cursor
+                    w.locked = true
+                    cursor = w.end
+                    try db.updateWorklog(w)
+                    moved += 1
+                }
+            }
+            status = "Moved \(moved) \(moved == 1 ? "entry" : "entries") to \(DayKey.title(day))."
+        }
+        reloadRange()
+    }
+
+    /// A day can take dropped entries when it is a workday or has imported work sessions.
+    func acceptsWork(_ day: String) -> Bool {
+        isWorkday(day) || sessions.contains { $0.day == day && $0.kind == .work }
+    }
+
     func setStatus(_ status: WorklogStatus, forAllIn day: String) {
         for i in worklogs.indices where worklogs[i].day == day && worklogs[i].status != .exported {
             worklogs[i].status = status
@@ -289,12 +329,23 @@ final class AppState {
     func scanWorkspace() {
         guard !settings.workspaceRoot.isEmpty else { status = "Choose your workspace folder first."; return }
         let root = URL(fileURLWithPath: (settings.workspaceRoot as NSString).expandingTildeInPath)
-        let found = GitScanner.findRepos(root: root)
+        let found = GitScanner.findRepos(root: root, excluded: settings.excludedFolders)
         attempt("Scanning") {
             for url in found { try db.addRepo(path: url.path, name: url.lastPathComponent) }
         }
         reloadAll()
+        removeHiddenRepos()
         status = "Found \(found.count) repositories in \(root.lastPathComponent)."
+    }
+
+    /// Drops listed repositories that sit inside a hidden folder.
+    func removeHiddenRepos() {
+        let hidden = repos.filter { GitScanner.isExcluded($0.path, by: settings.excludedFolders) }
+        guard !hidden.isEmpty else { return }
+        attempt("Hiding repositories") {
+            for repo in hidden { try db.deleteRepo(repo.id) }
+            repos = try db.repos()
+        }
     }
 
     func update(_ repo: Repo) {

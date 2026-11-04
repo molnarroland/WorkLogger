@@ -2,9 +2,13 @@ import SwiftUI
 
 struct ReviewView: View {
     @Environment(AppState.self) private var state
+    /// Only the selected entry gets the editable row; the rest are plain text, which keeps scrolling smooth.
+    @State private var selected: Int64?
 
     var body: some View {
-        @Bindable var state = state
+        // Group once per render: each section then only builds its own rows (was days × all entries).
+        let byDay = Dictionary(grouping: state.worklogs.indices, by: { state.worklogs[$0].day })
+        let builder = state.makeBuilder()
         VStack(spacing: 0) {
             PaneHeader(title: "Review", subtitle: "\(state.worklogs.count) entries") {
                 Button("Save changes") { state.saveDirty() }
@@ -19,14 +23,29 @@ struct ReviewView: View {
                     Text("Pick a range and choose Collect to read your commits and meetings.")
                 }
             } else {
-                List {
-                    ForEach(state.days, id: \.self) { day in
+                List(selection: $selected) {
+                    ForEach(byDay.keys.sorted(), id: \.self) { day in
+                        let rows = byDay[day]!.map { (index: $0, log: state.worklogs[$0]) }
                         Section {
-                            ForEach($state.worklogs) { $log in
-                                if log.day == day { WorklogRow(log: $log) }
+                            ForEach(rows, id: \.log.id) { row in
+                                Group {
+                                    if selected == row.log.id {
+                                        WorklogRow(log: binding(row.index, row.log))
+                                    } else {
+                                        WorklogLine(log: row.log)
+                                    }
+                                }
+                                .tag(row.log.id)
+                                .contextMenu {
+                                    Button(row.log.locked ? "Unlock" : "Lock") {
+                                        binding(row.index, row.log).wrappedValue.locked.toggle()
+                                        state.markDirty(row.log.id)
+                                    }
+                                    Button("Delete", role: .destructive) { state.delete(row.log) }
+                                }
                             }
                         } header: {
-                            DayHeader(day: day)
+                            DayHeader(day: day, logs: rows.map(\.log), target: state.target(day: day, builder: builder))
                         }
                     }
                 }
@@ -34,16 +53,24 @@ struct ReviewView: View {
             }
         }
     }
+
+    /// Binding to one entry by index, guarded by id so a row that is being removed never reads a shifted index.
+    private func binding(_ i: Int, _ snapshot: Worklog) -> Binding<Worklog> {
+        func valid() -> Bool { state.worklogs.indices.contains(i) && state.worklogs[i].id == snapshot.id }
+        return Binding(get: { valid() ? state.worklogs[i] : snapshot },
+                       set: { if valid() { state.worklogs[i] = $0 } })
+    }
 }
 
 struct DayHeader: View {
     @Environment(AppState.self) private var state
     let day: String
+    let logs: [Worklog]
+    let target: Int?
 
     var body: some View {
-        let total = state.total(day: day)
-        let target = state.target(day: day)
-        let missing = state.worklogs.filter { $0.day == day && $0.issueKey == nil && $0.duration > 0 }.count
+        let total = logs.reduce(0) { $0 + $1.duration }
+        let missing = logs.filter { $0.issueKey == nil && $0.duration > 0 }.count
         HStack(spacing: 12) {
             Text(DayKey.title(day)).font(.headline)
             if let record = state.dayRecords[day], !record.label.isEmpty {
@@ -69,6 +96,41 @@ struct DayHeader: View {
             .buttonStyle(.borderless)
         }
         .padding(.vertical, 4)
+    }
+}
+
+/// Read-only entry, laid out in the same columns as the editable `WorklogRow`. Click it to edit.
+struct WorklogLine: View, Equatable {
+    let log: Worklog
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: log.source.icon)
+                .foregroundStyle(.secondary)
+                .frame(width: 18)
+            Text(DayKey.hm(log.start)).monospacedDigit().frame(width: 54, alignment: .leading)
+            Text(DurationFormat.string(log.duration)).monospacedDigit().frame(width: 72, alignment: .leading)
+            Text(log.issueKey ?? "No issue")
+                .fontWeight(.medium)
+                .foregroundStyle(log.issueKey == nil ? Color.orange : Color.primary)
+                .frame(width: 110, alignment: .leading)
+            Text(log.description.isEmpty ? "—" : log.description)
+                .lineLimit(1)
+                .foregroundStyle(log.description.isEmpty ? Color.secondary : Color.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            if log.source == .git, log.estimated != log.duration {
+                Text("est. \(DurationFormat.string(log.estimated))").font(.caption).foregroundStyle(.secondary)
+            }
+            Text(log.status.rawValue.capitalized)
+                .font(.caption)
+                .foregroundStyle(log.status == .draft ? Color.secondary : log.status == .reviewed ? Color.green : Color.blue)
+                .frame(width: 100, alignment: .leading)
+            Image(systemName: log.locked ? "lock.fill" : "lock.open")
+                .foregroundStyle(.secondary)
+                .frame(width: 44)
+        }
+        .padding(.vertical, 3)
+        .contentShape(.rect)
     }
 }
 
@@ -132,6 +194,7 @@ struct WorklogRow: View {
             .buttonStyle(.borderless)
         }
         .onAppear(perform: syncTexts)
+        .onDisappear { applyStart(); applyDuration() }   // keep typed text when another row is selected
         .onChange(of: focus) { old, _ in
             if old == .start { applyStart() }
             if old == .duration { applyDuration() }

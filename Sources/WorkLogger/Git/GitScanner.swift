@@ -5,11 +5,12 @@ enum GitScanner {
                                                "Pods", "DerivedData", "storage", "target"]
 
     /// Finds git repositories (and worktrees) below a workspace folder.
-    static func findRepos(root: URL, maxDepth: Int = 4) -> [URL] {
+    static func findRepos(root: URL, excluded: [String] = [], maxDepth: Int = 4) -> [URL] {
         var result: [URL] = []
         let fm = FileManager.default
 
         func walk(_ url: URL, depth: Int) {
+            if isExcluded(url.path, by: excluded) { return }
             if fm.fileExists(atPath: url.appendingPathComponent(".git").path) {
                 result.append(url)
                 return   // don't descend into a repo (skips submodules and vendored repos)
@@ -27,6 +28,18 @@ enum GitScanner {
 
         walk(root, depth: 0)
         return result.sorted { $0.lastPathComponent.localizedCaseInsensitiveCompare($1.lastPathComponent) == .orderedAscending }
+    }
+
+    /// An entry with a "/" is a path (the folder and everything below it); otherwise any folder with that name.
+    static func isExcluded(_ path: String, by excluded: [String]) -> Bool {
+        let components = path.split(separator: "/").map(String.init)
+        return excluded.contains { entry in
+            if entry.contains("/") {
+                let dir = ((entry as NSString).expandingTildeInPath as NSString).standardizingPath
+                return path == dir || path.hasPrefix(dir + "/")
+            }
+            return components.contains(entry)
+        }
     }
 
     static func globalUserEmail() -> String? {

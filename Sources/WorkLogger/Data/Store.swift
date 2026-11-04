@@ -242,7 +242,7 @@ extension Database {
     func deleteRegeneratable(fromDay: String, toDay: String) throws {
         try run("""
         DELETE FROM worklogs WHERE day >= ? AND day <= ? AND locked = 0 AND status = 'draft'
-            AND source IN ('git', 'meeting', 'absence')
+            AND source IN ('git', 'meeting', 'absence', 'period')
         """, [.text(fromDay), .text(toDay)])
     }
 

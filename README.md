@@ -47,8 +47,9 @@ Per day:
   where complexity = `10 + 12·log2(1 + changed lines/10) + 4·files`, adjusted by the kind of change
   (refactor ×1.3, fix ×1.15, typo/bump/format ×0.5), clamped to min/max. Lockfiles, `vendor/`, `dist/`… are excluded.
 * Commits are grouped per issue (or per repo when no key is found) into one entry with their subjects as description.
-* **Daily total** – keep raw estimates, scale to a fixed number of hours (e.g. 8h), or scale to the imported
-  session time. Scaling uses the largest-remainder method on the rounding unit, so each day adds up exactly.
+* **Daily total** – the time worked according to the imported sessions (HRmaster's “Ledolgozott órák”), rounded
+  up to 15 minutes by default (7h 22m → 7h 30m, 12h → 12h); days without sessions use the hours per day (8h). Or keep
+  raw estimates. Scaling uses the largest-remainder method on the rounding unit, so each day adds up exactly.
   Meetings and locked/manual entries are subtracted first; commit entries are placed into the remaining free slots.
 
 Issue key resolution for commits: key in message → key in branch name (`feature/tao-123-…`) → repo default
@@ -73,7 +74,9 @@ holidays or leave never get filled with commit time. With an absence issue set (
 are logged with the hours HRmaster reports; label rules can send e.g. “Betegszabadság” to a different issue.
 Leave days get only that one entry (meetings are not logged); commits made on a leave day are logged on the closest
 workday (the earlier one on a tie), even when that day is just outside the selected range.
-In “scale to imported work sessions” mode the day's target is HRmaster's “Ledolgozott órák”.
+Commits on a weekend or other rest day without imported work sessions move the same way: Saturday → Friday,
+Sunday → Monday. A rest day with work sessions keeps its commits.
+The day's target is HRmaster's “Ledolgozott órák”, rounded up (Settings → Round worked time up to).
 
 Run `swift test` to check the parser against fixture rows built from the real page markup.
 

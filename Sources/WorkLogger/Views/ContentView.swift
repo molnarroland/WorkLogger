@@ -76,8 +76,19 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .safeAreaInset(edge: .bottom, spacing: 0) { StatusBar() }
         }
+        .toolbar(removing: .title)   // the title is drawn centered as the principal item instead
         .toolbar {
-            ToolbarItem(placement: .navigation) { RangeBar() }
+            // One item laid out by hand: separate .navigation items ignore spacers and share a pill.
+            ToolbarItem(placement: .navigation) {
+                HStack(spacing: 10) {
+                    RangeField(isTo: false).toolbarPill()
+                    RangeField(isTo: true).toolbarPill()
+                    RangePresets().toolbarPill()
+                }
+            }
+            .sharedBackgroundVisibility(.hidden)
+            ToolbarItem(placement: .principal) { Text("WorkLogger").font(.headline) }
+                .sharedBackgroundVisibility(.hidden)
             ToolbarItemGroup(placement: .primaryAction) {
                 Button { state.rebuild() } label: { Label("Rebuild drafts", systemImage: "arrow.triangle.2.circlepath") }
                     .help("Recalculate unlocked drafts from stored commits, meetings, sessions and periods")
@@ -142,28 +153,48 @@ struct PaneHeader<Trailing: View>: View {
     }
 }
 
-/// Date range shared by every pane.
-struct RangeBar: View {
+/// From or To date field with a calendar dropdown (no stepper arrows); each sits in its own toolbar pill.
+struct RangeField: View {
     @Environment(AppState.self) private var state
+    let isTo: Bool
 
     var body: some View {
         @Bindable var state = state
-        HStack(spacing: 6) {
-            DatePicker("From", selection: $state.from, displayedComponents: .date).labelsHidden()
-            Image(systemName: "arrow.right").foregroundStyle(.secondary).imageScale(.small)
-            DatePicker("To", selection: $state.to, displayedComponents: .date).labelsHidden()
-            Menu {
-                ForEach(QuickRange.allCases, id: \.self) { r in
-                    Button(r.rawValue) { state.setRange(r) }
-                }
-            } label: { Image(systemName: "calendar.badge.clock") }
-            .menuIndicator(.hidden)
-            .help("Quick ranges")
+        Group {
+            if isTo {
+                DatePicker("To", selection: $state.to, in: state.from..., displayedComponents: .date)
+            } else {
+                DatePicker("From", selection: $state.from, displayedComponents: .date)
+            }
         }
-        .padding(.horizontal, 6)
+        .help(isTo ? "To" : "From")
+        .datePickerStyle(.field)   // no stepper: it can't fit a toolbar pill
+        .labelsHidden()
         .fixedSize()
-        .onChange(of: state.from) { state.reloadRange() }
-        .onChange(of: state.to) { state.reloadRange() }
+        .onChange(of: isTo ? state.to : state.from) { state.reloadRange() }
+    }
+}
+
+extension View {
+    /// Standalone glass capsule for a toolbar item whose shared background is hidden.
+    func toolbarPill() -> some View {
+        padding(.horizontal, 12).frame(height: 32).glassEffect(.regular.interactive(), in: .capsule)
+    }
+}
+
+/// Preset ranges (today, this week, last month…), kept apart from the date fields.
+struct RangePresets: View {
+    @Environment(AppState.self) private var state
+
+    var body: some View {
+        Menu {
+            ForEach(QuickRange.allCases, id: \.self) { r in
+                Button(r.rawValue) { state.setRange(r) }
+            }
+        } label: { Label("Quick ranges", systemImage: "calendar.badge.clock") }
+        .menuIndicator(.hidden)
+        .buttonStyle(.borderless)   // the pill supplies the glass
+        .help("Quick ranges")
     }
 }
 

@@ -105,11 +105,23 @@ struct TimesheetView: View {
 
 // MARK: Day cell
 
+/// Dragged entries travel as "worklogs:1,2,3" so unrelated text drops are ignored.
+enum WorklogDrag {
+    static func payload(_ logs: [Worklog]) -> String {
+        "worklogs:" + logs.filter { $0.status != .exported }.map { String($0.id) }.joined(separator: ",")
+    }
+    static func ids(_ text: String) -> [Int64] {
+        guard text.hasPrefix("worklogs:") else { return [] }
+        return text.dropFirst("worklogs:".count).split(separator: ",").compactMap { Int64($0) }
+    }
+}
+
 private struct DayCell: View {
     @Environment(AppState.self) private var state
     let day: String
     let inRange: Bool
     let selected: Bool
+    @State private var dropTargeted = false
 
     var body: some View {
         let logs = state.worklogs.filter { $0.day == day }
@@ -143,14 +155,22 @@ private struct DayCell: View {
                     .padding(.horizontal, 6).padding(.vertical, 1)
                     .background(PeriodsView.color(for: period, in: state.settings.periods).opacity(0.25), in: Capsule())
             }
-            ForEach(issueTotals(logs).prefix(3), id: \.0) { issue, seconds in
+            // Time per kind of work (coding, meetings…) as icon + duration; issues are listed in the day panel.
+            // One line per kind (a two-column grid was too narrow for the numbers); at most 3 fit the card.
+            ForEach(sourceTotals(logs).prefix(3), id: \.0) { source, seconds in
                 HStack(spacing: 4) {
-                    Text(issue).lineLimit(1)
-                    Spacer(minLength: 0)
-                    Text(DurationFormat.string(seconds)).monospacedDigit().foregroundStyle(.secondary)
+                    Image(systemName: source.icon).foregroundStyle(.secondary).frame(width: 14)
+                    Spacer(minLength: 2)
+                    Text(DurationFormat.string(seconds)).monospacedDigit()
                 }
                 .font(.caption2)
-                .foregroundStyle(issue == "No issue" ? Color.orange : Color.primary)
+                .lineLimit(1)
+                .help("\(source.label) — drag to another day to log it there")
+                .contentShape(.rect)
+                .draggable(WorklogDrag.payload(logs.filter { $0.source == source })) {
+                    Label("\(source.label) \(DurationFormat.string(seconds))", systemImage: source.icon)
+                        .padding(6).glassEffect(.regular, in: .capsule)
+                }
             }
             Spacer(minLength: 0)
             if expected > 0 || logged > 0 {
@@ -166,6 +186,18 @@ private struct DayCell: View {
         .background(color.opacity(inRange ? 0.10 : 0.03), in: .rect(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(color.opacity(inRange ? 0.45 : 0.1), lineWidth: 1))
         .glassEffect(selected ? .regular.tint(.accentColor.opacity(0.35)).interactive() : .identity, in: .rect(cornerRadius: 12))
+        .clipShape(.rect(cornerRadius: 12))
+        .overlay {
+            if dropTargeted {
+                RoundedRectangle(cornerRadius: 12).strokeBorder(Color.accentColor, lineWidth: 2)
+            }
+        }
+        .dropDestination(for: String.self) { items, _ in
+            let ids = items.flatMap(WorklogDrag.ids)
+            guard inRange, !ids.isEmpty, state.acceptsWork(day) else { return false }
+            state.move(Set(ids), to: day)
+            return true
+        } isTargeted: { dropTargeted = $0 && inRange && state.acceptsWork(day) }
         .opacity(inRange ? 1 : 0.35)
         .contentShape(.rect)
     }
@@ -178,9 +210,10 @@ private struct DayCell: View {
         return logged == 0 ? .red : .orange
     }
 
-    private func issueTotals(_ logs: [Worklog]) -> [(String, Int)] {
-        Dictionary(grouping: logs, by: { $0.issueKey ?? "No issue" })
+    private func sourceTotals(_ logs: [Worklog]) -> [(WorklogSource, Int)] {
+        Dictionary(grouping: logs, by: \.source)
             .map { ($0.key, $0.value.reduce(0) { $0 + $1.duration }) }
+            .filter { $0.1 > 0 }
             .sorted { $0.1 > $1.1 }
     }
 }
@@ -212,7 +245,7 @@ private struct DayDetail: View {
     private var legend: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Timesheet").font(.headline)
-            Text("Click a day to see its entries. Shift-click a second day to select a stretch and book it to a project period.")
+            Text("Click a day to see its entries. Shift-click a second day to select a stretch and book it to a project period. Drag a line from a card (or an entry from this panel) onto a workday to log it there.")
                 .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             ForEach([(Color.green, "Complete"), (.orange, "Partly logged"), (.red, "Nothing logged"),
                      (.purple, "Leave or holiday"), (.blue, "Logged on a rest day"), (.gray, "Rest day or upcoming")], id: \.1) { c, t in
@@ -244,6 +277,8 @@ private struct DayDetail: View {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(logs) { w in
                             HStack(alignment: .top, spacing: 8) {
+                                Image(systemName: "line.3.horizontal").foregroundStyle(.tertiary).imageScale(.small)
+                                    .help("Drag onto a day in the calendar to move this entry")
                                 Image(systemName: w.source.icon).foregroundStyle(.secondary).frame(width: 16)
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack {
@@ -257,6 +292,11 @@ private struct DayDetail: View {
                                         Text(w.description).font(.callout).foregroundStyle(.secondary).lineLimit(3)
                                     }
                                 }
+                            }
+                            .contentShape(.rect)
+                            .draggable(WorklogDrag.payload([w])) {
+                                Label("\(w.issueKey ?? "No issue") \(DurationFormat.string(w.duration))", systemImage: w.source.icon)
+                                    .padding(6).glassEffect(.regular, in: .capsule)
                             }
                         }
                     }

@@ -1,13 +1,14 @@
 import Foundation
 
 enum RoundingMode: String, Codable, CaseIterable, Identifiable {
+    /// `sessions` behaves like `fixedHours` and is kept only so older saved settings still decode.
     case estimate, fixedHours, sessions
     var id: String { rawValue }
+    static let choices: [RoundingMode] = [.fixedHours, .estimate]
     var label: String {
         switch self {
         case .estimate: return "Keep commit estimates"
-        case .fixedHours: return "Scale each day to a fixed number of hours"
-        case .sessions: return "Scale each day to the imported work sessions"
+        case .fixedHours, .sessions: return "Scale each day to its worked time"
         }
     }
 }
@@ -33,6 +34,7 @@ struct AppSettings: Codable, Equatable {
     // Git
     var workspaceRoot: String = ""
     var authorEmails: [String] = []
+    var excludedFolders: [String] = []   // folder names or paths skipped when scanning
     var ignoredPathPatterns: [String] = [
         "package-lock.json", "composer.lock", "yarn.lock", "pnpm-lock.yaml", "Podfile.lock",
         ".min.js", ".min.css", "/dist/", "/vendor/", "node_modules/", ".snap", ".svg"
@@ -47,6 +49,7 @@ struct AppSettings: Codable, Equatable {
     var roundingMode: RoundingMode = .fixedHours
     var fixedDailyHours: Double = 8
     var granularityMinutes: Int = 15
+    var dayRoundUpMinutes: Int = 15        // worked time is rounded up: 7h 22m → 7h 30m
     var defaultDayStart: String = "09:00"
     var defaultDayEnd: String = "17:30"
     var includeWeekends: Bool = false

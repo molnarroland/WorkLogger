@@ -20,6 +20,8 @@ struct RepositoriesView: View {
                             .disabled(state.settings.workspaceRoot.isEmpty)
                     }
                     ListField(title: "Your commit emails (comma separated)", values: $state.settings.authorEmails)
+                    ListField(title: "Hidden folders (names or paths, comma separated)", values: $state.settings.excludedFolders)
+                        .help("Never scanned. A name like \"archive\" matches any folder with that name; a path like ~/Work/old matches that folder. Repositories already listed inside them are removed.")
                 }
                 Section {
                     ForEach(state.projects) { p in
