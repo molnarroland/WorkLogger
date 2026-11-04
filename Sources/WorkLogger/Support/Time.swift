@@ -2,23 +2,39 @@ import Foundation
 
 /// Day keys ("yyyy-MM-dd" in the local time zone) and calendar helpers. Weeks start on Monday (ISO).
 enum DayKey {
-    static let calendar: Calendar = {
-        var c = Calendar(identifier: .gregorian)
-        c.firstWeekday = 2
-        c.minimumDaysInFirstWeek = 4
-        c.timeZone = .current
-        c.locale = Locale.current
-        return c
-    }()
+    private struct Config {
+        let calendar: Calendar
+        let formatter: DateFormatter
 
-    private static let formatter: DateFormatter = {
-        let f = DateFormatter()
-        f.calendar = calendar
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = .current
-        f.dateFormat = "yyyy-MM-dd"
-        return f
-    }()
+        init(timeZone: TimeZone, locale: Locale) {
+            var c = Calendar(identifier: .gregorian)
+            c.firstWeekday = 2
+            c.minimumDaysInFirstWeek = 4
+            c.timeZone = timeZone
+            c.locale = locale
+            let f = DateFormatter()
+            f.calendar = c
+            f.locale = Locale(identifier: "en_US_POSIX")
+            f.timeZone = timeZone
+            f.dateFormat = "yyyy-MM-dd"
+            calendar = c
+            formatter = f
+        }
+    }
+
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var config = Config(timeZone: .current, locale: .current)
+
+    /// Switches the time zone (and locale) every day key is computed in. The app keeps the system's;
+    /// tests pin one so results don't depend on the machine they run on.
+    static func configure(timeZone: TimeZone, locale: Locale = .current) {
+        let new = Config(timeZone: timeZone, locale: locale)
+        lock.withLock { config = new }
+    }
+
+    static var calendar: Calendar { lock.withLock { config.calendar } }
+    static var timeZone: TimeZone { calendar.timeZone }
+    private static var formatter: DateFormatter { lock.withLock { config.formatter } }
 
     static func key(_ d: Date) -> String { formatter.string(from: d) }
     static func parse(_ k: String) -> Date? { formatter.date(from: k).map { calendar.startOfDay(for: $0) } }

@@ -49,12 +49,22 @@ struct Row {
 /// Minimal, dependency-free SQLite wrapper (uses the system libsqlite3).
 final class Database {
     private var handle: OpaquePointer?
-    let url: URL
+    /// File path, or ":memory:" for an in-memory database.
+    let path: String
 
-    init(url: URL) throws {
-        self.url = url
+    convenience init(url: URL) throws {
+        try self.init(path: url.path)
+    }
+
+    /// A private database that lives only as long as this object; used by tests.
+    static func inMemory() throws -> Database {
+        try Database(path: ":memory:")
+    }
+
+    private init(path: String) throws {
+        self.path = path
         let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX
-        guard sqlite3_open_v2(url.path, &handle, flags, nil) == SQLITE_OK else {
+        guard sqlite3_open_v2(path, &handle, flags, nil) == SQLITE_OK else {
             throw DBError.open(String(cString: sqlite3_errmsg(handle)))
         }
         try execute("PRAGMA journal_mode=WAL;")

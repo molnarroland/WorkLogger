@@ -33,11 +33,11 @@ enum TempoExport {
     static func payloads(_ logs: [Worklog], accountId: String?) -> [TempoWorklogPayload] {
         let date = DateFormatter()
         date.locale = Locale(identifier: "en_US_POSIX")
-        date.timeZone = .current
+        date.timeZone = DayKey.timeZone
         date.dateFormat = "yyyy-MM-dd"
         let time = DateFormatter()
         time.locale = Locale(identifier: "en_US_POSIX")
-        time.timeZone = .current
+        time.timeZone = DayKey.timeZone
         time.dateFormat = "HH:mm:ss"
         return exportable(logs).map {
             TempoWorklogPayload(issueKey: $0.issueKey!, issueId: nil,

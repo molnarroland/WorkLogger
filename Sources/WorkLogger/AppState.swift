@@ -4,10 +4,6 @@ import AppKit
 import UniformTypeIdentifiers
 import EventKit
 
-enum QuickRange: String, CaseIterable {
-    case today = "Today", thisWeek = "This week", lastWeek = "Last week", thisMonth = "This month", lastMonth = "Last month"
-}
-
 @MainActor
 @Observable
 final class AppState {
@@ -52,9 +48,9 @@ final class AppState {
         }
         db = database
         settings = database.loadSettings()
-        let month = DayKey.calendar.dateInterval(of: .month, for: Date())!
-        from = month.start
-        to = month.end.addingTimeInterval(-1)
+        let month = DateRange.month(containing: Date())!
+        from = month.from
+        to = month.to
         reloadAll()
         refreshCalendars()
         // New accounts and calendars sync in the background; refresh the list when macOS reports a change.
@@ -65,34 +61,26 @@ final class AppState {
 
     // MARK: Range
 
-    var fromDay: String { DayKey.key(min(from, to)) }
-    var toDay: String { DayKey.key(max(from, to)) }
-    var rangeStart: Date { DayKey.startOfDay(min(from, to)) }
-    var rangeEnd: Date { DayKey.dayAfter(max(from, to)) }
+    var range: DateRange { DateRange(from: from, to: to) }
+    var fromDay: String { range.fromDay }
+    var toDay: String { range.toDay }
+    var rangeStart: Date { range.start }
+    var rangeEnd: Date { range.end }
 
     func setRange(_ r: QuickRange) {
-        let cal = DayKey.calendar
-        let now = Date()
-        let interval: DateInterval?
-        switch r {
-        case .today: interval = cal.dateInterval(of: .day, for: now)
-        case .thisWeek: interval = cal.dateInterval(of: .weekOfYear, for: now)
-        case .lastWeek: interval = cal.dateInterval(of: .weekOfYear, for: cal.date(byAdding: .day, value: -7, to: now)!)
-        case .thisMonth: interval = cal.dateInterval(of: .month, for: now)
-        case .lastMonth: interval = cal.dateInterval(of: .month, for: cal.date(byAdding: .month, value: -1, to: now)!)
-        }
-        guard let interval else { return }
-        from = interval.start
-        to = interval.end.addingTimeInterval(-1)
-        reloadRange()
+        guard let new = DateRange.quick(r) else { return }
+        apply(new)
     }
 
     /// Moves the range by whole months (the timesheet's ‹ › buttons).
     func shiftMonth(_ delta: Int) {
-        let cal = DayKey.calendar
-        guard let month = cal.dateInterval(of: .month, for: cal.date(byAdding: .month, value: delta, to: rangeStart)!) else { return }
-        from = month.start
-        to = month.end.addingTimeInterval(-1)
+        guard let new = range.shiftedByMonths(delta) else { return }
+        apply(new)
+    }
+
+    private func apply(_ new: DateRange) {
+        from = new.from
+        to = new.to
         reloadRange()
     }
 
@@ -207,39 +195,8 @@ final class AppState {
     /// Rebuilds unlocked drafts from stored commits, meetings and sessions (no network or git access).
     func rebuild() {
         saveDirty()
-        let builder = makeBuilder()
         attempt("Building worklogs") {
-            try db.transaction {
-                try db.deleteRegeneratable(fromDay: fromDay, toDay: toDay)
-                // Commits made on leave days and on rest days without work sessions go to the closest workday,
-                // which may lie just outside the range.
-                let cal = DayKey.calendar
-                func shift(_ d: Date, _ n: Int) -> Date { cal.date(byAdding: .day, value: n, to: d)! }
-                let padFrom = shift(rangeStart, -31), padTo = shift(rangeEnd, 31)
-                // Twice the padding, so the closest-workday search from a padded leave day sees real day types.
-                let records = Dictionary(uniqueKeysWithValues: try db.dayRecords(
-                    fromDay: DayKey.key(shift(rangeStart, -62)), toDay: DayKey.key(shift(rangeEnd, 62))).map { ($0.day, $0) })
-                let workedDays = Set(try db.sessions(fromDay: DayKey.key(padFrom), toDay: DayKey.key(padTo))
-                    .filter { $0.kind == .work }.map(\.day))
-                let rangeDays = DayKey.days(from: from, to: to)
-                let inRange = Set(rangeDays)
-                var commitsByDay: [String: [StoredCommit]] = [:]
-                for day in DayKey.days(from: padFrom, to: padTo) {
-                    let target = builder.commitDay(for: day, info: { records[$0] }, worked: { workedDays.contains($0) })
-                    guard inRange.contains(day) || target != day else { continue }
-                    commitsByDay[target, default: []] += try db.commits(day: day)
-                }
-                // Entries that survived the delete (locked, moved, reviewed) own their commits wherever they now sit.
-                let claimed = Set(try db.worklogs(fromDay: DayKey.key(padFrom), toDay: DayKey.key(padTo)).flatMap(\.refs))
-                for (day, list) in commitsByDay { commitsByDay[day] = list.filter { !claimed.contains($0.hash) } }
-                for day in rangeDays {
-                    let input = DayInput(day: day, sessions: try db.sessions(day: day), commits: commitsByDay[day] ?? [],
-                                         meetings: try db.meetings(day: day).filter { !claimed.contains($0.id) },
-                                         kept: try db.worklogs(day: day),
-                                         info: try db.dayRecord(day: day))
-                    for w in builder.build(input) { try db.insertWorklog(w) }
-                }
-            }
+            try DraftRebuilder(db: db, builder: makeBuilder()).rebuild(range)
             status = "Drafts rebuilt for \(fromDay) – \(toDay)."
         }
         reloadRange()
@@ -587,7 +544,7 @@ final class AppState {
 
     // MARK: Helpers
 
-    var databasePath: String { db.url.path }
+    var databasePath: String { db.path }
 
     private func attempt(_ label: String, _ body: () throws -> Void) {
         do { try body() } catch { status = "\(label) failed: \(error.localizedDescription)" }
