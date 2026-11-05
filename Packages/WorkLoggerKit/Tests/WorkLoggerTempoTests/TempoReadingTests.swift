@@ -11,13 +11,8 @@ import WorkLoggerTestSupport
 @Suite struct TempoReadingTests {
     init() { Fixture.pinTimeZone() }
 
-    let secrets = InMemorySecrets([SecretKey.jiraToken: "jira-token", SecretKey.tempoToken: "tempo-token"])
-    var settings: AppSettings {
-        var s = AppSettings()
-        s.jiraBaseURL = "https://acme.atlassian.net"
-        s.jiraEmail = "me@example.com"
-        return s
-    }
+    let account = JiraAccount(baseURL: "https://acme.atlassian.net", email: "me@example.com")
+    var secrets: InMemorySecrets { InMemorySecrets([account.jiraTokenKey: "jira-token", account.tempoTokenKey: "tempo-token"]) }
 
     @Test func worklogsFollowThePagesAndKeysAreLookedUpOnce() async throws {
         let http = FakeHTTP { r in
@@ -34,7 +29,7 @@ import WorkLoggerTestSupport
                 #"{"metadata":{"next":"https://api.tempo.io/4/worklogs/user/acc?offset=1"},"results":[{"tempoWorklogId":1,"issue":{"id":10001},"timeSpentSeconds":3600,"startDate":"2026-03-03","startTime":"09:00:00","description":"Fix"}]}"#
             )
         }
-        let client = try TempoClient(settings: settings, secrets: secrets, http: http)
+        let client = try TempoClient(account: account, secrets: secrets, http: http)
         let db = try Database.inMemory()
         let logs = try await TempoReader(db: db, client: client).worklogs(
             accountId: "acc", fromDay: "2026-03-01", toDay: "2026-03-31")
@@ -46,7 +41,7 @@ import WorkLoggerTestSupport
                 == "https://api.tempo.io/4/worklogs/user/acc?from=2026-03-01&to=2026-03-31&limit=1000")
         #expect(http.requests[0].value(forHTTPHeaderField: "Authorization") == "Bearer tempo-token")
         #expect(http.requests.filter { $0.url!.path.contains("/issue/") }.count == 1)  // one lookup, then cached
-        #expect(db.cachedIssueKey(10001) == "TAO-1")
+        #expect(db.cachedIssueKey(10001, site: "https://acme.atlassian.net") == "TAO-1")
     }
 
     @Test func coverageNeedsAtLeastTheLocalTimePerTicketDay() {

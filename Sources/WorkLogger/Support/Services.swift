@@ -57,7 +57,7 @@ struct AppDependencies {
     var calendars: any CalendarSource
     var files: any FilePresenter
     var makeGoogle: (_ clientId: String, _ clientSecret: String) -> any GoogleCalendarAccount
-    var makeTempo: (AppSettings) throws -> any TempoService
+    var makeTempo: (JiraAccount) throws -> any TempoService
     var now: () -> Date
 
     /// The real Keychain, git, EventKit, AppKit panels and network.
@@ -71,7 +71,7 @@ struct AppDependencies {
             calendars: MacCalendarStore(),
             files: AppKitFilePresenter(),
             makeGoogle: { GoogleAuth(clientId: $0, clientSecret: $1, secrets: secrets, http: http) },
-            makeTempo: { try TempoClient(settings: $0, secrets: secrets, http: http) },
+            makeTempo: { try TempoClient(account: $0, secrets: secrets, http: http) },
             now: Date.init)
     }
 }

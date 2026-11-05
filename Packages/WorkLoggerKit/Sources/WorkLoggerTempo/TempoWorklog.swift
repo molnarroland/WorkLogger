@@ -39,7 +39,7 @@ extension TempoWorklog {
     }
 }
 
-/// Reads your Tempo worklogs for a range and names their issues. Tempo v4 only returns Jira issue ids, so keys are
+/// Reads your worklogs (Tempo or Jira) for a range and names their issues. Tempo v4 only returns Jira issue ids, so keys are
 /// looked up once and kept in the database's issue cache (the same one pushing uses).
 @MainActor
 public struct TempoReader {
@@ -54,13 +54,13 @@ public struct TempoReader {
     public func worklogs(accountId: String, fromDay: String, toDay: String) async throws -> [TempoWorklog] {
         var logs = try await client.worklogs(accountId: accountId, fromDay: fromDay, toDay: toDay)
         var keys: [Int64: String] = [:]
-        for i in logs.indices {
+        for i in logs.indices where logs[i].issueKey == nil {  // Jira worklogs come with their keys
             let id = logs[i].issueId
             if keys[id] == nil {
-                if let cached = db.cachedIssueKey(id) {
+                if let cached = db.cachedIssueKey(id, site: client.site) {
                     keys[id] = cached
                 } else if let key = try? await client.issueKey(for: id) {
-                    try? db.cacheIssueId(key, id)
+                    try? db.cacheIssueId(key, id, site: client.site)
                     keys[id] = key
                 }
             }

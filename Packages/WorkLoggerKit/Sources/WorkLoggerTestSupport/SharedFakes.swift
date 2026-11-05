@@ -48,7 +48,10 @@ public struct FakeError: LocalizedError {
 
 public final class FakeTempo: TempoService, @unchecked Sendable {
     public init() {}
+    public var site = "https://acme.atlassian.net"
     public var account = "acc-1"
+    public var projects: [String] = []
+    public func projectKeys() async throws -> [String] { projects }
     public var issueIds: [String: Int64] = [:]
     public var failingKeys: Set<String> = []
     public var nextWorklogId: Int64 = 100

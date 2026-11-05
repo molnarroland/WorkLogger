@@ -8,17 +8,12 @@ import WorkLoggerTestSupport
 @Suite struct ConnectionCheckTests {
     init() { Fixture.pinTimeZone() }
 
-    var settings: AppSettings {
-        var s = AppSettings()
-        s.jiraBaseURL = "https://acme.atlassian.net"
-        s.jiraEmail = "me@example.com"
-        return s
-    }
-    let secrets = InMemorySecrets([SecretKey.jiraToken: "jira", SecretKey.tempoToken: "tempo"])
+    let account = JiraAccount(baseURL: "https://acme.atlassian.net", email: "me@example.com")
+    var secrets: InMemorySecrets { InMemorySecrets([account.jiraTokenKey: "jira", account.tempoTokenKey: "tempo"]) }
 
-    func check(_ http: FakeHTTP, settings: AppSettings? = nil, secrets: InMemorySecrets? = nil) -> ConnectionCheck {
+    func check(_ http: FakeHTTP, account: JiraAccount? = nil, secrets: InMemorySecrets? = nil) -> ConnectionCheck {
         ConnectionCheck(
-            settings: settings ?? self.settings, secrets: secrets ?? self.secrets, http: http,
+            account: account ?? self.account, secrets: secrets ?? self.secrets, http: http,
             now: Fixture.at("2026-03-04", "12:00"))
     }
 
@@ -68,10 +63,10 @@ import WorkLoggerTestSupport
     }
 
     @Test func missingFieldsAreNamedWithoutCalls() async {
-        var empty = settings
-        empty.jiraBaseURL = ""
+        var empty = account
+        empty.baseURL = ""
         let http = FakeHTTP()
-        let jira = await check(http, settings: empty, secrets: InMemorySecrets()).checkJira()
+        let jira = await check(http, account: empty, secrets: InMemorySecrets()).checkJira()
         #expect(jira.lines.map(\.ok) == [false, nil])
         let tempo = await check(http, secrets: InMemorySecrets()).checkTempo(accountId: "a")
         #expect(tempo[0].ok == false)

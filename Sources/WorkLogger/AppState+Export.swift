@@ -20,13 +20,14 @@ extension AppState {
     func exportJSON(_ logs: [Worklog]) {
         attempt("Exporting") {
             save(
-                try TempoExport.json(logs, accountId: settings.jiraAccountId), name: "tempo-\(fromDay)_\(toDay).json", type: .json
+                try TempoExport.json(logs, accountId: settings.defaultJiraAccount?.accountId),
+                name: "tempo-\(fromDay)_\(toDay).json", type: .json
             )
         }
     }
 
     func markdown(_ logs: [Worklog]) -> String {
-        TempoExport.markdown(logs, from: fromDay, to: toDay, jiraBaseURL: settings.jiraBaseURL)
+        TempoExport.markdown(logs, from: fromDay, to: toDay, jiraBaseURL: settings.defaultJiraAccount?.site ?? "")
     }
 
     func exportMarkdown(_ logs: [Worklog]) {
@@ -61,28 +62,43 @@ extension AppState {
         saveDirty()
     }
 
-    /// Creates the worklogs in Tempo, one request per entry, and marks the successful ones as exported.
+    /// Creates the worklogs, one request per entry, each in the account that owns its project (Tempo or Jira), and
+    /// marks the successful ones as exported.
     func pushToTempo(_ logs: [Worklog]) async {
         isBusy = true
         defer { isBusy = false }
         saveDirty()
-        do {
-            let client = try services.makeTempo(settings)
-            if settings.jiraAccountId.isEmpty {
-                status = String(localized: "Reading your Jira account…")
-                settings.jiraAccountId = try await client.accountId()
-            }
-            let outcome = await TempoExporter(db: db, client: client).push(logs, accountId: settings.jiraAccountId) {
-                self.status = String(localized: "Sending \($0) of \($1) to Tempo…")
-            }
-            reloadRange()
-            await refreshTempo()
-            status =
-                String(localized: "Sent \(outcome.sent) worklogs to Tempo.")
-                + (outcome.failures.isEmpty
-                    ? "" : " " + String(localized: "Failed: \(outcome.failures.joined(separator: " | "))"))
-        } catch {
-            status = error.localizedDescription
+        let ready = TempoExport.exportable(logs)
+        guard !settings.jiraAccounts.isEmpty || ready.isEmpty else {
+            status = TempoError.missing(String(localized: "a Jira account")).localizedDescription
+            return
         }
+        var sent = 0
+        var failures: [String] = []
+        let groups = Dictionary(grouping: ready) { settings.jiraAccount(for: $0.issueKey ?? "")?.id }
+        for account in settings.jiraAccounts {
+            guard let group = groups[account.id] else { continue }
+            guard account.provider != .other else {
+                failures.append(String(localized: "\(account.title): logged in another tool, not sent"))
+                continue
+            }
+            do {
+                let client = try services.makeTempo(account)
+                status = String(localized: "Reading your Jira account…")
+                let me = try await accountId(of: account, client: client)
+                let outcome = await TempoExporter(db: db, client: client).push(group, accountId: me) {
+                    self.status = String(localized: "Sending \($0) of \($1) to Tempo…")
+                }
+                sent += outcome.sent
+                failures += outcome.failures
+            } catch {
+                failures.append("\(account.title): \(error.localizedDescription)")
+            }
+        }
+        reloadRange()
+        await refreshTempo()
+        status =
+            String(localized: "Sent \(sent) worklogs to Tempo.")
+            + (failures.isEmpty ? "" : " " + String(localized: "Failed: \(failures.joined(separator: " | "))"))
     }
 }

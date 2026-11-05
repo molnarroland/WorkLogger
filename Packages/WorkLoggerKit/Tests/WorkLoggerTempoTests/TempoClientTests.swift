@@ -7,17 +7,22 @@ import WorkLoggerTestSupport
 @testable import WorkLoggerTempo
 
 @Suite struct TempoClientTests {
-    var settings: AppSettings {
-        var s = AppSettings()
-        s.jiraBaseURL = "https://acme.atlassian.net/ "
-        s.jiraEmail = "me@example.com"
-        s.tempoBaseURL = "https://api.tempo.io/4/"
-        return s
-    }
-    let secrets = InMemorySecrets([SecretKey.jiraToken: "jira-token", SecretKey.tempoToken: "tempo-token"])
+    init() { Fixture.pinTimeZone() }
 
-    func client(_ http: FakeHTTP) throws -> TempoClient {
-        try TempoClient(settings: settings, secrets: secrets, http: http)
+    var account: JiraAccount {
+        var a = JiraAccount(baseURL: "https://acme.atlassian.net/ ", email: "me@example.com")
+        a.id = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        a.tempoBaseURL = "https://api.tempo.io/4/"
+        return a
+    }
+    var secrets: InMemorySecrets {
+        InMemorySecrets([account.jiraTokenKey: "jira-token", account.tempoTokenKey: "tempo-token"])
+    }
+
+    func client(_ http: FakeHTTP, provider: WorklogProvider = .tempo) throws -> TempoClient {
+        var a = account
+        a.provider = provider
+        return try TempoClient(account: a, secrets: secrets, http: http)
     }
 
     func body(_ r: URLRequest) throws -> [String: Any] {
@@ -25,15 +30,71 @@ import WorkLoggerTestSupport
     }
 
     @Test func missingConfigurationIsReported() {
-        var noSite = settings
-        noSite.jiraBaseURL = " / "
-        #expect(throws: TempoError.self) { try TempoClient(settings: noSite, secrets: secrets, http: FakeHTTP()) }
+        var noSite = account
+        noSite.baseURL = " / "
+        #expect(throws: TempoError.self) { try TempoClient(account: noSite, secrets: secrets, http: FakeHTTP()) }
         #expect(throws: TempoError.self) {
-            try TempoClient(settings: settings, secrets: InMemorySecrets([SecretKey.tempoToken: "t"]), http: FakeHTTP())
+            try TempoClient(account: account, secrets: InMemorySecrets([account.tempoTokenKey: "t"]), http: FakeHTTP())
         }
         #expect(throws: TempoError.self) {
-            try TempoClient(settings: settings, secrets: InMemorySecrets([SecretKey.jiraToken: "t"]), http: FakeHTTP())
+            try TempoClient(account: account, secrets: InMemorySecrets([account.jiraTokenKey: "t"]), http: FakeHTTP())
         }
+        var jira = account
+        jira.provider = .jira  // Jira's own worklogs need no Tempo token
+        #expect(throws: Never.self) {
+            try TempoClient(account: jira, secrets: InMemorySecrets([account.jiraTokenKey: "t"]), http: FakeHTTP())
+        }
+    }
+
+    @Test func projectKeysFollowThePages() async throws {
+        let http = FakeHTTP { r in
+            r.url!.query!.contains("startAt=0")
+                ? (200, #"{"values":[{"key":"TAO"},{"key":"INT"}],"isLast":false}"#)
+                : (200, #"{"values":[{"key":"HR"}],"isLast":true}"#)
+        }
+        #expect(try await client(http).projectKeys() == ["TAO", "INT", "HR"])
+        #expect(http.requests.map { $0.url!.query! } == ["maxResults=100&startAt=0", "maxResults=100&startAt=2"])
+    }
+
+    @Test func jiraProviderCreatesTheWorklogOnTheIssue() async throws {
+        let http = FakeHTTP { _ in (201, #"{"id": "555"}"#) }
+        let payload = TempoWorklogPayload(
+            issueKey: "TAO-1", issueId: 10001, authorAccountId: "acc-1",
+            startDate: "2026-03-03", startTime: "09:00:00", timeSpentSeconds: 5400, description: "Fix")
+        #expect(try await client(http, provider: .jira).create(payload) == 555)
+        let request = try #require(http.requests.first)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.absoluteString == "https://acme.atlassian.net/rest/api/3/issue/TAO-1/worklog")
+        #expect(request.value(forHTTPHeaderField: "Authorization")?.hasPrefix("Basic ") == true)
+        let json = try body(request)
+        #expect(json["started"] as? String == "2026-03-03T09:00:00.000+0100")
+        #expect(json["timeSpentSeconds"] as? Int == 5400)
+        let doc = try #require(
+            try? JSONDecoder().decode(ADF.self, from: JSONSerialization.data(withJSONObject: json["comment"]!)))
+        #expect(doc.text == "Fix")
+    }
+
+    @Test func jiraProviderReadsYourWorklogsOfTheRange() async throws {
+        let http = FakeHTTP { r in
+            let url = r.url!.absoluteString
+            if url.contains("/search/jql") { return (200, #"{"issues":[{"id":"10001","key":"TAO-1"}]}"#) }
+            return (
+                200,
+                #"{"total":3,"worklogs":[{"id":"1","author":{"accountId":"acc-1"},"started":"2026-03-03T09:00:00.000+0100","timeSpentSeconds":3600,"comment":{"type":"doc","version":1,"content":[{"type":"paragraph","content":[{"type":"text","text":"Fix"}]}]}},{"id":"2","author":{"accountId":"someone"},"started":"2026-03-03T10:00:00.000+0100","timeSpentSeconds":60},{"id":"3","author":{"accountId":"acc-1"},"started":"2026-04-01T10:00:00.000+0100","timeSpentSeconds":60}]}"#
+            )
+        }
+        let logs = try await client(http, provider: .jira).worklogs(
+            accountId: "acc-1", fromDay: "2026-03-01", toDay: "2026-03-31")
+        #expect(
+            logs == [
+                TempoWorklog(
+                    id: 1, issueId: 10001, issueKey: "TAO-1", day: "2026-03-03", startTime: "09:00:00", seconds: 3600,
+                    description: "Fix")
+            ])
+        let jql = try #require(
+            URLComponents(url: http.requests[0].url!, resolvingAgainstBaseURL: false)?.queryItems?.first?.value)
+        #expect(jql == #"worklogAuthor = currentUser() AND worklogDate >= "2026-03-01" AND worklogDate <= "2026-03-31""#)
+        #expect(http.requests[1].url!.path == "/rest/api/3/issue/10001/worklog")
     }
 
     @Test func accountIdUsesJiraBasicAuth() async throws {
@@ -111,7 +172,7 @@ import WorkLoggerTestSupport
     }
 
     @Test func usesCachedIssueIdsAndCachesNewOnes() async throws {
-        try db.cacheIssueId("TAO-1", 1)
+        try db.cacheIssueId("TAO-1", 1, site: tempo.site)
         tempo.issueIds = ["TAO-2": 2]
         let logs = [
             try insert(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1")),
@@ -123,7 +184,7 @@ import WorkLoggerTestSupport
         #expect(outcome == TempoExporter.Outcome(sent: 2, failures: []))
         #expect(tempo.issueLookups == ["TAO-2"])
         #expect(tempo.created.map(\.issueId) == [1, 2])
-        #expect(db.cachedIssueId("TAO-2") == 2)
+        #expect(db.cachedIssueId("TAO-2", site: tempo.site) == 2)
     }
 
     @Test func successfulEntriesAreMarkedExportedAndFailuresAreReported() async throws {

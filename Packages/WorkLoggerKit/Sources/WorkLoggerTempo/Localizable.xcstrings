@@ -141,12 +141,12 @@
         }
       }
     },
-    "Missing %@. Add it in Settings → Tempo API (optional).": {
+    "Missing %@. Add it in Settings → Jira.": {
       "localizations": {
         "hu": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hiányzik: %@. Add meg a Beállítások → Tempo API (nem kötelező) alatt."
+            "value": "Hiányzik: %@. Add meg a Beállítások → Jira alatt."
           }
         }
       }
@@ -191,12 +191,32 @@
         }
       }
     },
+    "Reading the Jira projects": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Jira-projektek beolvasása"
+          }
+        }
+      }
+    },
     "Reading your Jira account": {
       "localizations": {
         "hu": {
           "stringUnit": {
             "state": "translated",
             "value": "A Jira-fiók olvasása"
+          }
+        }
+      }
+    },
+    "Reading your Jira worklogs": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Jira-munkanaplóid beolvasása"
           }
         }
       }
@@ -367,6 +387,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "a jegy- vagy fiókazonosító"
+          }
+        }
+      }
+    },
+    "the start of the worklog": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a munkanapló kezdete"
           }
         }
       }

@@ -2,10 +2,11 @@ import Foundation
 
 // Services shared by several modules, behind protocols so tests can pass fakes.
 
-/// Keychain account names of the API tokens.
+/// Keychain account names of the API tokens (Jira and Tempo tokens are per account: `JiraAccount.jiraTokenKey`).
 public enum SecretKey: Sendable {
-    public static let jiraToken = "jira.apiToken"
-    public static let tempoToken = "tempo.apiToken"
+    /// The single Jira and Tempo token from before accounts; moved to the first account on launch.
+    public static let legacyJiraToken = "jira.apiToken"
+    public static let legacyTempoToken = "tempo.apiToken"
     public static let googleSecret = "google.clientSecret"
     public static let googleRefresh = "google.refreshToken"
 }

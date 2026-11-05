@@ -31,6 +31,16 @@ extension Step {
     }
 }
 
+extension WorklogProvider {
+    var title: LocalizedStringResource {
+        switch self {
+        case .tempo: "Tempo"
+        case .jira: "Jira (Log work)"
+        case .other: "Another tool (export files only)"
+        }
+    }
+}
+
 extension Module {
     var localizedTitle: LocalizedStringResource {
         switch self {

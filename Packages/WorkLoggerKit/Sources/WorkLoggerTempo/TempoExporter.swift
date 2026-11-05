@@ -46,9 +46,9 @@ public struct TempoExporter {
     }
 
     private func issueId(for key: String) async throws -> Int64 {
-        if let cached = db.cachedIssueId(key) { return cached }
+        if let cached = db.cachedIssueId(key, site: client.site) { return cached }
         let id = try await client.issueId(for: key)
-        try db.cacheIssueId(key, id)
+        try db.cacheIssueId(key, id, site: client.site)
         return id
     }
 

@@ -66,6 +66,47 @@ public enum Module: String, Codable, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// Where an account's worklogs live.
+public enum WorklogProvider: String, Codable, CaseIterable, Identifiable, Sendable {
+    /// Tempo Timesheets (Tempo REST API).
+    case tempo
+    /// Jira's own worklogs (Log work on the issue).
+    case jira
+    /// Another tool: WorkLogger only exports files and checklists for it.
+    case other
+    public var id: String { rawValue }
+}
+
+/// One Jira site with its own sign-in and worklog provider; issues go to the account that owns their project key.
+public struct JiraAccount: Codable, Hashable, Identifiable, Sendable {
+    public var id = UUID()
+    public var name = ""
+    public var baseURL = ""
+    public var email = ""
+    /// Your Jira account id on this site, filled in automatically.
+    public var accountId = ""
+    public var provider: WorklogProvider = .tempo
+    public var tempoBaseURL = "https://api.tempo.io/4"
+    /// The site's project keys (read from Jira), used to pick the account for an issue key.
+    public var projectKeys: [String] = []
+
+    public var site: String { baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) }
+    public var title: String { name.isEmpty ? (URL(string: site)?.host() ?? site) : name }
+    /// Keychain account names of this account's tokens.
+    public var jiraTokenKey: String { "jira.apiToken.\(id.uuidString)" }
+    public var tempoTokenKey: String { "tempo.apiToken.\(id.uuidString)" }
+
+    public init(
+        id: UUID = UUID(), name: String = "", baseURL: String = "", email: String = "", provider: WorklogProvider = .tempo
+    ) {
+        self.id = id
+        self.name = name
+        self.baseURL = baseURL
+        self.email = email
+        self.provider = provider
+    }
+}
+
 public struct AppSettings: Codable, Equatable, Sendable {
     // Modules and first-run welcome
     public var modules: Set<Module> = Set(Module.allCases)
@@ -126,11 +167,21 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var meetingRules: [MeetingRule] = []
     public var skipMeetingKeywords: [String] = []
 
-    // Jira / Tempo
-    public var jiraBaseURL: String = ""
-    public var jiraEmail: String = ""
-    public var jiraAccountId: String = ""
-    public var tempoBaseURL: String = "https://api.tempo.io/4"
+    // Jira sites and their worklog providers
+    public var jiraAccounts: [JiraAccount] = []
+    /// Gets issues whose project no account lists, and the exports' links.
+    public var defaultJiraAccountId: UUID?
+
+    /// The default account (the first one when none is picked).
+    public var defaultJiraAccount: JiraAccount? {
+        jiraAccounts.first { $0.id == defaultJiraAccountId } ?? jiraAccounts.first
+    }
+
+    /// The account whose project keys include the issue's project ("TAO-12" → TAO), else the default.
+    public func jiraAccount(for issueKey: String) -> JiraAccount? {
+        let project = issueKey.split(separator: "-").first.map { $0.uppercased() } ?? ""
+        return jiraAccounts.first { $0.projectKeys.contains(project) } ?? defaultJiraAccount
+    }
 
     /// Decodes stored settings on top of the defaults so new fields never break old databases.
     public static func decodeMerging(_ data: Data) -> AppSettings? {
@@ -139,8 +190,18 @@ public struct AppSettings: Codable, Equatable, Sendable {
             let stored = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
         else { return nil }
         base.merge(stored) { _, new in new }
-        guard let merged = try? JSONSerialization.data(withJSONObject: base) else { return nil }
-        return try? JSONDecoder().decode(AppSettings.self, from: merged)
+        guard let merged = try? JSONSerialization.data(withJSONObject: base),
+            var settings = try? JSONDecoder().decode(AppSettings.self, from: merged)
+        else { return nil }
+        // Before accounts there was one Jira site in flat fields; it becomes the first account.
+        if stored["jiraAccounts"] == nil, let site = stored["jiraBaseURL"] as? String, !site.isEmpty {
+            var account = JiraAccount(baseURL: site, email: stored["jiraEmail"] as? String ?? "")
+            account.accountId = stored["jiraAccountId"] as? String ?? ""
+            account.tempoBaseURL = stored["tempoBaseURL"] as? String ?? account.tempoBaseURL
+            settings.jiraAccounts = [account]
+            settings.defaultJiraAccountId = account.id
+        }
+        return settings
     }
 
     public init() {}

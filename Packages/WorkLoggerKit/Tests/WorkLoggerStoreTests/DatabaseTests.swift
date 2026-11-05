@@ -27,7 +27,7 @@ import WorkLoggerTestSupport
 
     @Test func migratesToTheLatestVersion() throws {
         #expect(try db.query("PRAGMA user_version").first?.intValue("user_version") == Database.schemaVersion)
-        #expect(Database.schemaVersion == 4)
+        #expect(Database.schemaVersion == 5)
         #expect(db.path == ":memory:")
     }
 
@@ -68,7 +68,7 @@ import WorkLoggerTestSupport
         var s = AppSettings()
         s.fixedDailyHours = 6
         try db.saveSettings(s)
-        s.jiraEmail = "me@x.hu"
+        s.jiraAccounts = [JiraAccount(baseURL: "https://acme.atlassian.net", email: "me@x.hu")]
         try db.saveSettings(s)  // upsert
         #expect(db.loadSettings() == s)
     }
@@ -217,9 +217,15 @@ import WorkLoggerTestSupport
     // MARK: Issue cache
 
     @Test func issueIdCache() throws {
-        #expect(db.cachedIssueId("TAO-1") == nil)
-        try db.cacheIssueId("TAO-1", 10001)
-        try db.cacheIssueId("TAO-1", 10002)
-        #expect(db.cachedIssueId("TAO-1") == 10002)
+        let a = "https://a.atlassian.net"
+        let b = "https://b.atlassian.net"
+        #expect(db.cachedIssueId("TAO-1", site: a) == nil)
+        try db.cacheIssueId("TAO-1", 10001, site: a)
+        try db.cacheIssueId("TAO-1", 10002, site: a)
+        try db.cacheIssueId("TAO-1", 7, site: b)  // the same key on another site is another issue
+        #expect(db.cachedIssueId("TAO-1", site: a) == 10002)
+        #expect(db.cachedIssueId("TAO-1", site: b) == 7)
+        #expect(db.cachedIssueKey(10002, site: a) == "TAO-1")
+        #expect(db.cachedIssueKey(10002, site: b) == nil)
     }
 }

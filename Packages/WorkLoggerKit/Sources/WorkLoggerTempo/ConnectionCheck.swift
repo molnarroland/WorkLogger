@@ -1,7 +1,7 @@
 import Foundation
 import WorkLoggerCore
 
-/// Settings → Tempo API: checks the Jira site, email and token, and the Tempo token, with harmless calls, and infers from
+/// Settings → Jira: checks the Jira site, email and token, and the Tempo token, with harmless calls, and infers from
 /// the answers which permissions (scopes) the tokens have. Tokens don't say their scopes, so 401 is read as "token
 /// rejected", 403 as "missing permission" and 404 as "wrong address".
 public struct ConnectionCheck: Sendable {
@@ -13,22 +13,22 @@ public struct ConnectionCheck: Sendable {
         public var id: String { title }
     }
 
-    let settings: AppSettings
+    let account: JiraAccount
     let jiraToken: String
     let tempoToken: String
     let http: any HTTPClient
     let today: String
 
-    public init(settings: AppSettings, secrets: any SecretStore, http: any HTTPClient, now: Date = Date()) {
-        self.settings = settings
-        self.jiraToken = secrets.get(SecretKey.jiraToken) ?? ""
-        self.tempoToken = secrets.get(SecretKey.tempoToken) ?? ""
+    public init(account: JiraAccount, secrets: any SecretStore, http: any HTTPClient, now: Date = Date()) {
+        self.account = account
+        self.jiraToken = secrets.get(account.jiraTokenKey) ?? ""
+        self.tempoToken = secrets.get(account.tempoTokenKey) ?? ""
         self.http = http
         self.today = DayKey.key(now)
     }
 
-    var jiraSite: String { settings.jiraBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) }
-    var tempoBase: String { settings.tempoBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) }
+    var jiraSite: String { account.site }
+    var tempoBase: String { account.tempoBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")) }
 
     /// Jira: the site answers, the email + token sign in (your account), and issues can be read (`read:jira-work`).
     /// Returns the lines and, when signed in, your Jira account id.
@@ -46,7 +46,7 @@ public struct ConnectionCheck: Sendable {
                 ], nil
             )
         }
-        guard !settings.jiraEmail.isEmpty, !jiraToken.isEmpty else {
+        guard !account.email.isEmpty, !jiraToken.isEmpty else {
             return (
                 [
                     Line(
@@ -211,7 +211,7 @@ public struct ConnectionCheck: Sendable {
         case unreachable(String)
     }
 
-    var jiraAuth: String { "Basic " + Data("\(settings.jiraEmail):\(jiraToken)".utf8).base64EncodedString() }
+    var jiraAuth: String { "Basic " + Data("\(account.email):\(jiraToken)".utf8).base64EncodedString() }
 
     func get(_ url: String, auth: String) async -> Answer { await send(url, method: "GET", body: nil, auth: auth) }
     func post(_ url: String, body: String, auth: String) async -> Answer {

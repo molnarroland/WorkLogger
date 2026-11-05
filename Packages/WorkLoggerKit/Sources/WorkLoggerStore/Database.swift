@@ -269,6 +269,16 @@ public final class Database {
         """
         ALTER TABLE chat_messages ADD COLUMN files TEXT NOT NULL DEFAULT '';
         """,
+        // 5: issue ids per Jira site (several accounts); the old cache is only a cache, so it starts over
+        """
+        DROP TABLE issue_cache;
+        CREATE TABLE issue_cache(
+            site TEXT NOT NULL,
+            key TEXT NOT NULL,
+            issue_id INTEGER NOT NULL,
+            PRIMARY KEY(site, key)
+        );
+        """,
     ]
 
     static var schemaVersion: Int { migrations.count }

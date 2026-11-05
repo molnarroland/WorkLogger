@@ -117,6 +117,19 @@
         }
       }
     },
+    "%@: %@": {
+      "shouldTranslate": false
+    },
+    "%@: logged in another tool, not sent": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: másik eszközben könyvelve, nincs elküldve"
+          }
+        }
+      }
+    },
     "%lld commits": {
       "localizations": {
         "en": {
@@ -712,6 +725,16 @@
         }
       }
     },
+    "Add account": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fiók hozzáadása"
+          }
+        }
+      }
+    },
     "Add an online account and pick your calendars first.": {
       "localizations": {
         "hu": {
@@ -858,6 +881,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "A megbeszélés címében vagy leírásában lévő jegykulcs az első, aztán az első illeszkedő szabály, végül az alapértelmezett jegy."
+          }
+        }
+      }
+    },
+    "Another tool (export files only)": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Másik eszköz (csak fájlexport)"
           }
         }
       }
@@ -1566,6 +1599,16 @@
         }
       }
     },
+    "Default": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alapértelmezett"
+          }
+        }
+      }
+    },
     "Default issue": {
       "localizations": {
         "hu": {
@@ -1672,6 +1715,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Időtartam"
+          }
+        }
+      }
+    },
+    "Each issue goes to the account whose projects include its key (TAO-12 → TAO); keys no account has go to the default account, which also gives the exports their Jira link.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minden jegy ahhoz a fiókhoz kerül, amelynek projektjei között szerepel a kulcsa (TAO-12 → TAO); az egyik fiókhoz sem tartozó kulcsok az alapértelmezett fiókhoz kerülnek, ez adja az exportok Jira-linkjét is."
           }
         }
       }
@@ -2266,6 +2319,19 @@
     "JSON…": {
       "shouldTranslate": false
     },
+    "Jira": {
+      "shouldTranslate": false
+    },
+    "Jira (Log work)": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jira (munkanapló a jegyen)"
+          }
+        }
+      }
+    },
     "Jira API token": {
       "localizations": {
         "hu": {
@@ -2282,6 +2348,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Jira-fiókazonosító (automatikusan kitöltődik)"
+          }
+        }
+      }
+    },
+    "Jira accounts": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jira-fiókok"
           }
         }
       }
@@ -2536,6 +2612,16 @@
         }
       }
     },
+    "Make default": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legyen alapértelmezett"
+          }
+        }
+      }
+    },
     "Make rule": {
       "localizations": {
         "hu": {
@@ -2694,6 +2780,16 @@
         }
       }
     },
+    "Name": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Név"
+          }
+        }
+      }
+    },
     "Needs a ticket": {
       "localizations": {
         "hu": {
@@ -2720,6 +2816,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ezeket sosem vizsgálja. Egy név, pl. \"archive\", minden ilyen nevű mappára illik; egy útvonal, pl. ~/Work/old, arra a mappára. A bennük már listázott repók eltűnnek."
+          }
+        }
+      }
+    },
+    "New account": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Új fiók"
           }
         }
       }
@@ -2880,6 +2986,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nincs munkanapló ebben az időszakban"
+          }
+        }
+      }
+    },
+    "None read yet": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Még nincs beolvasva"
           }
         }
       }
@@ -3254,6 +3370,16 @@
         }
       }
     },
+    "Projects": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projektek"
+          }
+        }
+      }
+    },
     "Push to Tempo…": {
       "localizations": {
         "hu": {
@@ -3328,6 +3454,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tempo olvasása"
+          }
+        }
+      }
+    },
+    "Read from Jira": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beolvasás a Jirából"
           }
         }
       }
@@ -3476,6 +3612,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Újratöltés"
+          }
+        }
+      }
+    },
+    "Remove": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eltávolítás"
           }
         }
       }
@@ -4055,16 +4201,6 @@
     "Tempo API": {
       "shouldTranslate": false
     },
-    "Tempo API (optional)": {
-      "localizations": {
-        "hu": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tempo API (nem kötelező)"
-          }
-        }
-      }
-    },
     "Tempo API base URL": {
       "localizations": {
         "hu": {
@@ -4094,9 +4230,6 @@
           }
         }
       }
-    },
-    "Tempo: %@": {
-      "shouldTranslate": false
     },
     "Text": {
       "localizations": {
@@ -4328,12 +4461,12 @@
         }
       }
     },
-    "Used to show what is already in Tempo and for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain.": {
+    "Used to show what is already logged and for Export → Send. With Another tool, WorkLogger only exports files and checklists for this account's issues. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain.": {
       "localizations": {
         "hu": {
           "stringUnit": {
             "state": "translated",
-            "value": "A Tempóban már meglévők mutatásához és az Exportálás → Küldés a Tempóba funkcióhoz kell. A jegyenkénti Tempo-könyvelés kulcs nélkül is működik. A tokenek a Kulcskarikában tárolódnak."
+            "value": "Ezzel látszik, mi van már lekönyvelve, és ezt használja az Export → Küldés. Másik eszköznél a WorkLogger csak fájlokat és ellenőrzőlistát exportál ennek a fióknak a jegyeihez. A Tempóban jegyenkénti könyveléshez nem kell kulcs. A tokeneket a Kulcskarika tárolja."
           }
         }
       }
@@ -4451,6 +4584,16 @@
         }
       }
     },
+    "Worklogs are kept in": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A munkanaplók helye"
+          }
+        }
+      }
+    },
     "Workspace": {
       "localizations": {
         "hu": {
@@ -4497,6 +4640,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "A céged HRmaster-címe; cégenként eltér"
+          }
+        }
+      }
+    },
+    "a Jira account": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "egy Jira-fiók"
+          }
+        }
+      }
+    },
+    "e.g. Work, Client": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pl. Munka, Ügyfél"
           }
         }
       }

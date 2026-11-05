@@ -198,8 +198,16 @@ import WorkLoggerWeb
         #expect([app.state.fromDay, app.state.toDay] == ["2026-04-03", "2026-04-05"])
     }
 
+    /// Settings with one Jira account (Tempo).
+    static var withAccount: AppSettings {
+        var s = AppSettings()
+        s.jiraAccounts = [JiraAccount(name: "Work", baseURL: "https://acme.atlassian.net", email: "me@x.hu")]
+        return s
+    }
+
     @Test func tempoWorklogsAreReadAndMatched() async throws {
-        let app = try AppHarness()
+        let app = try AppHarness(settings: Self.withAccount)
+        app.tempo.projects = ["TAO", "INT"]
         _ = try app.db.insertWorklog(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1"))
         _ = try app.db.insertWorklog(Fixture.worklog(day: "2026-03-03", "10:00", duration: 1800, issue: "INT-12"))
         app.state.reloadRange()
@@ -218,6 +226,8 @@ import WorkLoggerWeb
         #expect(app.state.isInTempo(tao))
         #expect(!app.state.isInTempo(int))
         #expect(app.state.tempoProgress.entered == 1 && app.state.tempoProgress.total == 2)
+        #expect(app.state.settings.jiraAccounts[0].accountId == "acc-1")
+        #expect(app.state.settings.jiraAccounts[0].projectKeys == ["INT", "TAO"])  // read once, sorted
 
         app.tempoError = TempoError.missing("the Tempo API token")  // no token: nothing shown, no error
         await app.state.refreshTempo()
@@ -405,14 +415,14 @@ import WorkLoggerWeb
     }
 
     @Test func pushToTempoResolvesTheAccountAndMarksEntriesExported() async throws {
-        let app = try AppHarness()
+        let app = try AppHarness(settings: Self.withAccount)
         app.tempo.issueIds = ["TAO-1": 10001]
         try app.addWorklog(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600))
         try app.addWorklog(Fixture.worklog(day: "2026-03-03", "10:00", duration: 1800, issue: nil))
 
         await app.state.pushToTempo(app.state.worklogs)
 
-        #expect(app.state.settings.jiraAccountId == "acc-1")
+        #expect(app.state.settings.jiraAccounts[0].accountId == "acc-1")
         #expect(app.tempo.created.map(\.authorAccountId) == ["acc-1"])
         #expect(app.state.worklogs.map(\.status) == [.exported, .draft])
         #expect(app.state.worklogs.first?.tempoId == 100)
@@ -421,10 +431,41 @@ import WorkLoggerWeb
     }
 
     @Test func pushToTempoWithoutConfigurationShowsTheProblem() async throws {
-        let app = try AppHarness()
+        let app = try AppHarness(settings: Self.withAccount)
         app.tempoError = TempoError.missing("the Tempo API token")
-        await app.state.pushToTempo([])
-        #expect(app.state.status == TempoError.missing("the Tempo API token").localizedDescription)
+        try app.addWorklog(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600))
+        await app.state.pushToTempo(app.state.worklogs)
+        #expect(app.state.status.contains(TempoError.missing("the Tempo API token").localizedDescription))
+        #expect(app.state.worklogs.map(\.status) == [.draft])
+    }
+
+    @Test func pushSendsEachIssueToTheAccountOwningItsProject() async throws {
+        var s = AppSettings()
+        var work = JiraAccount(name: "Work", baseURL: "https://acme.atlassian.net", email: "me@x.hu")
+        work.projectKeys = ["TAO"]
+        var other = JiraAccount(name: "Client", baseURL: "https://client.atlassian.net", email: "me@x.hu", provider: .other)
+        other.projectKeys = ["ACME"]
+        s.jiraAccounts = [work, other]
+        s.defaultJiraAccountId = work.id
+        let app = try AppHarness(settings: s)
+        app.tempo.issueIds = ["TAO-1": 1, "HR-2": 2]
+        try app.addWorklog(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1"))
+        try app.addWorklog(Fixture.worklog(day: "2026-03-03", "10:00", duration: 3600, issue: "ACME-7"))
+        try app.addWorklog(Fixture.worklog(day: "2026-03-03", "11:00", duration: 3600, issue: "HR-2"))  // → default
+
+        await app.state.pushToTempo(app.state.worklogs)
+
+        #expect(app.tempo.created.map(\.issueKey) == ["TAO-1", "HR-2"])
+        #expect(app.state.worklogs.map(\.status) == [.exported, .draft, .exported])
+        #expect(app.state.status.contains("Client"))  // ACME is logged in another tool: named, not sent
+    }
+
+    @Test func oldTokensMoveToTheMigratedAccount() throws {
+        let app = try AppHarness(settings: Self.withAccount)
+        app.secrets.set("jira-t", for: SecretKey.legacyJiraToken)
+        let account = app.state.settings.jiraAccounts[0]
+        #expect(app.secrets.get(account.jiraTokenKey) == "jira-t")
+        #expect(app.secrets.get(SecretKey.legacyJiraToken) == nil)
     }
 
     // MARK: Sessions

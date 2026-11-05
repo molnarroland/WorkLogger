@@ -77,6 +77,7 @@ final class AppState {
         let month = DateRange.month(containing: services.now())!
         from = month.from
         to = month.to
+        moveLegacyTokens()
         reloadAll()
         refreshCalendars()
         // New accounts and calendars sync in the background; refresh the list when macOS reports a change.

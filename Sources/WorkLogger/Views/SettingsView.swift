@@ -28,7 +28,7 @@ struct SettingsView: View {
             Tab("Coding", systemImage: "chevron.left.forwardslash.chevron.right") { page { commitEstimates } }
             Tab("Chats", systemImage: "bubble.left.and.bubble.right") { page { chats } }
             Tab("Sites", systemImage: "person.crop.circle.badge.checkmark") { page { SignedInSites() } }
-            Tab("Tempo", systemImage: "checklist.checked") { page { tempo } }
+            Tab("Jira", systemImage: "checklist.checked") { page { JiraAccountsSettings() } }
         }
     }
 
@@ -144,23 +144,121 @@ struct SettingsView: View {
             )
         }
     }
+}
 
-    /// Jira and Tempo: addresses, tokens and the checks.
-    @ViewBuilder private var tempo: some View {
+/// Jira accounts, one per site: sign-in, where the worklogs live (Tempo, Jira or another tool), the projects that
+/// decide which account an issue goes to, and the default for everything else.
+struct JiraAccountsSettings: View {
+    @Environment(AppState.self) private var state
+    @State private var selected: JiraAccount.ID?
+
+    var body: some View {
         @Bindable var state = state
+        let accounts = state.settings.jiraAccounts
+        let defaultId = state.settings.defaultJiraAccount?.id
         Section {
-            TextField("Jira site", text: $state.settings.jiraBaseURL, prompt: Text("https://yourcompany.atlassian.net"))
-            TextField("Jira email", text: $state.settings.jiraEmail)
-            SecretField(title: "Jira API token", account: SecretKey.jiraToken)
-            SecretField(title: "Tempo API token", account: SecretKey.tempoToken)
-            TextField("Tempo API base URL", text: $state.settings.tempoBaseURL)
-            TextField("Jira account ID (filled in automatically)", text: $state.settings.jiraAccountId)
-            ConnectionChecks()
+            ForEach(accounts) { account in
+                HStack {
+                    Image(systemName: account.id == current?.id ? "largecircle.fill.circle" : "circle")
+                        .foregroundStyle(.tint)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(account.title.isEmpty ? String(localized: "New account") : account.title)
+                        (Text(account.provider.title)
+                            + Text(account.projectKeys.isEmpty ? "" : " · " + account.projectKeys.joined(separator: ", ")))
+                            .font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    Spacer()
+                    if account.id == defaultId {
+                        Text("Default").font(.callout).foregroundStyle(.secondary)
+                    } else {
+                        Button("Make default") { state.settings.defaultJiraAccountId = account.id }
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture { selected = account.id }
+            }
+            HStack {
+                Button("Add account") {
+                    let account = JiraAccount()
+                    state.settings.jiraAccounts.append(account)
+                    if state.settings.defaultJiraAccountId == nil { state.settings.defaultJiraAccountId = account.id }
+                    selected = account.id
+                }
+                Button("Remove", role: .destructive) { if let current { remove(current) } }
+                    .disabled(current == nil)
+            }
         } header: {
-            Text("Tempo API (optional)")
+            Text("Jira accounts")
         } footer: {
             Text(
-                "Used to show what is already in Tempo and for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain."
+                "Each issue goes to the account whose projects include its key (TAO-12 → TAO); keys no account has go to the default account, which also gives the exports their Jira link."
+            )
+        }
+        if let current, let i = accounts.firstIndex(of: current) {
+            JiraAccountForm(account: $state.settings.jiraAccounts[i]).id(current.id)
+        }
+    }
+
+    private var current: JiraAccount? {
+        state.settings.jiraAccounts.first { $0.id == selected } ?? state.settings.defaultJiraAccount
+    }
+
+    private func remove(_ account: JiraAccount) {
+        state.services.secrets.set(nil, for: account.jiraTokenKey)
+        state.services.secrets.set(nil, for: account.tempoTokenKey)
+        state.settings.jiraAccounts.removeAll { $0.id == account.id }
+        if state.settings.defaultJiraAccountId == account.id {
+            state.settings.defaultJiraAccountId = state.settings.jiraAccounts.first?.id
+        }
+        selected = nil
+        Task { await state.refreshTempo() }
+    }
+}
+
+/// One account's site, sign-in, provider and projects, with the checks.
+struct JiraAccountForm: View {
+    @Environment(AppState.self) private var state
+    @Binding var account: JiraAccount
+    @State private var loadingProjects = false
+
+    var body: some View {
+        Section {
+            TextField("Name", text: $account.name, prompt: Text("e.g. Work, Client"))
+            TextField("Jira site", text: $account.baseURL, prompt: Text("https://yourcompany.atlassian.net"))
+            TextField("Jira email", text: $account.email)
+            SecretField(title: "Jira API token", account: account.jiraTokenKey)
+            Picker("Worklogs are kept in", selection: $account.provider) {
+                ForEach(WorklogProvider.allCases) { Text($0.title).tag($0) }
+            }
+            if account.provider == .tempo {
+                SecretField(title: "Tempo API token", account: account.tempoTokenKey)
+                TextField("Tempo API base URL", text: $account.tempoBaseURL)
+            }
+            TextField("Jira account ID (filled in automatically)", text: $account.accountId)
+            LabeledContent("Projects") {
+                HStack {
+                    Text(
+                        account.projectKeys.isEmpty
+                            ? String(localized: "None read yet") : account.projectKeys.joined(separator: ", ")
+                    )
+                    .foregroundStyle(.secondary).lineLimit(3).multilineTextAlignment(.trailing)
+                    if loadingProjects { ProgressView().controlSize(.small) }
+                    Button("Read from Jira") {
+                        Task {
+                            loadingProjects = true
+                            await state.refreshProjects(account.id)
+                            loadingProjects = false
+                        }
+                    }
+                    .disabled(loadingProjects)
+                }
+            }
+            ConnectionChecks(account: account)
+        } header: {
+            Text(account.title.isEmpty ? String(localized: "New account") : account.title)
+        } footer: {
+            Text(
+                "Used to show what is already logged and for Export → Send. With Another tool, WorkLogger only exports files and checklists for this account's issues. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain."
             )
         }
     }
@@ -170,6 +268,7 @@ struct SettingsView: View {
 /// plus what each token needs.
 struct ConnectionChecks: View {
     @Environment(AppState.self) private var state
+    let account: JiraAccount
     @State private var jira: [ConnectionCheck.Line] = []
     @State private var tempo: [ConnectionCheck.Line] = []
     @State private var checking = false
@@ -178,7 +277,7 @@ struct ConnectionChecks: View {
     var body: some View {
         HStack {
             Button("Check Jira") { Task { await run(tempo: false) } }
-            Button("Check Tempo") { Task { await run(tempo: true) } }
+            if account.provider == .tempo { Button("Check Tempo") { Task { await run(tempo: true) } } }
             if checking { ProgressView().controlSize(.small) }
             Spacer()
         }
@@ -218,12 +317,13 @@ struct ConnectionChecks: View {
     private func run(tempo checkTempo: Bool) async {
         checking = true
         defer { checking = false }
-        let check = ConnectionCheck(settings: state.settings, secrets: state.services.secrets, http: URLSession.shared)
+        let check = ConnectionCheck(account: account, secrets: state.services.secrets, http: URLSession.shared)
         let result = await check.checkJira()
         jira = result.lines
-        if let id = result.accountId { state.settings.jiraAccountId = id }
-        tempo = checkTempo ? await check.checkTempo(accountId: result.accountId ?? state.settings.jiraAccountId) : []
+        if let id = result.accountId { state.update(account.id) { $0.accountId = id } }
+        tempo = checkTempo ? await check.checkTempo(accountId: result.accountId ?? account.accountId) : []
         if (jira + tempo).contains(where: { $0.ok == false }) { showNeeds = true }
+        if result.accountId != nil { await state.refreshProjects(account.id) }
         await state.refreshTempo()
     }
 }

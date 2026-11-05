@@ -68,18 +68,21 @@ extension Database {
             """, [.text(fromDay), .text(toDay)])
     }
 
-    // MARK: Jira issue id cache (Tempo API v4 needs numeric issue ids)
+    // MARK: Jira issue id cache (Tempo API v4 needs numeric issue ids), per Jira site
 
-    public func cachedIssueId(_ key: String) -> Int64? {
-        (try? query("SELECT issue_id FROM issue_cache WHERE key = ?", [.text(key)]))?.first?.int("issue_id")
+    public func cachedIssueId(_ key: String, site: String) -> Int64? {
+        (try? query("SELECT issue_id FROM issue_cache WHERE site = ? AND key = ?", [.text(site), .text(key)]))?.first?
+            .int("issue_id")
     }
 
     /// The issue key for a Jira issue id seen before (pushing or reading Tempo).
-    public func cachedIssueKey(_ id: Int64) -> String? {
-        (try? query("SELECT key FROM issue_cache WHERE issue_id = ?", [.int(id)]))?.first?.string("key")
+    public func cachedIssueKey(_ id: Int64, site: String) -> String? {
+        (try? query("SELECT key FROM issue_cache WHERE site = ? AND issue_id = ?", [.text(site), .int(id)]))?.first?
+            .string("key")
     }
 
-    public func cacheIssueId(_ key: String, _ id: Int64) throws {
-        try run("INSERT OR REPLACE INTO issue_cache(key, issue_id) VALUES(?, ?)", [.text(key), .int(id)])
+    public func cacheIssueId(_ key: String, _ id: Int64, site: String) throws {
+        try run(
+            "INSERT OR REPLACE INTO issue_cache(site, key, issue_id) VALUES(?, ?, ?)", [.text(site), .text(key), .int(id)])
     }
 }
