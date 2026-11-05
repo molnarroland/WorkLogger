@@ -1,0 +1,116 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ failed (HTTP %lld): %@": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ sikertelen (HTTP %lld): %@"
+          }
+        }
+      }
+    },
+    "Creating the %@ worklog": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A(z) %@ munkanapló létrehozása"
+          }
+        }
+      }
+    },
+    "Looking up %@": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ keresése"
+          }
+        }
+      }
+    },
+    "Missing %@. Add it in Settings → Tempo API (optional).": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiányzik: %@. Add meg a Beállítások → Tempo API (nem kötelező) alatt."
+          }
+        }
+      }
+    },
+    "Reading your Jira account": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Jira-fiók olvasása"
+          }
+        }
+      }
+    },
+    "a valid Jira site URL": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "érvényes Jira-oldal URL"
+          }
+        }
+      }
+    },
+    "a valid Tempo API URL": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "érvényes Tempo API URL"
+          }
+        }
+      }
+    },
+    "the Jira email or API token": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a Jira e-mail-cím vagy API-token"
+          }
+        }
+      }
+    },
+    "the Jira site URL": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a Jira-oldal URL-je"
+          }
+        }
+      }
+    },
+    "the Tempo API token": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a Tempo API-token"
+          }
+        }
+      }
+    },
+    "the issue id or account id": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a jegy- vagy fiókazonosító"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

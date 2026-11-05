@@ -50,10 +50,10 @@ public struct HRmasterCollector {
         for (i, m) in months.enumerated() {
             let name = DayKey.calendar.date(from: DateComponents(year: m.year, month: m.month, day: 1))!
                 .formatted(Date.FormatStyle(timeZone: DayKey.timeZone).month(.wide).year())
-            progress("HRmaster: reading \(name) (\(i + 1) of \(months.count))…")
+            progress(String(localized: "HRmaster: reading \(name) (\(i + 1) of \(months.count))…", bundle: .module))
             guard let json = try await session.run(Self.script, arguments: ["year": m.year, "month": m.month]) as? String,
                   let r = try? JSONDecoder().decode(Result.self, from: Data(json.utf8))
-            else { throw WebSessionError.script("HRmaster: the page could not be read.") }
+            else { throw WebSessionError.script(String(localized: "HRmaster: the page could not be read.", bundle: .module)) }
             if let error = r.error {
                 Log.web.error("HRmaster \(m.year)-\(m.month): \(error, privacy: .public)")
                 if error == "no-panel" { throw WebSessionError.notSignedIn("HRmaster") }

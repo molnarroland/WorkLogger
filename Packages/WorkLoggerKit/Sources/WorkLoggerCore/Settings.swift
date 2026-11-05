@@ -5,12 +5,6 @@ public enum RoundingMode: String, Codable, CaseIterable, Identifiable, Sendable 
     case estimate, fixedHours, sessions
     public var id: String { rawValue }
     public static let choices: [RoundingMode] = [.fixedHours, .estimate]
-    public var label: String {
-        switch self {
-        case .estimate: return "Keep commit estimates"
-        case .fixedHours, .sessions: return "Scale each day to its worked time"
-        }
-    }
 }
 
 public struct MeetingRule: Codable, Hashable, Identifiable, Sendable {
@@ -58,32 +52,16 @@ public struct ProjectPeriod: Codable, Hashable, Identifiable, Sendable {
     }
 }
 
-/// Optional data sources, switched on the welcome screen. Off means the source is neither read nor used for drafts.
+/// Optional data sources, switched on the welcome screen (names: the app's DisplayNames). Off means the source is neither read nor used for drafts.
 public enum Module: String, Codable, CaseIterable, Identifiable, Sendable {
     case git, calendar, workTimes, chats
     public var id: String { rawValue }
-    public var title: String {
-        switch self {
-        case .git: return "Git repositories"
-        case .calendar: return "Calendar meetings"
-        case .workTimes: return "Work times"
-        case .chats: return "Chats"
-        }
-    }
     public var icon: String {
         switch self {
         case .git: return "externaldrive.connected.to.line.below"
         case .calendar: return "person.2"
         case .workTimes: return "clock.badge.checkmark"
         case .chats: return "bubble.left.and.bubble.right"
-        }
-    }
-    public var summary: String {
-        switch self {
-        case .git: return "Turns your commits into worklogs. Leave off if you rarely code."
-        case .calendar: return "Logs meetings from any calendar synced to macOS: Google, Outlook / Exchange, iCloud, CalDAV."
-        case .workTimes: return "Clock-in times, leave and holidays, read from HRmaster after you sign in once."
-        case .chats: return "Google Chat, read in a built-in browser after you sign in once."
         }
     }
 }

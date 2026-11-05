@@ -24,11 +24,11 @@ extension AppState {
     func connectGoogle() async {
         isBusy = true
         defer { isBusy = false }
-        status = "Finish signing in to Google in your browser…"
+        status = String(localized: "Finish signing in to Google in your browser…")
         do {
             try await google().signIn()
             googleConnected = true
-            status = "Google Calendar connected."
+            status = String(localized: "Google Calendar connected.")
         } catch {
             status = error.localizedDescription
         }
@@ -37,7 +37,7 @@ extension AppState {
     func disconnectGoogle() {
         google().signOut()
         googleConnected = false
-        status = "Google Calendar disconnected."
+        status = String(localized: "Google Calendar disconnected.")
     }
 
     // MARK: macOS calendars (any online account via Internet Accounts)
@@ -58,17 +58,17 @@ extension AppState {
 
     func openInternetAccounts() {
         MacCalendarStore.openInternetAccounts()
-        status = "In Internet Accounts choose Add Account…, sign in and keep Calendars switched on."
+        status = String(localized: "In Internet Accounts choose Add Account…, sign in and keep Calendars switched on.")
     }
 
     func requestCalendarAccess() async {
         do {
             let granted = try await services.calendars.requestAccess()
             refreshCalendars()
-            status = granted ? "Calendar access allowed. Tick the calendars to read."
-                             : "Calendar access was not allowed. You can change this in System Settings → Privacy & Security → Calendars."
+            status = granted ? String(localized: "Calendar access allowed. Tick the calendars to read.")
+                             : String(localized: "Calendar access was not allowed. You can change this in System Settings → Privacy & Security → Calendars.")
         } catch {
-            status = "Calendar access failed: \(error.localizedDescription)"
+            status = String(localized: "Calendar access failed: \(error.localizedDescription)")
         }
     }
 
@@ -109,9 +109,9 @@ extension AppState {
         defer { isBusy = false }
         do {
             let n = try await fetchMeetings()
-            status = "Read \(n) meetings. Rebuild drafts to apply them."
+            status = String(localized: "Read \(n) meetings. Rebuild drafts to apply them.")
         } catch {
-            status = "Calendar: \(error.localizedDescription)"
+            status = String(localized: "Calendar: \(error.localizedDescription)")
         }
     }
 

@@ -15,7 +15,17 @@ struct ReviewView: View {
     @State private var checked: Set<Int64> = []
     @State private var bulkIssue = ""
 
-    enum ReviewFilter: String, CaseIterable { case noTicket = "No ticket", drafts = "Drafts", locked = "Locked", all = "All" }
+    enum ReviewFilter: CaseIterable {
+        case noTicket, drafts, locked, all
+        func title(missing: Int) -> LocalizedStringKey {
+            switch self {
+            case .noTicket: "No ticket · \(missing)"
+            case .drafts: "Drafts"
+            case .locked: "Locked"
+            case .all: "All"
+            }
+        }
+    }
 
     private func shown(_ w: Worklog) -> Bool {
         switch filter {
@@ -36,7 +46,7 @@ struct ReviewView: View {
                 // Start with what blocks Tempo: entries without a ticket.
                 HStack(spacing: 6) {
                     ForEach(ReviewFilter.allCases, id: \.self) { f in
-                        Button(f == .noTicket ? "No ticket · \(missing)" : f.rawValue) { filter = f }
+                        Button(f.title(missing: missing)) { filter = f }
                             .buttonStyle(.glass)
                             .tint(filter == f ? .accentColor : nil)
                             .foregroundStyle(f == .noTicket && missing > 0 ? Color.orange : Color.primary)

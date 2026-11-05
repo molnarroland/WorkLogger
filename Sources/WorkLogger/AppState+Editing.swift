@@ -21,7 +21,7 @@ extension AppState {
             try db.transaction {
                 for w in worklogs where dirty.contains(w.id) { try db.updateWorklog(w) }
             }
-            status = "Saved \(dirty.count) changes."
+            status = String(localized: "Saved \(dirty.count) changes.")
         }
         dirty.removeAll()
     }
@@ -59,7 +59,7 @@ extension AppState {
                     moved += 1
                 }
             }
-            status = "Moved \(moved) \(moved == 1 ? "entry" : "entries") to \(DayKey.title(day))."
+            status = String(localized: "Moved \(moved) entries to \(DayKey.title(day)).")
         }
         reloadRange()
     }

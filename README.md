@@ -120,6 +120,10 @@ Google Calendar API with your own “Desktop app” OAuth client.
   Google Chat, ⌘[ / ⌘] previous / next month, ⌘T this month.
 * **Menu bar:** a clock item shows today's logged time; it opens today's bar, what still needs a ticket, Collect,
   Fetch Google Chat, Open Timesheet and Log in Tempo. Settings → General hides it.
+* **Language:** English and Hungarian. WorkLogger follows the macOS language; to choose it for WorkLogger only, use
+  System Settings → General → Language & Region → Applications. Texts live in String Catalogs
+  (`Sources/WorkLogger/Localizable.xcstrings`, and one per WorkLoggerKit module that shows messages: Core, Web, Tempo);
+  Xcode adds new strings to them when you build. Tests run in English (`WorkLogger.xctestplan`).
 * **Logs:** Console.app, subsystem `dev.worklogger`, categories `app`, `store`, `git`, `calendar`, `tempo` and `web`
   (fetch steps, sign-in changes, failed sends and migrations; message contents are never logged).
 * **Chats:** a pause longer than Settings → Chats → “New stretch after a pause of” (10 minutes by default) starts a new

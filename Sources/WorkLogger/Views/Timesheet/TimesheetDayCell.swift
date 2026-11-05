@@ -70,10 +70,10 @@ struct DayCell: View {
                 }
                 .font(.caption2)
                 .lineLimit(1)
-                .help("\(source.label) — drag to another day to log it there")
+                .help("\(String(localized: source.localizedLabel)) — drag to another day to log it there")
                 .contentShape(.rect)
                 .draggable(WorklogDrag.payload(logs.filter { $0.source == source })) {
-                    Label("\(source.label) \(DurationFormat.string(seconds))", systemImage: source.icon)
+                    Label("\(String(localized: source.localizedLabel)) \(DurationFormat.string(seconds))", systemImage: source.icon)
                         .padding(6).glassEffect(.regular, in: .capsule)
                 }
             }

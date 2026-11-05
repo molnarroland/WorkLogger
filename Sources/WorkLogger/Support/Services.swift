@@ -37,7 +37,7 @@ struct AppKitFilePresenter: FilePresenter {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.prompt = "Use folder"
+        panel.prompt = String(localized: "Use folder")
         return panel.runModal() == .OK ? panel.url : nil
     }
 

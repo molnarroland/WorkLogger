@@ -79,7 +79,8 @@ public enum Report: Sendable {
         case .week:
             guard let first = days.min(), let start = DayKey.calendar.dateInterval(of: .weekOfYear, for: DayKey.date(first))?.start
             else { return key }
-            return "Week of " + start.formatted(.dateTime.day().month(.abbreviated))
+            let date = start.formatted(.dateTime.day().month(.abbreviated))
+            return String(localized: "Week of \(date)", bundle: .module)
         case .month:
             return DayKey.date(key + "-01").formatted(.dateTime.month(.wide).year())
         }

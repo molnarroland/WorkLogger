@@ -15,7 +15,7 @@ struct SettingsView: View {
         Form {
             Section {
                 Picker("Daily total", selection: $state.settings.roundingMode) {
-                    ForEach(RoundingMode.choices) { Text($0.label).tag($0) }
+                    ForEach(RoundingMode.choices) { Text($0.localizedLabel).tag($0) }
                 }
                 if state.settings.roundingMode != .estimate {
                     Picker("Round worked time up to", selection: $state.settings.dayRoundUpMinutes) {

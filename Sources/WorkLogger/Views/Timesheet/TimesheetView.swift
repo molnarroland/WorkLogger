@@ -77,8 +77,8 @@ struct TimesheetView: View {
                     .font(.headline).monospacedDigit()
                 let gap = expected - logged
                 let missing = state.worklogs.missingIssue.count
-                Text((gap > 0 ? "\(DurationFormat.string(gap)) still to log" : "Everything logged")
-                     + (missing > 0 ? " · \(missing) need a ticket" : ""))
+                let left = gap > 0 ? String(localized: "\(DurationFormat.string(gap)) still to log") : String(localized: "Everything logged")
+                Text(missing > 0 ? String(localized: "\(left) · \(missing) need a ticket") : left)
                     .font(.callout)
                     .foregroundStyle(gap > 0 || missing > 0 ? Color.orange : Color.green)
             }

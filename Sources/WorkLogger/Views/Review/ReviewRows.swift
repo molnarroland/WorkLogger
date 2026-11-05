@@ -65,7 +65,7 @@ struct WorklogLine: View, Equatable {
             if log.source == .git, log.estimated != log.duration {
                 Text("est. \(DurationFormat.string(log.estimated))").font(.caption).foregroundStyle(.secondary)
             }
-            Text(log.status.label)
+            Text(log.status.localizedLabel)
                 .font(.caption)
                 .foregroundStyle(log.status == .draft ? Color.secondary : log.status == .reviewed ? Color.green : Color.blue)
                 .frame(width: 100, alignment: .leading)
@@ -96,7 +96,7 @@ struct WorklogRow: View {
             Image(systemName: log.source.icon)
                 .foregroundStyle(.secondary)
                 .frame(width: 18)
-                .help(log.source.label)
+                .help(Text(log.source.localizedLabel))
             TextField("09:00", text: $startText)
                 .frame(width: 54)
                 .monospacedDigit()
@@ -118,7 +118,7 @@ struct WorklogRow: View {
                     .help("Raw estimate before scaling the day to its target")
             }
             Picker("Status", selection: $log.status) {
-                ForEach(WorklogStatus.allCases, id: \.self) { Text($0.label).tag($0) }
+                ForEach(WorklogStatus.allCases, id: \.self) { Text($0.localizedLabel).tag($0) }
             }
             .labelsHidden()
             .frame(width: 100)

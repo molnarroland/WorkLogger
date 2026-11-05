@@ -8,6 +8,7 @@ let infoPlist = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
 
 let package = Package(
     name: "WorkLogger",
+    defaultLocalization: "en",
     platforms: [.macOS(.v26)],
     dependencies: [.package(path: "Packages/WorkLoggerKit")],
     targets: [
@@ -21,6 +22,7 @@ let package = Package(
                            .product(name: "WorkLoggerWeb", package: "WorkLoggerKit")],
             path: "Sources/WorkLogger",
             exclude: ["AppIcon.icon"],
+            resources: [.process("Localizable.xcstrings")],
             linkerSettings: [
                 .linkedFramework("EventKit"),
                 .unsafeFlags(["-Xlinker", "-sectcreate", "-Xlinker", "__TEXT",

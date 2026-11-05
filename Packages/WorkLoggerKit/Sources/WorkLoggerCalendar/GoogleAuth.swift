@@ -33,7 +33,8 @@ public final class LoopbackReceiver: @unchecked Sendable {
 
     public func start() async throws -> UInt16 {
         try await withCheckedThrowingContinuation { cont in
-            queue.async {
+            queue.async { [weak self] in
+                guard let self else { return }
                 self.startContinuation = cont
                 self.listener.stateUpdateHandler = { [weak self] state in
                     guard let self else { return }

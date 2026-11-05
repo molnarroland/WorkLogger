@@ -208,7 +208,7 @@ import WorkLoggerWeb
         #expect(DayKey.hm(moved.start) == "10:30")
         #expect(moved.locked)
         #expect(app.state.worklogs.first { $0.id == exported.id }?.day == "2026-03-03")
-        #expect(app.state.status == "Moved 1 entry to \(DayKey.title("2026-03-04")).")
+        #expect(app.state.status == String(localized: "Moved \(1) entries to \(DayKey.title("2026-03-04")).")) // "Moved 1 entry …" in English
     }
 
     @Test func editsAreSavedWhenMarkedDirty() throws {
@@ -365,7 +365,7 @@ import WorkLoggerWeb
         #expect(app.tempo.created.map(\.authorAccountId) == ["acc-1"])
         #expect(app.state.worklogs.map(\.status) == [.exported, .draft])
         #expect(app.state.worklogs.first?.tempoId == 100)
-        #expect(app.state.status == "Sent 1 worklogs to Tempo.")
+        #expect(app.state.status == String(localized: "Sent \(1) worklogs to Tempo."))   // "Sent 1 worklog …" in English
         #expect(!app.state.isBusy)
     }
 

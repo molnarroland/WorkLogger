@@ -132,7 +132,7 @@ struct PaneCommands: Commands {
             Divider()
             let panes = Step.allCases.flatMap { $0.panes(modules) }
             ForEach(Array(panes.prefix(9).enumerated()), id: \.element) { i, p in
-                Button(p.rawValue) { selectPane?(p) }
+                Button(String(localized: p.title)) { selectPane?(p) }
                     .keyboardShortcut(KeyEquivalent(Character("\(i + 1)")))
                     .disabled(selectPane == nil)
             }

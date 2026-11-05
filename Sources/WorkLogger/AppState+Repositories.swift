@@ -20,7 +20,7 @@ extension AppState {
     }
 
     func scanWorkspace() {
-        guard !settings.workspaceRoot.isEmpty else { status = "Choose your workspace folder first."; return }
+        guard !settings.workspaceRoot.isEmpty else { status = String(localized: "Choose your workspace folder first."); return }
         let root = URL(fileURLWithPath: (settings.workspaceRoot as NSString).expandingTildeInPath)
         let found = services.git.findRepos(root: root, excluded: settings.excludedFolders)
         attempt("Scanning") {
@@ -28,7 +28,7 @@ extension AppState {
         }
         reloadAll()
         removeHiddenRepos()
-        status = "Found \(found.count) repositories in \(root.lastPathComponent)."
+        status = String(localized: "Found \(found.count) repositories in \(root.lastPathComponent).")
     }
 
     /// Drops listed repositories that sit inside a hidden folder.

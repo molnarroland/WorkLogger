@@ -12,6 +12,14 @@ public enum ShellError: LocalizedError {
 }
 
 public enum Shell {
+    /// stderr bytes handed from the reader thread back to the caller.
+    private final class Box: @unchecked Sendable {
+        private let lock = NSLock()
+        private var data = Data()
+        func set(_ d: Data) { lock.withLock { data = d } }
+        func get() -> Data { lock.withLock { data } }
+    }
+
     /// Runs a command via /usr/bin/env so `git` is resolved from PATH.
     public static func run(_ args: [String], cwd: String? = nil) throws -> String {
         let p = Process()
@@ -28,11 +36,11 @@ public enum Shell {
         try p.run()
 
         // Drain stderr concurrently so a chatty command can't deadlock on a full pipe.
-        var errData = Data()
+        let errData = Box()
         let group = DispatchGroup()
         group.enter()
         DispatchQueue.global().async {
-            errData = err.fileHandleForReading.readDataToEndOfFile()
+            errData.set(err.fileHandleForReading.readDataToEndOfFile())
             group.leave()
         }
         let data = out.fileHandleForReading.readDataToEndOfFile()
@@ -41,7 +49,7 @@ public enum Shell {
 
         guard p.terminationStatus == 0 else {
             throw ShellError.failed(args.prefix(3).joined(separator: " "), p.terminationStatus,
-                                    String(decoding: errData, as: UTF8.self))
+                                    String(decoding: errData.get(), as: UTF8.self))
         }
         return String(decoding: data, as: UTF8.self)
     }

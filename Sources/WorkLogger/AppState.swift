@@ -36,7 +36,7 @@ final class AppState {
     var sessions: [WorkSession] = []
     var dayRecords: [String: DayRecord] = [:]
     var dirty: Set<Int64> = []
-    var status = "Ready"
+    var status = String(localized: "Ready")
     var chats: [ChatDay] = []
     /// Commits per repository in the range, for the Repositories list.
     var commitCounts: [Int64: Int] = [:]
@@ -177,10 +177,11 @@ final class AppState {
     var databasePath: String { db.path }
 
     /// Runs a database step; a failure ends up in the status bar.
-    func attempt(_ label: String, _ body: () throws -> Void) {
+    func attempt(_ label: String.LocalizationValue, _ body: () throws -> Void) {
         do { try body() } catch {
-            status = "\(label) failed: \(error.localizedDescription)"
-            Log.app.error("\(label, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+            let step = String(localized: label)
+            status = String(localized: "\(step) failed: \(error.localizedDescription)")
+            Log.app.error("\(step, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 }

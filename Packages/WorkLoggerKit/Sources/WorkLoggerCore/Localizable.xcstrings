@@ -1,0 +1,26 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Paste the base64 text of the chat export, or its JSON.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illeszd be a chatexport base64-szövegét vagy a JSON-ját."
+          }
+        }
+      }
+    },
+    "Week of %@": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kezdetű hét"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

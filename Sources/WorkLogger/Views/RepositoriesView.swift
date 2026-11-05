@@ -17,7 +17,7 @@ struct RepositoriesView: View {
             // One compact setup card: folder, your commit emails and skipped folders as chips.
             VStack(alignment: .leading, spacing: 10) {
                 SetupRow("Workspace") {
-                    Text(state.settings.workspaceRoot.isEmpty ? "No folder chosen" : state.settings.workspaceRoot)
+                    Text(state.settings.workspaceRoot.isEmpty ? String(localized: "No folder chosen") : state.settings.workspaceRoot)
                         .font(.body.monospaced())
                         .foregroundStyle(state.settings.workspaceRoot.isEmpty ? Color.secondary : Color.primary)
                         .lineLimit(1).truncationMode(.middle)
@@ -38,7 +38,7 @@ struct RepositoriesView: View {
                         ForEach(state.projects) { p in
                             HStack {
                                 Text(p.key).font(.body.monospaced().weight(.medium)).frame(width: 90, alignment: .leading)
-                                Text(p.defaultIssue ?? "No catch-all issue")
+                                Text(p.defaultIssue ?? String(localized: "No catch-all issue"))
                                     .foregroundStyle(p.defaultIssue == nil ? Color.orange : Color.primary)
                                 Spacer()
                                 Button(role: .destructive) { state.removeProject(p) } label: { Image(systemName: "trash") }
@@ -91,9 +91,9 @@ struct RepositoriesView: View {
 
 /// A labelled line of the setup card.
 private struct SetupRow<Content: View>: View {
-    let title: String
+    let title: LocalizedStringKey
     @ViewBuilder var content: Content
-    init(_ title: String, @ViewBuilder content: () -> Content) { self.title = title; self.content = content() }
+    init(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) { self.title = title; self.content = content() }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -106,7 +106,7 @@ private struct SetupRow<Content: View>: View {
 /// Values as removable chips, with a field to add one (Return adds; commas split several).
 struct ChipList: View {
     @Binding var values: [String]
-    var placeholder = "Add"
+    var placeholder: LocalizedStringKey = "Add"
     var highlighted = false
     @State private var text = ""
 

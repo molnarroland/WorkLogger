@@ -56,7 +56,7 @@ private struct TicketRow: View {
                 Spacer()
                 Text(DurationFormat.string(group.seconds)).monospacedDigit()
             }
-            Text(group.key == nil ? "\(TicketDetail.days(group.days.count)) need a ticket" : "\(TicketDetail.days(group.days.count)) · \(group.days.first?.description ?? "")")
+            Text(group.key == nil ? "\(group.days.count) days need a ticket" : "\(group.days.count) days · \(group.days.first?.description ?? "")")
                 .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             if group.key != nil {
                 ProgressView(value: Double(group.enteredDays), total: Double(max(group.days.count, 1)))
@@ -71,7 +71,6 @@ private struct TicketDetail: View {
     @Environment(AppState.self) private var state
     let group: TicketGroup
 
-    static func days(_ n: Int) -> String { n == 1 ? "1 day" : "\(n) days" }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -82,7 +81,7 @@ private struct TicketDetail: View {
                 CopyButton(title: "Copy all", text: TicketPlan.text(group), prominent: true)
             }
             HStack(spacing: 8) {
-                Chip(Self.days(group.days.count))
+                Chip("\(group.days.count) days")
                 Chip("\(DurationFormat.string(group.seconds)) total")
                 Chip("\(group.enteredDays) of \(group.days.count) entered",
                      tint: group.isDone ? .green : group.enteredDays > 0 ? .orange : nil)
@@ -142,7 +141,7 @@ private struct NoIssueDetail: View {
 
 /// Copies text and briefly says so.
 struct CopyButton: View {
-    let title: String
+    let title: LocalizedStringKey
     let text: String
     var prominent = false
     var small = false
@@ -180,9 +179,9 @@ struct SignInChip: View {
 
 /// Small capsule label; colored when it says something needs attention or is done.
 struct Chip: View {
-    let text: String
+    let text: LocalizedStringKey
     var tint: Color?
-    init(_ text: String, tint: Color? = nil) { self.text = text; self.tint = tint }
+    init(_ text: LocalizedStringKey, tint: Color? = nil) { self.text = text; self.tint = tint }
 
     var body: some View {
         Text(text).font(.caption).monospacedDigit()

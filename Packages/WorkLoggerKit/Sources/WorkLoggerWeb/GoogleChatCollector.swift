@@ -33,9 +33,10 @@ public struct GoogleChatCollector {
         }
     }
 
-    public static let searches: [(label: String, params: (String) -> [(String, String)])] = [
-        ("my messages", { email in [("cfrom", email)] }),
-        ("mentions of me", { _ in [("chasmention", "true")] }),
+    /// `label` names the search in logs; `title` in the status bar.
+    public static let searches: [(label: String, title: String, params: (String) -> [(String, String)])] = [
+        ("my messages", String(localized: "my messages", bundle: .module), { email in [("cfrom", email)] }),
+        ("mentions of me", String(localized: "mentions of me", bundle: .module), { _ in [("chasmention", "true")] }),
     ]
 
     public func collect(from: Date, to: Date, progress: @escaping (String) -> Void) async throws -> ChatExport {
@@ -48,15 +49,19 @@ public struct GoogleChatCollector {
         let days = Self.days(from: from, to: to)
         for (i, day) in days.enumerated() {
             let start = day.start.timeIntervalSince1970 * 1000, end = day.end.timeIntervalSince1970 * 1000
-            let title = "\(day.start.formatted(Date.FormatStyle(timeZone: DayKey.timeZone).weekday(.abbreviated).day().month(.abbreviated))) (\(i + 1) of \(days.count))"
+            let dayName = day.start.formatted(Date.FormatStyle(timeZone: DayKey.timeZone).weekday(.abbreviated).day().month(.abbreviated))
+            let title = String(localized: "\(dayName) (\(i + 1) of \(days.count))", bundle: .module)
             var today: Set<String> = []
             for search in Self.searches {
                 // e.g. "Google Chat · Tue 3 Nov (2 of 30) · my messages · at 14:32 · 12 today · 140 in range"
                 func show(scanned: Int, at ts: Double?) {
-                    var line = "Google Chat · \(title) · \(search.label)"
-                    if let ts { line += " · at \(DayKey.hm(Date(timeIntervalSince1970: ts / 1000)))" }
-                    line += " · \(today.count + scanned) today · \(found.count + scanned) in range…"
-                    progress(line)
+                    let todayCount = today.count + scanned, rangeCount = found.count + scanned
+                    if let ts {
+                        let time = DayKey.hm(Date(timeIntervalSince1970: ts / 1000))
+                        progress(String(localized: "Google Chat · \(title) · \(search.title) · at \(time) · \(todayCount) today · \(rangeCount) in range…", bundle: .module))
+                    } else {
+                        progress(String(localized: "Google Chat · \(title) · \(search.title) · \(todayCount) today · \(rangeCount) in range…", bundle: .module))
+                    }
                 }
                 show(scanned: 0, at: nil)
                 session.open(Self.searchURL(account: account, params: search.params(email), day: day))
@@ -69,7 +74,7 @@ public struct GoogleChatCollector {
                       let list = try? JSONDecoder().decode([RawMessage].self, from: Data(json.utf8))
                 else {
                     Log.web.error("Google Chat search page could not be read at \(session.currentURL?.absoluteString ?? "-", privacy: .public)")
-                    throw WebSessionError.script("Google Chat's page changed; the message list could not be read.")
+                    throw WebSessionError.script(String(localized: "Google Chat's page changed; the message list could not be read.", bundle: .module))
                 }
                 Log.web.info("Google Chat \(search.label, privacy: .public) \(DayKey.key(day.start), privacy: .public): \(list.count) results")
                 for m in list where m.gid != nil && m.ts >= start && m.ts < end {

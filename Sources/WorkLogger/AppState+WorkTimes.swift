@@ -15,7 +15,7 @@ extension AppState {
 
     func importTimesheet(_ t: ParsedTimesheet) {
         attempt("Importing work sessions") { try db.importTimesheet(t) }
-        status = "Imported \(t.sessions.count) sessions and breaks for \(t.dayKeys.count) days. Rebuild drafts to apply them."
+        status = String(localized: "Imported \(t.sessions.count) sessions and breaks for \(t.dayKeys.count) days. Rebuild drafts to apply them.")
         reloadRange()
     }
 
@@ -25,7 +25,7 @@ extension AppState {
     func fetchHRmaster() async -> Bool {
         guard !isBusy else { return false }
         guard let base = HRmasterCollector.normalize(settings.hrmasterURL) else {
-            status = "Enter your company's HRmaster address on the Work sessions page first."
+            status = String(localized: "Enter your company's HRmaster address on the Work sessions page first.")
             return false
         }
         isBusy = true
@@ -40,11 +40,11 @@ extension AppState {
                     try db.importTimesheet(parsed)
                     days += parsed.dayKeys.count
                 }
-                status = "HRmaster: imported \(days) days. Rebuild drafts to apply them."
+                status = String(localized: "HRmaster: imported \(days) days. Rebuild drafts to apply them.")
             }
             reloadRange()
         } catch WebSessionError.notSignedIn {
-            status = "HRmaster is signed out. Sign in in the HRmaster window; fetching continues after."
+            status = String(localized: "HRmaster is signed out. Sign in in the HRmaster window; fetching continues after.")
             signInNeeded = .hrmaster
             return true
         } catch {

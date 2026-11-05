@@ -20,10 +20,10 @@ extension AppState {
             let added = try db.importChats(export)
             reloadRange()
             applyChatRules()
-            status = "Imported \(added) new messages from \(export.conversations.count) conversations."
+            status = String(localized: "Imported \(added) new messages from \(export.conversations.count) conversations.")
             return true
         } catch {
-            status = "Chat import failed: \(error.localizedDescription)"
+            status = String(localized: "Chat import failed: \(error.localizedDescription)")
             return false
         }
     }
@@ -41,7 +41,7 @@ extension AppState {
         saveDirty()
         attempt("Logging chat") {
             try writeChatWorklog(c, key: key)
-            status = "Logged \(DurationFormat.string(Self.chatMinutes(c) * 60)) of “\(c.name)” to \(key)."
+            status = String(localized: "Logged \(DurationFormat.string(Self.chatMinutes(c) * 60)) of “\(c.name)” to \(key).")
         }
         reloadRange()
     }
@@ -88,7 +88,7 @@ extension AppState {
     func fetchGoogleChat() async -> Bool {
         guard !isBusy else { return false }
         let email = settings.chatEmail.isEmpty ? (settings.authorEmails.first ?? "") : settings.chatEmail
-        guard !email.isEmpty else { status = "Enter your Google Chat email on the Chats page first."; return false }
+        guard !email.isEmpty else { status = String(localized: "Enter your Google Chat email on the Chats page first."); return false }
         isBusy = true
         defer { isBusy = false }
         do {
@@ -97,13 +97,13 @@ extension AppState {
             let added = try db.importChats(export)
             reloadRange()
             applyChatRules()
-            status = "Google Chat: \(added) new messages in \(export.conversations.count) conversations."
+            status = String(localized: "Google Chat: \(added) new messages in \(export.conversations.count) conversations.")
         } catch WebSessionError.notSignedIn {
-            status = "Google Chat is signed out. Sign in in the Google Chat window; fetching continues after."
+            status = String(localized: "Google Chat is signed out. Sign in in the Google Chat window; fetching continues after.")
             signInNeeded = .googleChat
             return true
         } catch {
-            status = "Google Chat: \(error.localizedDescription)"
+            status = String(localized: "Google Chat: \(error.localizedDescription)")
         }
         return false
     }

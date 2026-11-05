@@ -83,11 +83,11 @@ struct ContentView: View {
             List(selection: $pane) {
                 ForEach(Step.allCases) { step in
                     let panes = step.panes(state.settings.modules)
-                    if !panes.isEmpty { Section(step.rawValue) {
+                    if !panes.isEmpty { Section { 
                         ForEach(panes) { p in
-                            Label(p.rawValue, systemImage: p.icon).tag(p)
+                            Label { Text(p.title) } icon: { Image(systemName: p.icon) }.tag(p)
                         }
-                    } }
+                    } header: { Text(step.title) } }
                 }
             }
             // The sidebar gets no toolbar inset and opens scrolled under the traffic lights, so reserve the
@@ -223,14 +223,14 @@ struct StatusBar: View {
 
 /// Section title used above content areas.
 struct PaneHeader<Trailing: View>: View {
-    let title: String
-    var subtitle: String = ""
+    let title: LocalizedStringKey
+    var subtitle: LocalizedStringKey = ""
     @ViewBuilder var trailing: Trailing
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(title).font(.title2.weight(.semibold))
-            if !subtitle.isEmpty { Text(subtitle).foregroundStyle(.secondary) }
+            Text(subtitle).foregroundStyle(.secondary)
             Spacer()
             trailing
         }
@@ -276,7 +276,7 @@ struct RangePresets: View {
     var body: some View {
         Menu {
             ForEach(QuickRange.allCases, id: \.self) { r in
-                Button(r.rawValue) { state.setRange(r) }
+                Button(String(localized: r.localizedName)) { state.setRange(r) }
             }
         } label: { Label("Quick ranges", systemImage: "calendar.badge.clock") }
         .menuIndicator(.hidden)
@@ -287,7 +287,7 @@ struct RangePresets: View {
 
 /// Comma-separated list editor that commits on Return or when focus leaves the field.
 struct ListField: View {
-    let title: String
+    let title: LocalizedStringKey
     @Binding var values: [String]
     @State private var text = ""
     @FocusState private var focused: Bool
@@ -309,7 +309,7 @@ struct ListField: View {
 /// Stores a secret in the Keychain instead of the database.
 struct SecretField: View {
     @Environment(AppState.self) private var state
-    let title: String
+    let title: LocalizedStringKey
     let account: String
     @State private var value = ""
 

@@ -58,7 +58,7 @@ public struct ChatExport: Decodable, Sendable {
 
     public enum ParseError: LocalizedError, Sendable {
         case notRecognized
-        public var errorDescription: String? { "Paste the base64 text of the chat export, or its JSON." }
+        public var errorDescription: String? { String(localized: "Paste the base64 text of the chat export, or its JSON.", bundle: .module) }
     }
 
     public static func parse(_ pasted: String) throws -> ChatExport {

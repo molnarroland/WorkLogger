@@ -20,9 +20,14 @@ public enum WebSessionError: LocalizedError {
     case timeout(String), notSignedIn(String), script(String)
     public var errorDescription: String? {
         switch self {
-        case .timeout(let s): return "\(s) did not finish loading."
-        case .notSignedIn(let s): return "Sign in to \(s) in its window first."
+        case .timeout(let s): return String(localized: "\(s) did not finish loading.", bundle: .module)
+        case .notSignedIn(let s): return String(localized: "Sign in to \(s) in its window first.", bundle: .module)
         case .script(let m): return m
         }
     }
+}
+
+/// This module's resources (its String Catalog), for tests.
+enum WebResources {
+    static var bundle: Bundle { .module }
 }

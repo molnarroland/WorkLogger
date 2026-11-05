@@ -37,15 +37,17 @@ struct DayDetail: View {
             Text("Timesheet").font(.headline)
             Text("Click a day to see its entries. Shift-click a second day to select a stretch and book it to a project period. Drag a line from a card (or an entry from this panel) onto a workday to log it there.")
                 .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            ForEach([(Color.green, "Complete"), (.orange, "Partly logged"), (.red, "Nothing logged"),
-                     (.purple, "Leave or holiday"), (.blue, "Logged on a rest day"), (.gray, "Rest day or upcoming")], id: \.1) { c, t in
-                Label { Text(t) } icon: { Circle().fill(c).frame(width: 10, height: 10) }
+            ForEach(Array(([(Color.green, "Complete"), (.orange, "Partly logged"), (.red, "Nothing logged"),
+                            (.purple, "Leave or holiday"), (.blue, "Logged on a rest day"), (.gray, "Rest day or upcoming")]
+                           as [(Color, LocalizedStringKey)]).enumerated()), id: \.offset) { _, item in
+                Label { Text(item.1) } icon: { Circle().fill(item.0).frame(width: 10, height: 10) }
             }
             .font(.callout)
             Text("Bar colors").font(.subheadline.weight(.semibold)).padding(.top, 4)
-            ForEach([(WorklogSource.git.color, "Coding"), (WorklogSource.meeting.color, "Meetings"), (WorklogSource.chat.color, "Chats"),
-                     (WorklogSource.absence.color, "Leave"), (Color.orange, "Needs a ticket")], id: \.1) { c, t in
-                Label { Text(t) } icon: { RoundedRectangle(cornerRadius: 2).fill(c).frame(width: 10, height: 10) }
+            ForEach(Array(([(WorklogSource.git.color, "Coding"), (WorklogSource.meeting.color, "Meetings"), (WorklogSource.chat.color, "Chats"),
+                            (WorklogSource.absence.color, "Leave"), (Color.orange, "Needs a ticket")]
+                           as [(Color, LocalizedStringKey)]).enumerated()), id: \.offset) { _, item in
+                Label { Text(item.1) } icon: { RoundedRectangle(cornerRadius: 2).fill(item.0).frame(width: 10, height: 10) }
             }
             .font(.callout)
         }

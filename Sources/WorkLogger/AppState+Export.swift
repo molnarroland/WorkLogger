@@ -34,14 +34,14 @@ extension AppState {
 
     func copyMarkdown(_ logs: [Worklog]) {
         services.files.copyToPasteboard(markdown(logs))
-        status = "Copied the Tempo checklist for \(TempoExport.exportable(logs).count) worklogs. Paste it to Claude with Claude in Chrome."
+        status = String(localized: "Copied the Tempo checklist for \(TempoExport.exportable(logs).count) worklogs. Paste it to Claude with Claude in Chrome.")
     }
 
     private func save(_ data: Data, name: String, type: UTType) {
         guard let url = services.files.saveLocation(suggestedName: name, type: type) else { return }
         attempt("Writing file") {
             try data.write(to: url, options: .atomic)
-            status = "Saved \(url.lastPathComponent)."
+            status = String(localized: "Saved \(url.lastPathComponent).")
         }
     }
 
@@ -63,15 +63,15 @@ extension AppState {
         do {
             let client = try services.makeTempo(settings)
             if settings.jiraAccountId.isEmpty {
-                status = "Reading your Jira account…"
+                status = String(localized: "Reading your Jira account…")
                 settings.jiraAccountId = try await client.accountId()
             }
             let outcome = await TempoExporter(db: db, client: client).push(logs, accountId: settings.jiraAccountId) {
-                self.status = "Sending \($0) of \($1) to Tempo…"
+                self.status = String(localized: "Sending \($0) of \($1) to Tempo…")
             }
             reloadRange()
-            status = "Sent \(outcome.sent) worklogs to Tempo."
-                + (outcome.failures.isEmpty ? "" : " Failed: " + outcome.failures.joined(separator: " | "))
+            status = String(localized: "Sent \(outcome.sent) worklogs to Tempo.")
+                + (outcome.failures.isEmpty ? "" : " " + String(localized: "Failed: \(outcome.failures.joined(separator: " | "))"))
         } catch {
             status = error.localizedDescription
         }

@@ -88,12 +88,12 @@ private struct ChatMessages: View {
                     set: { state.setChatRule(chat, issue: $0 ? issue : nil) }))
                     .toggleStyle(.checkbox)
                     .disabled(rule == nil && JiraKey.normalize(issue) == nil)
-                    .help("Log this conversation to \(rule?.issueKey ?? "this ticket") on every day it has messages")
+                    .help("Log this conversation to \(rule?.issueKey ?? String(localized: "this ticket")) on every day it has messages")
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(state.chatLines(chat), id: \.self) { m in
-                        let who = m.me ? "Me" : (m.sender.isEmpty ? "?" : m.sender.components(separatedBy: "@")[0])
+                        let who = m.me ? String(localized: "Me") : (m.sender.isEmpty ? "?" : m.sender.components(separatedBy: "@")[0])
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(DayKey.hm(m.time)).monospacedDigit().foregroundStyle(.secondary)
                             Text(who).fontWeight(.medium).foregroundStyle(m.me ? Color.accentColor : Color.primary)

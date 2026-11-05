@@ -9,6 +9,11 @@ import WorkLoggerWeb
 
 struct ReportsView: View {
     @Environment(AppState.self) private var state
+
+    /// Report slices name their source in English (`WorklogSource.label`); the chart shows the translated name.
+    static func sourceName(_ english: String) -> String {
+        WorklogSource.allCases.first { $0.label == english }.map { String(localized: $0.localizedLabel) } ?? english
+    }
     @State private var period: Period = .week
 
     var body: some View {
@@ -19,7 +24,7 @@ struct ReportsView: View {
                 Text("Totals").font(.title2.weight(.semibold))
                 Spacer()
                 Picker("Period", selection: $period) {
-                    ForEach(Period.allCases) { Text($0.rawValue).tag($0) }
+                    ForEach(Period.allCases) { Text($0.localizedName).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
@@ -44,7 +49,7 @@ struct ReportsView: View {
                     SourceStack(logs: state.worklogs, height: 18)
                     HStack(spacing: 14) {
                         ForEach(state.worklogs.filter { !$0.needsIssue }.totalsBySource, id: \.source) { s in
-                            Label { Text("\(s.source.label) \(DurationFormat.string(s.seconds))") } icon: {
+                            Label { Text("\(String(localized: s.source.localizedLabel)) \(DurationFormat.string(s.seconds))") } icon: {
                                 RoundedRectangle(cornerRadius: 2).fill(s.source.color).frame(width: 10, height: 10) }
                         }
                         let none = state.worklogs.missingIssue.totalDuration
@@ -60,11 +65,11 @@ struct ReportsView: View {
                 Chart(groups) { g in
                     ForEach(g.bySource) { s in
                         BarMark(x: .value("Period", g.label), y: .value("Hours", s.hours))
-                            .foregroundStyle(by: .value("Source", s.source))
+                            .foregroundStyle(by: .value("Source", Self.sourceName(s.source)))
                     }
                 }
                 .chartYAxisLabel("hours")
-                .chartForegroundStyleScale(domain: WorklogSource.allCases.map(\.label), range: WorklogSource.allCases.map(\.color))
+                .chartForegroundStyleScale(domain: WorklogSource.allCases.map { String(localized: $0.localizedLabel) }, range: WorklogSource.allCases.map(\.color))
                 .frame(height: 220)
                 .padding(.vertical, 8)
 

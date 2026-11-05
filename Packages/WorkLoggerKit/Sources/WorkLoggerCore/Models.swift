@@ -169,8 +169,7 @@ public enum WorklogSource: String, Codable, CaseIterable, Sendable {
 
 public enum WorklogStatus: String, Codable, CaseIterable, Sendable {
     case draft, reviewed, exported
-    /// Exported covers both sent by the Tempo API and ticked off after entering it in Tempo by hand.
-    public var label: String { self == .exported ? "In Tempo" : rawValue.capitalized }
+    // Exported covers both sent by the Tempo API and ticked off after entering it in Tempo by hand.
 }
 
 public struct Worklog: Identifiable, Hashable, Sendable {

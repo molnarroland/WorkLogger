@@ -24,15 +24,15 @@ struct WelcomeView: View {
                     VStack(spacing: 12) {
                         VStack(spacing: 10) {
                             Image(systemName: m.icon).font(.system(size: 34)).frame(height: 44)
-                            Text(m.title).font(.headline)
-                            Text(m.summary).font(.callout).foregroundStyle(.secondary)
+                            Text(m.localizedTitle).font(.headline)
+                            Text(m.localizedSummary).font(.callout).foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: 0)
                         }
                         .padding(16)
                         .frame(width: 180, height: 210)
                         .glassEffect(.regular, in: .rect(cornerRadius: 20))
-                        Toggle(m.title, isOn: Binding(
+                        Toggle(String(localized: m.localizedTitle), isOn: Binding(
                             get: { state.settings.modules.contains(m) },
                             set: { on in
                                 if on { state.settings.modules.insert(m) } else { state.settings.modules.remove(m) }

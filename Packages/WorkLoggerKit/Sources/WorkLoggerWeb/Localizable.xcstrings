@@ -1,0 +1,106 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ (%lld of %lld)": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (%lld/%lld)"
+          }
+        }
+      }
+    },
+    "%@ did not finish loading.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A(z) %@ nem töltődött be."
+          }
+        }
+      }
+    },
+    "Google Chat · %@ · %@ · %lld today · %lld in range…": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Chat · %@ · %@ · ma %lld · összesen %lld…"
+          }
+        }
+      }
+    },
+    "Google Chat · %@ · %@ · at %@ · %lld today · %lld in range…": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google Chat · %@ · %@ · eddig: %@ · ma %lld · összesen %lld…"
+          }
+        }
+      }
+    },
+    "Google Chat's page changed; the message list could not be read.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Google Chat oldala megváltozott; az üzenetlista nem olvasható."
+          }
+        }
+      }
+    },
+    "HRmaster: reading %@ (%lld of %lld)…": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRmaster: %@ olvasása (%lld/%lld)…"
+          }
+        }
+      }
+    },
+    "HRmaster: the page could not be read.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRmaster: az oldal nem olvasható."
+          }
+        }
+      }
+    },
+    "Sign in to %@ in its window first.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Előbb jelentkezz be a(z) %@ ablakában."
+          }
+        }
+      }
+    },
+    "mentions of me": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "említéseim"
+          }
+        }
+      }
+    },
+    "my messages": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "saját üzenetek"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

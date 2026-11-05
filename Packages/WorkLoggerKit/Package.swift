@@ -12,6 +12,7 @@ import PackageDescription
 //   symlink (Tests/WorkLoggerTests/Fixture.swift), so no second copy of Core gets linked into the test bundle.
 let package = Package(
     name: "WorkLoggerKit",
+    defaultLocalization: "en",
     platforms: [.macOS(.v26)],
     products: [
         .library(name: "WorkLoggerCore", targets: ["WorkLoggerCore"]),
@@ -22,14 +23,14 @@ let package = Package(
         .library(name: "WorkLoggerWeb", targets: ["WorkLoggerWeb"]),
     ],
     targets: [
-        .target(name: "WorkLoggerCore"),
+        .target(name: "WorkLoggerCore", resources: [.process("Localizable.xcstrings")]),
         .target(name: "WorkLoggerStore", dependencies: ["WorkLoggerCore"],
                 linkerSettings: [.linkedLibrary("sqlite3")]),
         .target(name: "WorkLoggerGit", dependencies: ["WorkLoggerCore"]),
         .target(name: "WorkLoggerCalendar", dependencies: ["WorkLoggerCore"],
                 linkerSettings: [.linkedFramework("EventKit")]),
-        .target(name: "WorkLoggerTempo", dependencies: ["WorkLoggerCore", "WorkLoggerStore"]),
-        .target(name: "WorkLoggerWeb", dependencies: ["WorkLoggerCore"]),
+        .target(name: "WorkLoggerTempo", dependencies: ["WorkLoggerCore", "WorkLoggerStore"], resources: [.process("Localizable.xcstrings")]),
+        .target(name: "WorkLoggerWeb", dependencies: ["WorkLoggerCore"], resources: [.process("Localizable.xcstrings")]),
         .target(name: "WorkLoggerTestSupport", dependencies: ["WorkLoggerCore", "WorkLoggerTempo"]),
         .testTarget(name: "WorkLoggerCoreTests", dependencies: ["WorkLoggerCore", "WorkLoggerTestSupport"]),
         .testTarget(name: "WorkLoggerStoreTests", dependencies: ["WorkLoggerStore", "WorkLoggerTestSupport"]),
