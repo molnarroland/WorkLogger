@@ -3976,6 +3976,16 @@
         }
       }
     },
+    "Sites": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oldalak"
+          }
+        }
+      }
+    },
     "Skipped folders": {
       "localizations": {
         "hu": {
@@ -4035,6 +4045,9 @@
           }
         }
       }
+    },
+    "Tempo": {
+      "shouldTranslate": false
     },
     "Tempo %@": {
       "shouldTranslate": false

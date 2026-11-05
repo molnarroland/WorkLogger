@@ -11,118 +11,158 @@ struct SettingsView: View {
     @Environment(AppState.self) private var state
 
     var body: some View {
+        // Icon tabs along the top, one smaller page each (the standard macOS settings layout).
+        TabView {
+            Tab("General", systemImage: "gearshape") {
+                page {
+                    general
+                    storage
+                }
+            }
+            Tab("Timesheet", systemImage: "calendar") {
+                page {
+                    dailyTotals
+                    AbsenceSettings()
+                }
+            }
+            Tab("Coding", systemImage: "chevron.left.forwardslash.chevron.right") { page { commitEstimates } }
+            Tab("Chats", systemImage: "bubble.left.and.bubble.right") { page { chats } }
+            Tab("Sites", systemImage: "person.crop.circle.badge.checkmark") { page { SignedInSites() } }
+            Tab("Tempo", systemImage: "checklist.checked") { page { tempo } }
+        }
+    }
+
+    private func page<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        Form { content() }.formStyle(.grouped)
+    }
+
+    /// Menu bar item.
+    @ViewBuilder private var general: some View {
         @Bindable var state = state
-        Form {
-            Section {
-                Picker("Daily total", selection: $state.settings.roundingMode) {
-                    ForEach(RoundingMode.choices) { Text($0.localizedLabel).tag($0) }
-                }
-                if state.settings.roundingMode != .estimate {
-                    Picker("Round worked time up to", selection: $state.settings.dayRoundUpMinutes) {
-                        Text("15 minutes").tag(15)
-                        Text("30 minutes").tag(30)
-                        Text("Whole hours").tag(60)
-                    }
-                    Stepper(value: $state.settings.fixedDailyHours, in: 1...12, step: 0.5) {
-                        LabeledContent(
-                            "Hours per day without imported sessions",
-                            value: String(format: "%.1f h", state.settings.fixedDailyHours))
-                    }
-                }
-                Picker("Round to", selection: $state.settings.granularityMinutes) {
-                    ForEach([5, 10, 15, 30, 60], id: \.self) { Text("\($0) minutes").tag($0) }
-                }
-                Toggle("Fill rest days without imported sessions too", isOn: $state.settings.includeWeekends)
-                HStack {
-                    TextField("Workday start", text: $state.settings.defaultDayStart).frame(width: 160)
-                    TextField("Workday end", text: $state.settings.defaultDayEnd).frame(width: 160)
-                }
-            } header: {
-                Text("Daily totals")
-            } footer: {
-                Text(
-                    "A day adds up to the time you worked according to the imported work sessions (HRmaster's worked hours), rounded up: with 15 minutes, 7h 22m becomes 7h 30m and 12h stays 12h. Days without imported sessions use the hours per day. Meetings keep their real length; commit entries fill the rest."
-                )
-            }
+        Section("General") {
+            Toggle("Show today's time in the menu bar", isOn: $state.settings.showMenuBarItem)
+        }
+    }
 
-            Section {
-                Stepper(
-                    "Shortest commit: \(state.settings.minCommitMinutes) min", value: $state.settings.minCommitMinutes,
-                    in: 5...60, step: 5)
-                Stepper(
-                    "Longest commit: \(state.settings.maxCommitMinutes) min", value: $state.settings.maxCommitMinutes,
-                    in: 30...480, step: 15)
-                Stepper(
-                    "Ignore gaps longer than: \(state.settings.maxCommitGapMinutes) min",
-                    value: $state.settings.maxCommitGapMinutes, in: 30...480, step: 15)
-                ListField(title: "Paths left out of the size estimate", values: $state.settings.ignoredPathPatterns)
-            } header: {
-                Text("Commit estimates")
-            } footer: {
-                Text(
-                    "An estimate mixes the free working time since your previous commit with the size of the change (lines, files) and its kind (refactor, fix, typo…)."
-                )
-            }
-
-            AbsenceSettings()
-
-            Section("General") {
-                Toggle("Show today's time in the menu bar", isOn: $state.settings.showMenuBarItem)
-            }
-
-            Section {
-                Stepper(value: $state.settings.chatGapMinutes, in: 1...60) {
-                    LabeledContent(
-                        "New stretch after a pause of", value: String(localized: "\(state.settings.chatGapMinutes) min"))
-                }
-                ForEach(state.settings.chatRules) { rule in
-                    HStack {
-                        Text(rule.name)
-                        Image(systemName: "arrow.right").foregroundStyle(.secondary)
-                        Text(rule.issueKey).bold()
-                        Spacer()
-                        Button(role: .destructive) {
-                            state.settings.chatRules.removeAll { $0.id == rule.id }
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                        .buttonStyle(.borderless)
-                    }
-                }
-            } header: {
-                Text("Chats")
-            } footer: {
-                Text(
-                    "Messages closer together than the pause count as one stretch of chatting; each stretch is at least a minute. Conversations listed here (ticked “Always” on the Chats page) are logged to their ticket on every day they have messages."
-                )
-            }
-
-            SignedInSites()
-
-            Section {
-                TextField("Jira site", text: $state.settings.jiraBaseURL, prompt: Text("https://yourcompany.atlassian.net"))
-                TextField("Jira email", text: $state.settings.jiraEmail)
-                SecretField(title: "Jira API token", account: SecretKey.jiraToken)
-                SecretField(title: "Tempo API token", account: SecretKey.tempoToken)
-                TextField("Tempo API base URL", text: $state.settings.tempoBaseURL)
-                TextField("Jira account ID (filled in automatically)", text: $state.settings.jiraAccountId)
-                ConnectionChecks()
-            } header: {
-                Text("Tempo API (optional)")
-            } footer: {
-                Text(
-                    "Used to show what is already in Tempo and for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain."
-                )
-            }
-
-            Section("Storage") {
-                LabeledContent("Database", value: state.databasePath)
-                Button("Show in Finder") {
-                    NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: state.databasePath)])
-                }
+    /// Where the database lives.
+    @ViewBuilder private var storage: some View {
+        @Bindable var state = state
+        Section("Storage") {
+            LabeledContent("Database", value: state.databasePath)
+            Button("Show in Finder") {
+                NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: state.databasePath)])
             }
         }
-        .formStyle(.grouped)
+    }
+
+    /// How a day adds up.
+    @ViewBuilder private var dailyTotals: some View {
+        @Bindable var state = state
+        Section {
+            Picker("Daily total", selection: $state.settings.roundingMode) {
+                ForEach(RoundingMode.choices) { Text($0.localizedLabel).tag($0) }
+            }
+            if state.settings.roundingMode != .estimate {
+                Picker("Round worked time up to", selection: $state.settings.dayRoundUpMinutes) {
+                    Text("15 minutes").tag(15)
+                    Text("30 minutes").tag(30)
+                    Text("Whole hours").tag(60)
+                }
+                Stepper(value: $state.settings.fixedDailyHours, in: 1...12, step: 0.5) {
+                    LabeledContent(
+                        "Hours per day without imported sessions",
+                        value: String(format: "%.1f h", state.settings.fixedDailyHours))
+                }
+            }
+            Picker("Round to", selection: $state.settings.granularityMinutes) {
+                ForEach([5, 10, 15, 30, 60], id: \.self) { Text("\($0) minutes").tag($0) }
+            }
+            Toggle("Fill rest days without imported sessions too", isOn: $state.settings.includeWeekends)
+            HStack {
+                TextField("Workday start", text: $state.settings.defaultDayStart).frame(width: 160)
+                TextField("Workday end", text: $state.settings.defaultDayEnd).frame(width: 160)
+            }
+        } header: {
+            Text("Daily totals")
+        } footer: {
+            Text(
+                "A day adds up to the time you worked according to the imported work sessions (HRmaster's worked hours), rounded up: with 15 minutes, 7h 22m becomes 7h 30m and 12h stays 12h. Days without imported sessions use the hours per day. Meetings keep their real length; commit entries fill the rest."
+            )
+        }
+    }
+
+    /// How long a commit counts.
+    @ViewBuilder private var commitEstimates: some View {
+        @Bindable var state = state
+        Section {
+            Stepper(
+                "Shortest commit: \(state.settings.minCommitMinutes) min", value: $state.settings.minCommitMinutes,
+                in: 5...60, step: 5)
+            Stepper(
+                "Longest commit: \(state.settings.maxCommitMinutes) min", value: $state.settings.maxCommitMinutes,
+                in: 30...480, step: 15)
+            Stepper(
+                "Ignore gaps longer than: \(state.settings.maxCommitGapMinutes) min",
+                value: $state.settings.maxCommitGapMinutes, in: 30...480, step: 15)
+            ListField(title: "Paths left out of the size estimate", values: $state.settings.ignoredPathPatterns)
+        } header: {
+            Text("Commit estimates")
+        } footer: {
+            Text(
+                "An estimate mixes the free working time since your previous commit with the size of the change (lines, files) and its kind (refactor, fix, typo…)."
+            )
+        }
+    }
+
+    /// Chat stretches and the conversations always logged.
+    @ViewBuilder private var chats: some View {
+        @Bindable var state = state
+        Section {
+            Stepper(value: $state.settings.chatGapMinutes, in: 1...60) {
+                LabeledContent(
+                    "New stretch after a pause of", value: String(localized: "\(state.settings.chatGapMinutes) min"))
+            }
+            ForEach(state.settings.chatRules) { rule in
+                HStack {
+                    Text(rule.name)
+                    Image(systemName: "arrow.right").foregroundStyle(.secondary)
+                    Text(rule.issueKey).bold()
+                    Spacer()
+                    Button(role: .destructive) {
+                        state.settings.chatRules.removeAll { $0.id == rule.id }
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(.borderless)
+                }
+            }
+        } header: {
+            Text("Chats")
+        } footer: {
+            Text(
+                "Messages closer together than the pause count as one stretch of chatting; each stretch is at least a minute. Conversations listed here (ticked “Always” on the Chats page) are logged to their ticket on every day they have messages."
+            )
+        }
+    }
+
+    /// Jira and Tempo: addresses, tokens and the checks.
+    @ViewBuilder private var tempo: some View {
+        @Bindable var state = state
+        Section {
+            TextField("Jira site", text: $state.settings.jiraBaseURL, prompt: Text("https://yourcompany.atlassian.net"))
+            TextField("Jira email", text: $state.settings.jiraEmail)
+            SecretField(title: "Jira API token", account: SecretKey.jiraToken)
+            SecretField(title: "Tempo API token", account: SecretKey.tempoToken)
+            TextField("Tempo API base URL", text: $state.settings.tempoBaseURL)
+            TextField("Jira account ID (filled in automatically)", text: $state.settings.jiraAccountId)
+            ConnectionChecks()
+        } header: {
+            Text("Tempo API (optional)")
+        } footer: {
+            Text(
+                "Used to show what is already in Tempo and for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain."
+            )
+        }
     }
 }
 

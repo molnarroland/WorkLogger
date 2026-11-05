@@ -31,7 +31,7 @@ struct WorkLoggerApp: App {
         Settings {
             SettingsView()
                 .environment(state)
-                .frame(width: 640, height: 720)
+                .frame(width: 640, height: 560)
         }
     }
 }
