@@ -87,6 +87,10 @@ struct CalendarView: View {
                 }
                 .padding(12)
                 Divider()
+                if let suggestion = repeatingWithoutTicket(builder) {
+                    RuleSuggestion(title: suggestion.title, count: suggestion.count)
+                        .padding(.horizontal, 12).padding(.top, 10)
+                }
                 if state.meetings.isEmpty {
                     ContentUnavailableView("No meetings in this range", systemImage: "calendar",
                                            description: Text(state.canReadMeetings ? "Choose Read meetings to load them." : "Add an online account and pick your calendars first."))
@@ -103,9 +107,12 @@ struct CalendarView: View {
                             }
                             Spacer()
                             Text(DurationFormat.string(m.duration)).monospacedDigit()
-                            Text(builder.issue(for: m) ?? "No issue")
-                                .foregroundStyle(builder.issue(for: m) == nil ? Color.orange : Color.secondary)
-                                .frame(width: 90, alignment: .trailing)
+                            if let issue = builder.issue(for: m) {
+                                Text(issue).foregroundStyle(.secondary).frame(width: 110, alignment: .trailing)
+                            } else {
+                                // Typing a ticket here makes a rule for this title, so next month gets it too.
+                                MeetingTicketField(title: m.title).frame(width: 110)
+                            }
                         }
                         .opacity(builder.isSkipped(m) ? 0.5 : 1)
                     }
@@ -115,6 +122,60 @@ struct CalendarView: View {
             .frame(minWidth: 420, maxHeight: .infinity)
         }
         .onAppear { state.refreshCalendars() }
+    }
+
+    /// The meeting title that comes back most often without a ticket (at least twice), if any.
+    private func repeatingWithoutTicket(_ builder: WorklogBuilder) -> (title: String, count: Int)? {
+        let open = state.meetings.filter { !builder.isSkipped($0) && builder.issue(for: $0) == nil }
+        return Dictionary(grouping: open, by: \.title).map { (title: $0.key, count: $0.value.count) }
+            .filter { $0.count >= 2 }.max { $0.count < $1.count }
+    }
+}
+
+/// "Make rule" banner for a meeting that keeps coming back without a ticket.
+private struct RuleSuggestion: View {
+    @Environment(AppState.self) private var state
+    let title: String
+    let count: Int
+    @State private var issue = ""
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "lightbulb").foregroundStyle(.orange)
+            Text("“\(title)” comes back \(count) times without a ticket.").lineLimit(2)
+            Spacer()
+            TextField("Ticket", text: $issue).textFieldStyle(.roundedBorder).frame(width: 110).onSubmit(make)
+            Button("Make rule", action: make).disabled(JiraKey.normalize(issue) == nil)
+        }
+        .padding(10)
+        .glassEffect(.regular.tint(.orange.opacity(0.12)), in: .rect(cornerRadius: 14))
+    }
+
+    private func make() {
+        guard let key = JiraKey.normalize(issue) else { return }
+        state.settings.meetingRules.append(MeetingRule(contains: title, issueKey: key))
+        state.rebuild()
+        issue = ""
+    }
+}
+
+/// Orange ticket field for a meeting without one; submitting adds a rule for the meeting's title.
+private struct MeetingTicketField: View {
+    @Environment(AppState.self) private var state
+    let title: String
+    @State private var issue = ""
+
+    var body: some View {
+        TextField("No issue", text: $issue)
+            .textFieldStyle(.roundedBorder)
+            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color.orange.opacity(0.7)))
+            .onSubmit {
+                guard let key = JiraKey.normalize(issue) else { return }
+                state.settings.meetingRules.append(MeetingRule(contains: title, issueKey: key))
+                state.rebuild()
+                issue = ""
+            }
+            .help("Type a ticket and press Return: a rule logs “\(title)” to it from now on")
     }
 }
 

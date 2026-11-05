@@ -27,6 +27,8 @@ final class AppState {
     var dirty: Set<Int64> = []
     var status = "Ready"
     var chats: [ChatDay] = []
+    /// Commits per repository in the range, for the Repositories list.
+    var commitCounts: [Int64: Int] = [:]
     /// Set when a background fetch found the site signed out: the window opens for sign-in and the fetch resumes.
     var signInNeeded: WebSession.Source?
     var isBusy = false
@@ -41,7 +43,13 @@ final class AppState {
     init(db: Database, services: AppDependencies) {
         self.db = db
         self.services = services
-        settings = db.loadSettings()
+        var loaded = db.loadSettings()
+        let added = Set(Module.allCases).subtracting(loaded.knownModules)
+        if !added.isEmpty {   // modules added in a later version start switched on
+            loaded.modules.formUnion(added)
+            loaded.knownModules = Set(Module.allCases)
+        }
+        settings = loaded
         googleConnected = services.secrets.get(SecretKey.googleRefresh) != nil
         let month = DateRange.month(containing: services.now())!
         from = month.from
@@ -113,6 +121,7 @@ final class AppState {
             worklogs = try db.worklogs(fromDay: fromDay, toDay: toDay)
             let on = settings.modules
             chats = try db.chatDays(from: rangeStart, to: rangeEnd)
+            commitCounts = try db.commitCounts(from: rangeStart, to: rangeEnd)
             meetings = on.contains(.calendar) ? try db.meetings(from: rangeStart, to: rangeEnd) : []
             sessions = on.contains(.workTimes) ? try db.sessions(fromDay: fromDay, toDay: toDay) : []
             dayRecords = on.contains(.workTimes)
@@ -279,6 +288,48 @@ final class AppState {
     /// A day can take dropped entries when it is a workday or has imported work sessions.
     func acceptsWork(_ day: String) -> Bool {
         isWorkday(day) || sessions.contains { $0.day == day && $0.kind == .work }
+    }
+
+    /// Ticking a ticket-day off after typing it into Tempo by hand: its worklogs count as in Tempo (exported
+    /// without a Tempo id) and are locked so rebuilds keep them. Unticking puts them back to reviewed.
+    func setEntered(_ day: TicketDay, _ entered: Bool) {
+        saveDirty()
+        attempt("Marking entered") {
+            try db.transaction {
+                for var w in worklogs where day.ids.contains(w.id) && (w.tempoId == nil || entered) {
+                    w.status = entered ? .exported : .reviewed
+                    w.locked = true
+                    try db.updateWorklog(w)
+                }
+            }
+        }
+        reloadRange()
+    }
+
+    /// For the status bar: entries without a ticket, and ticket-days already in Tempo.
+    var tempoProgress: (missing: Int, entered: Int, total: Int) {
+        let groups = TicketPlan.groups(worklogs).filter { $0.key != nil }
+        return (worklogs.missingIssue.count, groups.reduce(0) { $0 + $1.enteredDays }, groups.reduce(0) { $0 + $1.days.count })
+    }
+
+    /// Review's bulk bar: one ticket for several entries (they lock, like any edit). Entries already in Tempo stay.
+    func setIssue(_ issue: String, for ids: Set<Int64>) {
+        guard let key = JiraKey.normalize(issue) else { return }
+        for i in worklogs.indices where ids.contains(worklogs[i].id) && worklogs[i].status != .exported {
+            worklogs[i].issueKey = key
+            worklogs[i].locked = true
+            dirty.insert(worklogs[i].id)
+        }
+        saveDirty()
+    }
+
+    func setStatus(_ status: WorklogStatus, for ids: Set<Int64>) {
+        for i in worklogs.indices where ids.contains(worklogs[i].id) && worklogs[i].status != .exported {
+            worklogs[i].status = status
+            worklogs[i].locked = true
+            dirty.insert(worklogs[i].id)
+        }
+        saveDirty()
     }
 
     func setStatus(_ status: WorklogStatus, forAllIn day: String) {

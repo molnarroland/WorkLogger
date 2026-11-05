@@ -20,6 +20,7 @@ struct ChatsView: View {
                 TextField("Your Chat email", text: $state.settings.chatEmail,
                           prompt: Text(state.settings.authorEmails.first ?? "you@company.com"))
                     .textFieldStyle(.roundedBorder).frame(width: 220)
+                SignInChip(source: .googleChat)
                 Button("Google Chat…") { openWindow(id: WebSession.Source.googleChat.windowID) }
                     .buttonStyle(.glass)
                     .help("Opens Google Chat inside WorkLogger; sign in there once")

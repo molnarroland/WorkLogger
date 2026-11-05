@@ -32,13 +32,14 @@ struct ProjectPeriod: Codable, Hashable, Identifiable {
 
 /// Optional data sources, switched on the welcome screen. Off means the source is neither read nor used for drafts.
 enum Module: String, Codable, CaseIterable, Identifiable {
-    case git, calendar, workTimes
+    case git, calendar, workTimes, chats
     var id: String { rawValue }
     var title: String {
         switch self {
         case .git: return "Git repositories"
         case .calendar: return "Calendar meetings"
         case .workTimes: return "Work times"
+        case .chats: return "Chats"
         }
     }
     var icon: String {
@@ -46,13 +47,15 @@ enum Module: String, Codable, CaseIterable, Identifiable {
         case .git: return "externaldrive.connected.to.line.below"
         case .calendar: return "person.2"
         case .workTimes: return "clock.badge.checkmark"
+        case .chats: return "bubble.left.and.bubble.right"
         }
     }
     var summary: String {
         switch self {
         case .git: return "Turns your commits into worklogs. Leave off if you rarely code."
         case .calendar: return "Logs meetings from any calendar synced to macOS: Google, Outlook / Exchange, iCloud, CalDAV."
-        case .workTimes: return "Imports clock-in times, leave and holidays from HRmaster or another work-time logger."
+        case .workTimes: return "Clock-in times, leave and holidays, read from HRmaster after you sign in once."
+        case .chats: return "Google Chat, read in a built-in browser after you sign in once."
         }
     }
 }
@@ -60,6 +63,10 @@ enum Module: String, Codable, CaseIterable, Identifiable {
 struct AppSettings: Codable, Equatable {
     // Modules and first-run welcome
     var modules: Set<Module> = Set(Module.allCases)
+    /// Modules that existed when settings were last saved; modules added in later versions start switched on.
+    var knownModules: Set<Module> = [.git, .calendar, .workTimes]
+    /// Logging in Tempo by hand (By ticket) rather than with the Tempo API; the API then only asks for its key.
+    var tempoByHand = true
     var welcomed = false
 
     // Git

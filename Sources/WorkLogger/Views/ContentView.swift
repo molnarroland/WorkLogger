@@ -8,8 +8,8 @@ enum Pane: String, CaseIterable, Identifiable {
     case chats = "Chats"
     case timesheet = "Timesheet"
     case review = "Review"
+    case byTicket = "By ticket"
     case reports = "Totals"
-    case export = "Export"
 
     var id: String { rawValue }
     var module: Module? {
@@ -17,6 +17,7 @@ enum Pane: String, CaseIterable, Identifiable {
         case .repositories: return .git
         case .calendar: return .calendar
         case .sessions: return .workTimes
+        case .chats: return .chats
         default: return nil
         }
     }
@@ -29,18 +30,18 @@ enum Pane: String, CaseIterable, Identifiable {
         case .chats: return "bubble.left.and.bubble.right"
         case .timesheet: return "calendar"
         case .review: return "checklist"
+        case .byTicket: return "list.bullet.clipboard"
         case .reports: return "chart.bar.xaxis"
-        case .export: return "square.and.arrow.up"
         }
     }
 }
 
-/// Sidebar groups in the order a timesheet is filled: set up once, import the month, fill it, then export.
+/// Sidebar groups in the order a timesheet is filled: set up once, bring in the month, fill it, then log it in Tempo.
 enum Step: String, CaseIterable, Identifiable {
     case setup = "1 · Set up"
     case gather = "2 · Bring in the month"
     case fill = "3 · Fill the timesheet"
-    case finish = "4 · Check & export"
+    case finish = "4 · Log in Tempo"
 
     var id: String { rawValue }
     func panes(_ modules: Set<Module>) -> [Pane] { allPanes.filter { $0.module.map(modules.contains) ?? true } }
@@ -50,7 +51,7 @@ enum Step: String, CaseIterable, Identifiable {
         case .setup: return [.repositories, .calendar]
         case .gather: return [.sessions, .periods, .chats]
         case .fill: return [.timesheet, .review]
-        case .finish: return [.reports, .export]
+        case .finish: return [.byTicket, .reports]
         }
     }
 }
@@ -90,8 +91,8 @@ struct ContentView: View {
                 case .chats: ChatsView()
                 case .timesheet: TimesheetView()
                 case .review: ReviewView()
+                case .byTicket: ByTicketView(pane: $pane)
                 case .reports: ReportsView()
-                case .export: ExportView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).padding(.top, 24)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -127,17 +128,35 @@ struct ContentView: View {
             .sharedBackgroundVisibility(.hidden)
             ToolbarItem(placement: .principal) { Text("WorkLogger").font(.headline) }
                 .sharedBackgroundVisibility(.hidden)
+            // Order follows the month: bring data in, then log it in Tempo.
             ToolbarItemGroup(placement: .primaryAction) {
-                Button { state.rebuild() } label: { Label("Rebuild drafts", systemImage: "arrow.triangle.2.circlepath") }
-                    .help("Recalculate unlocked drafts from stored commits, meetings, sessions and periods")
-                Button { Task { await state.collect() } } label: { Label("Collect", systemImage: "arrow.down.circle") }
-                    .disabled(state.isBusy)
-                    .help("Read git history and calendar meetings for the range, then build drafts")
-            }
-            ToolbarSpacer(.fixed, placement: .primaryAction)
-            ToolbarItemGroup(placement: .primaryAction) {
+                Menu {
+                    Button("Collect range") { Task { await state.collect() } }
+                    Button("Rebuild drafts") { state.rebuild() }
+                    Divider()
+                    if state.settings.modules.contains(.workTimes) {
+                        Button("Fetch work times from HRmaster") { Task { await state.fetchHRmaster() } }
+                    }
+                    if state.settings.modules.contains(.chats) {
+                        Button("Fetch Google Chat") { Task { await state.fetchGoogleChat() } }
+                    }
+                } label: {
+                    Label("Collect", systemImage: "arrow.down.circle")
+                } primaryAction: {
+                    Task { await state.collect() }
+                }
+                .disabled(state.isBusy)
+                .help("Read git history and calendar meetings for the range, then build drafts. The arrow has more.")
                 Button { showWelcome = true } label: { Label("Modules", systemImage: "square.grid.2x2") }
                     .help("Choose which data sources WorkLogger uses")
+            }
+            ToolbarSpacer(.fixed, placement: .primaryAction)
+            ToolbarItem(placement: .primaryAction) {
+                Button { pane = .byTicket } label: { Label("Log in Tempo", systemImage: "checklist.checked").labelStyle(.titleAndIcon) }
+                    .buttonStyle(.glassProminent)
+                    .help("Each ticket's days and durations, ready to copy into Tempo")
+            }
+            ToolbarItemGroup(placement: .primaryAction) {
                 Button { showExport.toggle() } label: { Label("Export", systemImage: "square.and.arrow.up") }
                     .help("Export to Tempo, Markdown for Claude, CSV or JSON")
                     .popover(isPresented: $showExport, arrowEdge: .bottom) { ExportView() }
@@ -159,6 +178,15 @@ struct StatusBar: View {
                 Text(state.status).lineLimit(1).truncationMode(.tail).textSelection(.enabled)
                     .help(state.status)
                 Spacer()
+                // The month's next step at a glance.
+                let progress = state.tempoProgress
+                if progress.missing > 0 {
+                    Text("\(progress.missing) need a ticket").foregroundStyle(.orange)
+                    Text("·")
+                }
+                if progress.total > 0 {
+                    Text("\(progress.entered) of \(progress.total) ticket-days in Tempo").monospacedDigit()
+                }
                 if !state.dirty.isEmpty {
                     Text("\(state.dirty.count) unsaved").foregroundStyle(.orange)
                     Button("Save") { state.saveDirty() }

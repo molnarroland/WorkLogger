@@ -29,20 +29,57 @@ struct PeriodsView: View {
                     Text("Add one here, or shift-click two days on the Timesheet to select a stretch and mark it.")
                 }
             } else {
-                Form {
-                    Section {
-                        ForEach($state.settings.periods) { $period in
-                            PeriodRow(period: $period, color: Self.color(for: period, in: state.settings.periods)) {
-                                state.settings.periods.removeAll { $0.id == period.id }
+                HStack(alignment: .top, spacing: 0) {
+                    Form {
+                        Section {
+                            ForEach($state.settings.periods) { $period in
+                                PeriodRow(period: $period, color: Self.color(for: period, in: state.settings.periods)) {
+                                    state.settings.periods.removeAll { $0.id == period.id }
+                                }
+                                .listRowBackground(Self.color(for: period, in: state.settings.periods).opacity(0.10))
                             }
+                        } footer: {
+                            Text("On every workday inside a period, commit time goes to the period's issue and the rest of the day is filled with it. Meetings keep their own issues; leave days are never filled. Later periods win where they overlap. Rebuild drafts after changing periods.")
                         }
-                    } footer: {
-                        Text("On every workday inside a period, commit time goes to the period's issue and the rest of the day is filled with it. Meetings keep their own issues; leave days are never filled. Later periods win where they overlap. Rebuild drafts after changing periods.")
                     }
+                    .formStyle(.grouped)
+                    PeriodMonth(periods: state.settings.periods)
+                        .frame(width: 300)
+                        .padding(16)
                 }
-                .formStyle(.grouped)
             }
         }
+    }
+}
+
+/// The selected month with each period's days in its color, the same colors as on the Timesheet cards.
+private struct PeriodMonth: View {
+    @Environment(AppState.self) private var state
+    let periods: [ProjectPeriod]
+
+    var body: some View {
+        let cal = DayKey.calendar
+        let first = DayKey.startOfDay(state.rangeStart)
+        let lead = (cal.component(.weekday, from: first) - cal.firstWeekday + 7) % 7
+        let days = DayKey.days(from: first, to: cal.date(byAdding: DateComponents(month: 1, day: -1), to: first)!)
+        VStack(alignment: .leading, spacing: 8) {
+            Text(first.formatted(.dateTime.month(.wide).year())).font(.headline)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
+                ForEach(0..<lead, id: \.self) { _ in Color.clear.frame(height: 30) }
+                ForEach(days, id: \.self) { day in
+                    let p = periods.last { $0.contains(day) }
+                    Text(DayKey.date(day).formatted(.dateTime.day()))
+                        .font(.callout).monospacedDigit()
+                        .frame(maxWidth: .infinity, minHeight: 30)
+                        .background((p.map { PeriodsView.color(for: $0, in: periods) } ?? .clear).opacity(0.3),
+                                    in: .rect(cornerRadius: 7))
+                        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(.quaternary))
+                        .help(p.map { "\($0.title.isEmpty ? $0.issueKey : $0.title) · \($0.issueKey)" } ?? "")
+                }
+            }
+        }
+        .padding(14)
+        .glassEffect(.regular, in: .rect(cornerRadius: 18))
     }
 }
 

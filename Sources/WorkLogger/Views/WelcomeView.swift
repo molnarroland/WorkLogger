@@ -10,7 +10,7 @@ struct WelcomeView: View {
         VStack(spacing: 24) {
             VStack(spacing: 6) {
                 Text("Welcome to WorkLogger").font(.largeTitle.weight(.semibold))
-                Text("Choose where your working time comes from. You can change this any time.")
+                Text("Choose where your working time comes from, and how it gets into Tempo. You can change this any time with Modules.")
                     .foregroundStyle(.secondary)
             }
             HStack(alignment: .top, spacing: 16) {
@@ -24,7 +24,7 @@ struct WelcomeView: View {
                             Spacer(minLength: 0)
                         }
                         .padding(16)
-                        .frame(width: 200, height: 210)
+                        .frame(width: 180, height: 210)
                         .glassEffect(.regular, in: .rect(cornerRadius: 20))
                         Toggle(m.title, isOn: Binding(
                             get: { state.settings.modules.contains(m) },
@@ -35,9 +35,26 @@ struct WelcomeView: View {
                     }
                 }
             }
-            Button("Continue") { dismiss() }
-                .buttonStyle(.glassProminent).controlSize(.large)
-                .keyboardShortcut(.defaultAction)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("How do you log in Tempo?").font(.headline)
+                Picker("How do you log in Tempo?", selection: $state.settings.tempoByHand) {
+                    Text("By hand, one ticket at a time. No API key: WorkLogger lists each ticket's days to copy.").tag(true)
+                    Text("Send with the Tempo API. Needs a Tempo token and Jira email in Settings.").tag(false)
+                }
+                .pickerStyle(.radioGroup).labelsHidden()
+            }
+            .padding(16)
+            .frame(maxWidth: 620, alignment: .leading)
+            .glassEffect(.regular, in: .rect(cornerRadius: 20))
+            if state.settings.tempoByHand {
+                Button("Continue") { dismiss() }
+                    .buttonStyle(.glassProminent).controlSize(.large)
+                    .keyboardShortcut(.defaultAction)
+            } else {
+                SettingsLink { Text("Continue to Tempo settings") }
+                    .buttonStyle(.glassProminent).controlSize(.large)
+                    .simultaneousGesture(TapGesture().onEnded { dismiss() })
+            }
         }
         .padding(32)
         .onDisappear { state.settings.welcomed = true }

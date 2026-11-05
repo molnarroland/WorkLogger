@@ -1,11 +1,8 @@
 import SwiftUI
 
-/// Paste the monthly report of the work-time logger. HRmaster's "Munkaidő" page is recognised automatically;
-/// other reports go through the generic parser.
+/// Work sessions of the range, read from HRmaster (Fetch range): one strip per day with net and reported hours.
 struct SessionsView: View {
     @Environment(AppState.self) private var state
-    @State private var raw = ""
-    @State private var parsed: ParsedTimesheet?
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -17,6 +14,7 @@ struct SessionsView: View {
                 TextField("HRmaster address", text: $state.settings.hrmasterURL, prompt: Text("https://company.hrmaster.hu"))
                     .textFieldStyle(.roundedBorder).frame(width: 240)
                     .help("Your company's HRmaster address; it differs per company")
+                SignInChip(source: .hrmaster)
                 Button("HRmaster…") { openWindow(id: WebSession.Source.hrmaster.windowID) }
                     .buttonStyle(.glass)
                     .disabled(HRmasterCollector.normalize(state.settings.hrmasterURL) == nil)
@@ -24,7 +22,7 @@ struct SessionsView: View {
                 Button {
                     Task { await state.fetchHRmaster() }
                 } label: { Label("Fetch range", systemImage: "arrow.down.circle") }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.glassProminent)
                     .disabled(state.isBusy || HRmasterCollector.normalize(state.settings.hrmasterURL) == nil)
                     .help("Reads the Munkaidő calendar of each month in the selected dates")
                 Button("Clear sessions in range", role: .destructive) { state.clearSessionsInRange() }
@@ -34,62 +32,12 @@ struct SessionsView: View {
             .padding(12)
             Divider()
 
-            HSplitView {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Paste the monthly report").font(.headline)
-                    Text("In HRmaster open Munkaidő for the month, inspect the table and copy its HTML. Several months can be pasted at once.")
-                        .font(.callout).foregroundStyle(.secondary)
-                    TextEditor(text: $raw)
-                        .font(.system(.body, design: .monospaced))
-                        .border(Color.secondary.opacity(0.3))
-                    HStack {
-                        Button("Parse") {
-                            let cal = DayKey.calendar
-                            parsed = TimeloggerParser(breakKeywords: state.settings.breakKeywords,
-                                                      shortDateMonthFirst: state.settings.shortDateMonthFirst,
-                                                      defaultYear: cal.component(.year, from: state.from))
-                                .parseTimesheet(raw, fallbackMonth: cal.component(.month, from: state.from))
-                        }
-                        .disabled(raw.isEmpty)
-                        Spacer()
-                        if let parsed, !parsed.isEmpty {
-                            Button("Import \(parsed.dayKeys.count) days") {
-                                state.importTimesheet(parsed)
-                                self.parsed = nil
-                                raw = ""
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-                }
-                .padding(12)
-                .frame(minWidth: 340)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    if let parsed {
-                        if parsed.isEmpty {
-                            ContentUnavailableView("No times found", systemImage: "questionmark.circle",
-                                                   description: Text("Paste the HTML of the HRmaster Munkaidő table, or a report with dates and times like 08:00–12:00."))
-                        } else {
-                            Text("Preview (\(parsed.format)) — replaces the imported data of these days").font(.headline)
-                            ForEach(parsed.warnings, id: \.self) { w in
-                                Label(w, systemImage: "exclamationmark.triangle").foregroundStyle(.orange).font(.callout)
-                            }
-                            SessionList(sessions: parsed.sessions,
-                                        records: Dictionary(uniqueKeysWithValues: parsed.days.map { ($0.day, $0) }))
-                        }
-                    } else {
-                        Text("Imported for this range").font(.headline)
-                        if state.sessions.isEmpty && state.dayRecords.isEmpty {
-                            ContentUnavailableView("No work sessions imported", systemImage: "clock",
-                                                   description: Text("Without sessions the default workday from Settings is used."))
-                        } else {
-                            SessionList(sessions: state.sessions, records: state.dayRecords)
-                        }
-                    }
-                }
-                .padding(12)
-                .frame(minWidth: 400)
+            if state.sessions.isEmpty && state.dayRecords.isEmpty {
+                ContentUnavailableView("No work sessions in this range", systemImage: "clock",
+                                       description: Text("Choose Fetch range to read them from HRmaster. Without sessions the default workday from Settings is used."))
+                    .frame(maxHeight: .infinity)
+            } else {
+                SessionList(sessions: state.sessions, records: state.dayRecords)
             }
         }
     }
@@ -109,17 +57,10 @@ struct SessionList: View {
                 let work = items.workIntervals
                 let net = Int(Intervals.total(items.netWork))
                 Section {
-                    ForEach(items, id: \.self) { s in
-                        HStack {
-                            Image(systemName: s.kind == .work ? "briefcase" : "cup.and.saucer")
-                                .foregroundStyle(s.kind == .work ? Color.primary : Color.secondary)
-                                .frame(width: 18)
-                            Text("\(DayKey.hm(s.start)) – \(DayKey.hm(s.end))").monospacedDigit()
-                            Text(DurationFormat.string(s.duration)).foregroundStyle(.secondary).monospacedDigit()
-                            Spacer()
-                            Text(s.label).foregroundStyle(.tertiary)
-                        }
-                    }
+                    // One strip across the working hours: a missing afternoon or a long lunch stands out at a glance.
+                    DayStrip(sessions: items)
+                        .help(items.map { "\($0.kind == .work ? "Work" : "Break") \(DayKey.hm($0.start))–\(DayKey.hm($0.end))" }
+                            .joined(separator: "\n"))
                 } header: {
                     HStack(spacing: 10) {
                         Text(DayKey.title(day))
@@ -140,6 +81,38 @@ struct SessionList: View {
             }
         }
         .listStyle(.inset)
+    }
+}
+
+/// A day's sessions on a 07:00–19:00 axis (stretched when a session falls outside): work green, breaks grey.
+struct DayStrip: View {
+    let sessions: [WorkSession]
+
+    var body: some View {
+        let day = sessions.first.map { DayKey.startOfDay($0.start) } ?? Date()
+        let hours = sessions.flatMap { [$0.start, $0.end] }.map { $0.timeIntervalSince(day) / 3600 }
+        let lo = min(7, (hours.min() ?? 7).rounded(.down)), hi = max(19, (hours.max() ?? 19).rounded(.up))
+        VStack(alignment: .leading, spacing: 2) {
+            GeometryReader { geo in
+                let x = { (d: Date) in geo.size.width * CGFloat((d.timeIntervalSince(day) / 3600 - lo) / (hi - lo)) }
+                ZStack(alignment: .leading) {
+                    Capsule().fill(.quaternary)
+                    ForEach(sessions.sorted { ($0.kind == .work ? 0 : 1) < ($1.kind == .work ? 0 : 1) }, id: \.self) { s in
+                        Capsule().fill(s.kind == .work ? Color.green.opacity(0.75) : Color.secondary.opacity(0.6))
+                            .frame(width: max(2, x(s.end) - x(s.start)), height: s.kind == .work ? 14 : 8)
+                            .offset(x: x(s.start))
+                    }
+                }
+            }
+            .frame(height: 16)
+            HStack {
+                ForEach(Array(stride(from: Int(lo), through: Int(hi), by: 2)), id: \.self) { h in
+                    Text("\(h):00").font(.caption2).foregroundStyle(.tertiary)
+                    if h + 2 <= Int(hi) { Spacer(minLength: 0) }
+                }
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 

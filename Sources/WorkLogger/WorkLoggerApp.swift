@@ -27,6 +27,21 @@ struct WorkLoggerApp: App {
                     .keyboardShortcut("s")
                 Button("Collect Range") { Task { await state.collect() } }
                     .keyboardShortcut("r")
+                Button("Rebuild Drafts") { state.rebuild() }
+                    .keyboardShortcut("r", modifiers: [.command, .shift])
+                Divider()
+                Button("Fetch Work Times from HRmaster") { Task { await state.fetchHRmaster() } }
+                    .keyboardShortcut("h", modifiers: [.command, .option])
+                    .disabled(!state.settings.modules.contains(.workTimes))
+                Button("Fetch Google Chat") { Task { await state.fetchGoogleChat() } }
+                    .keyboardShortcut("g", modifiers: [.command, .option])
+                    .disabled(!state.settings.modules.contains(.chats))
+            }
+            // Go: move through months, like the Timesheet arrows.
+            CommandMenu("Go") {
+                Button("Previous Month") { state.shiftMonth(-1) }.keyboardShortcut("[")
+                Button("Next Month") { state.shiftMonth(1) }.keyboardShortcut("]")
+                Button("This Month") { state.setRange(.thisMonth) }.keyboardShortcut("t")
             }
         }
 

@@ -70,9 +70,11 @@ struct TimesheetView: View {
                 Text("\(DurationFormat.string(logged)) of \(DurationFormat.string(expected))")
                     .font(.headline).monospacedDigit()
                 let gap = expected - logged
-                Text(gap > 0 ? "\(DurationFormat.string(gap)) still to log" : "Everything logged")
+                let missing = state.worklogs.missingIssue.count
+                Text((gap > 0 ? "\(DurationFormat.string(gap)) still to log" : "Everything logged")
+                     + (missing > 0 ? " · \(missing) need a ticket" : ""))
                     .font(.callout)
-                    .foregroundStyle(gap > 0 ? Color.orange : Color.green)
+                    .foregroundStyle(gap > 0 || missing > 0 ? Color.orange : Color.green)
             }
         }
         .padding(.horizontal, 20)
@@ -177,9 +179,7 @@ private struct DayCell: View {
             }
             Spacer(minLength: 0)
             if expected > 0 || logged > 0 {
-                ProgressView(value: Double(min(logged, max(expected, 1))), total: Double(max(expected, logged, 1)))
-                    .progressViewStyle(.linear)
-                    .tint(color)
+                SourceStack(logs: logs, scale: expected)
                 Text(expected > 0 ? "\(DurationFormat.string(logged)) / \(DurationFormat.string(expected))" : DurationFormat.string(logged))
                     .font(.caption2).monospacedDigit().foregroundStyle(.secondary)
             }
@@ -249,6 +249,12 @@ private struct DayDetail: View {
             ForEach([(Color.green, "Complete"), (.orange, "Partly logged"), (.red, "Nothing logged"),
                      (.purple, "Leave or holiday"), (.blue, "Logged on a rest day"), (.gray, "Rest day or upcoming")], id: \.1) { c, t in
                 Label { Text(t) } icon: { Circle().fill(c).frame(width: 10, height: 10) }
+            }
+            .font(.callout)
+            Text("Bar colors").font(.subheadline.weight(.semibold)).padding(.top, 4)
+            ForEach([(WorklogSource.git.color, "Coding"), (WorklogSource.meeting.color, "Meetings"), (WorklogSource.chat.color, "Chats"),
+                     (WorklogSource.absence.color, "Leave"), (Color.orange, "Needs a ticket")], id: \.1) { c, t in
+                Label { Text(t) } icon: { RoundedRectangle(cornerRadius: 2).fill(c).frame(width: 10, height: 10) }
             }
             .font(.callout)
         }

@@ -26,11 +26,30 @@ struct ReportsView: View {
                 ContentUnavailableView("Nothing logged in this range", systemImage: "chart.bar",
                                        description: Text("Collect worklogs on the Review page first."))
             } else {
+                ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(DurationFormat.string(total)).font(.title2).monospacedDigit()
                     Text("in \(state.fromDay) – \(state.toDay)").foregroundStyle(.secondary)
                 }
-                .padding([.horizontal, .top], 16)
+                TicketTotals(groups: TicketPlan.groups(state.worklogs))
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("By source").font(.headline)
+                    SourceStack(logs: state.worklogs, height: 18)
+                    HStack(spacing: 14) {
+                        ForEach(state.worklogs.filter { !$0.needsIssue }.totalsBySource, id: \.source) { s in
+                            Label { Text("\(s.source.label) \(DurationFormat.string(s.seconds))") } icon: {
+                                RoundedRectangle(cornerRadius: 2).fill(s.source.color).frame(width: 10, height: 10) }
+                        }
+                        let none = state.worklogs.missingIssue.totalDuration
+                        if none > 0 {
+                            Label { Text("No ticket \(DurationFormat.string(none))") } icon: {
+                                RoundedRectangle(cornerRadius: 2).fill(.orange).frame(width: 10, height: 10) }
+                        }
+                    }
+                    .font(.callout).foregroundStyle(.secondary)
+                }
+                .padding(14).glassEffect(.regular, in: .rect(cornerRadius: 18))
 
                 Chart(groups) { g in
                     ForEach(g.bySource) { s in
@@ -39,10 +58,11 @@ struct ReportsView: View {
                     }
                 }
                 .chartYAxisLabel("hours")
+                .chartForegroundStyleScale(domain: WorklogSource.allCases.map(\.label), range: WorklogSource.allCases.map(\.color))
                 .frame(height: 220)
-                .padding(16)
+                .padding(.vertical, 8)
 
-                List(groups) { g in
+                ForEach(groups) { g in
                     DisclosureGroup {
                         ForEach(g.byIssue) { b in
                             HStack {
@@ -63,9 +83,48 @@ struct ReportsView: View {
                         }
                     }
                 }
-                .listStyle(.inset)
+                }
+                .padding(16)
+                }
             }
         }
+    }
+}
+
+/// Each ticket's time, split into what is already in Tempo (green) and what is still to enter.
+struct TicketTotals: View {
+    let groups: [TicketGroup]
+
+    var body: some View {
+        let top = max(groups.map(\.seconds).max() ?? 1, 1)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("By ticket").font(.headline)
+            ForEach(groups) { g in
+                let entered = g.days.filter(\.entered).reduce(0) { $0 + $1.seconds }
+                HStack(spacing: 10) {
+                    Text(g.key ?? "No issue").font(.callout.monospaced().weight(.medium))
+                        .foregroundStyle(g.key == nil ? Color.orange : Color.primary).frame(width: 100, alignment: .leading)
+                    GeometryReader { geo in
+                        HStack(spacing: 0) {
+                            Color.green.frame(width: geo.size.width * CGFloat(entered) / CGFloat(top))
+                            (g.key == nil ? Color.orange : Color.accentColor)
+                                .frame(width: geo.size.width * CGFloat(g.seconds - entered) / CGFloat(top))
+                            Spacer(minLength: 0)
+                        }
+                    }
+                    .frame(height: 12).background(.quaternary).clipShape(.capsule)
+                    Text(DurationFormat.string(g.seconds)).monospacedDigit().frame(width: 70, alignment: .trailing)
+                }
+            }
+            HStack(spacing: 14) {
+                Label { Text("In Tempo") } icon: { RoundedRectangle(cornerRadius: 2).fill(.green).frame(width: 10, height: 10) }
+                Label { Text("Still to enter") } icon: { RoundedRectangle(cornerRadius: 2).fill(Color.accentColor).frame(width: 10, height: 10) }
+                Label { Text("Needs a ticket") } icon: { RoundedRectangle(cornerRadius: 2).fill(.orange).frame(width: 10, height: 10) }
+            }
+            .font(.caption).foregroundStyle(.secondary)
+        }
+        .padding(14)
+        .glassEffect(.regular, in: .rect(cornerRadius: 18))
     }
 }
 

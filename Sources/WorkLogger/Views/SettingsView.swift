@@ -47,16 +47,9 @@ struct SettingsView: View {
                 Text("An estimate mixes the free working time since your previous commit with the size of the change (lines, files) and its kind (refactor, fix, typo…).")
             }
 
-            Section {
-                ListField(title: "Break keywords", values: $state.settings.breakKeywords)
-                Toggle("Short dates like 11.03. are month.day", isOn: $state.settings.shortDateMonthFirst)
-            } header: {
-                Text("Work-time logger import")
-            } footer: {
-                Text("HRmaster pages are recognised automatically; these options apply to other reports.")
-            }
-
             AbsenceSettings()
+
+            SignedInSites()
 
             Section {
                 TextField("Jira site", text: $state.settings.jiraBaseURL, prompt: Text("https://yourcompany.atlassian.net"))
@@ -66,9 +59,9 @@ struct SettingsView: View {
                 TextField("Tempo API base URL", text: $state.settings.tempoBaseURL)
                 TextField("Jira account ID (filled in automatically)", text: $state.settings.jiraAccountId)
             } header: {
-                Text("Jira & Tempo")
+                Text("Tempo API (optional)")
             } footer: {
-                Text("Tokens are stored in your Keychain. Create the Jira token at id.atlassian.com and the Tempo token in Tempo → Settings → API Integration.")
+                Text("Only needed for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain; create the Jira token at id.atlassian.com and the Tempo token in Tempo → Settings → API Integration.")
             }
 
             Section("Storage") {
@@ -79,6 +72,41 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Google Chat and HRmaster, signed in inside WorkLogger: state, open the window, sign out.
+struct SignedInSites: View {
+    @Environment(AppState.self) private var state
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Section {
+            ForEach(WebSession.Source.allCases) { source in
+                let session = WebSession.of(source)
+                HStack {
+                    Text(source.title)
+                    if source == .hrmaster, let host = HRmasterCollector.normalize(state.settings.hrmasterURL)?.host() {
+                        Text(host).foregroundStyle(.secondary).font(.callout)
+                    }
+                    Spacer()
+                    switch session.signedIn {
+                    case true?: Label("Signed in", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    case false?: Label("Signed out", systemImage: "xmark.circle").foregroundStyle(.orange)
+                    case nil: EmptyView()
+                    }
+                    Button(session.signedIn == true ? "Open…" : "Sign in…") { openWindow(id: source.windowID) }
+                        .disabled(source == .hrmaster && HRmasterCollector.normalize(state.settings.hrmasterURL) == nil)
+                    Button("Sign out") { Task { await session.signOut() } }
+                        .disabled(session.signedIn != true)
+                }
+                .task { await session.checkSignedIn(host: HRmasterCollector.normalize(state.settings.hrmasterURL)?.host()) }
+            }
+        } header: {
+            Text("Signed-in sites")
+        } footer: {
+            Text("Each site keeps its own cookies inside WorkLogger, separate from Safari; Sign out deletes them. HRmaster ends its session after about 25 idle minutes, so it often shows signed out; a fetch then asks you to sign in.")
+        }
     }
 }
 

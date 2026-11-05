@@ -19,6 +19,13 @@ extension Database {
         }
     }
 
+    /// Your stored commits per repository in [from, to).
+    func commitCounts(from: Date, to: Date) throws -> [Int64: Int] {
+        Dictionary(uniqueKeysWithValues: try query(
+            "SELECT repo_id, COUNT(*) AS n FROM commits WHERE ts >= ? AND ts < ? GROUP BY repo_id",
+            [.of(from), .of(to)]).map { ($0.int("repo_id") ?? 0, $0.intValue("n")) })
+    }
+
     func commits(day: String) throws -> [StoredCommit] {
         let (start, end) = DayKey.bounds(day)
         return try query("""
