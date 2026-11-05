@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -27,10 +27,12 @@ struct SessionsView: View {
                     .help("Opens HRmaster inside WorkLogger; sign in there once and the login is kept")
                 Button {
                     Task { await state.fetchHRmaster() }
-                } label: { Label("Fetch range", systemImage: "arrow.down.circle") }
-                    .buttonStyle(.glassProminent)
-                    .disabled(state.isBusy || HRmasterCollector.normalize(state.settings.hrmasterURL) == nil)
-                    .help("Reads the Munkaidő calendar of each month in the selected dates")
+                } label: {
+                    Label("Fetch range", systemImage: "arrow.down.circle")
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(state.isBusy || HRmasterCollector.normalize(state.settings.hrmasterURL) == nil)
+                .help("Reads the Munkaidő calendar of each month in the selected dates")
                 Button("Clear sessions in range", role: .destructive) { state.clearSessionsInRange() }
                     .buttonStyle(.glass)
                     .disabled(state.sessions.isEmpty && state.dayRecords.isEmpty)
@@ -39,9 +41,13 @@ struct SessionsView: View {
             Divider()
 
             if state.sessions.isEmpty && state.dayRecords.isEmpty {
-                ContentUnavailableView("No work sessions in this range", systemImage: "clock",
-                                       description: Text("Choose Fetch range to read them from HRmaster. Without sessions the default workday from Settings is used."))
-                    .frame(maxHeight: .infinity)
+                ContentUnavailableView(
+                    "No work sessions in this range", systemImage: "clock",
+                    description: Text(
+                        "Choose Fetch range to read them from HRmaster. Without sessions the default workday from Settings is used."
+                    )
+                )
+                .frame(maxHeight: .infinity)
             } else {
                 SessionList(sessions: state.sessions, records: state.dayRecords)
             }
@@ -65,8 +71,9 @@ struct SessionList: View {
                 Section {
                     // One strip across the working hours: a missing afternoon or a long lunch stands out at a glance.
                     DayStrip(sessions: items)
-                        .help(items.map { "\($0.kind == .work ? "Work" : "Break") \(DayKey.hm($0.start))–\(DayKey.hm($0.end))" }
-                            .joined(separator: "\n"))
+                        .help(
+                            items.map { "\($0.kind == .work ? "Work" : "Break") \(DayKey.hm($0.start))–\(DayKey.hm($0.end))" }
+                                .joined(separator: "\n"))
                 } header: {
                     HStack(spacing: 10) {
                         Text(DayKey.title(day))
@@ -97,7 +104,8 @@ struct DayStrip: View {
     var body: some View {
         let day = sessions.first.map { DayKey.startOfDay($0.start) } ?? Date()
         let hours = sessions.flatMap { [$0.start, $0.end] }.map { $0.timeIntervalSince(day) / 3600 }
-        let lo = min(7, (hours.min() ?? 7).rounded(.down)), hi = max(19, (hours.max() ?? 19).rounded(.up))
+        let lo = min(7, (hours.min() ?? 7).rounded(.down))
+        let hi = max(19, (hours.max() ?? 19).rounded(.up))
         VStack(alignment: .leading, spacing: 2) {
             GeometryReader { geo in
                 let x = { (d: Date) in geo.size.width * CGFloat((d.timeIntervalSince(day) / 3600 - lo) / (hi - lo)) }

@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -30,7 +30,8 @@ struct SourceStack: View {
 
     var body: some View {
         let missing = logs.missingIssue.totalDuration
-        let parts = logs.filter { !$0.needsIssue }.totalsBySource.map { ($0.source.color, $0.seconds) } + [(Color.orange, missing)]
+        let parts =
+            logs.filter { !$0.needsIssue }.totalsBySource.map { ($0.source.color, $0.seconds) } + [(Color.orange, missing)]
         let full = max(scale, logs.totalDuration, 1)
         GeometryReader { geo in
             HStack(spacing: 0) {

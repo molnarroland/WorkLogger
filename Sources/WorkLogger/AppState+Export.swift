@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -19,7 +19,9 @@ extension AppState {
 
     func exportJSON(_ logs: [Worklog]) {
         attempt("Exporting") {
-            save(try TempoExport.json(logs, accountId: settings.jiraAccountId), name: "tempo-\(fromDay)_\(toDay).json", type: .json)
+            save(
+                try TempoExport.json(logs, accountId: settings.jiraAccountId), name: "tempo-\(fromDay)_\(toDay).json", type: .json
+            )
         }
     }
 
@@ -28,13 +30,17 @@ extension AppState {
     }
 
     func exportMarkdown(_ logs: [Worklog]) {
-        save(Data(markdown(logs).utf8), name: "tempo-\(fromDay)_\(toDay).md",
-             type: UTType(filenameExtension: "md") ?? .plainText)
+        save(
+            Data(markdown(logs).utf8), name: "tempo-\(fromDay)_\(toDay).md",
+            type: UTType(filenameExtension: "md") ?? .plainText)
     }
 
     func copyMarkdown(_ logs: [Worklog]) {
         services.files.copyToPasteboard(markdown(logs))
-        status = String(localized: "Copied the Tempo checklist for \(TempoExport.exportable(logs).count) worklogs. Paste it to Claude with Claude in Chrome.")
+        status = String(
+            localized:
+                "Copied the Tempo checklist for \(TempoExport.exportable(logs).count) worklogs. Paste it to Claude with Claude in Chrome."
+        )
     }
 
     private func save(_ data: Data, name: String, type: UTType) {
@@ -70,8 +76,10 @@ extension AppState {
                 self.status = String(localized: "Sending \($0) of \($1) to Tempo…")
             }
             reloadRange()
-            status = String(localized: "Sent \(outcome.sent) worklogs to Tempo.")
-                + (outcome.failures.isEmpty ? "" : " " + String(localized: "Failed: \(outcome.failures.joined(separator: " | "))"))
+            status =
+                String(localized: "Sent \(outcome.sent) worklogs to Tempo.")
+                + (outcome.failures.isEmpty
+                    ? "" : " " + String(localized: "Failed: \(outcome.failures.joined(separator: " | "))"))
         } catch {
             status = error.localizedDescription
         }

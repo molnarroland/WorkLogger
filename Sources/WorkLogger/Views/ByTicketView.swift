@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -20,8 +20,10 @@ struct ByTicketView: View {
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Tickets this month").font(.headline)
-                    Text("\(tickets.reduce(0) { $0 + $1.enteredDays }) of \(tickets.reduce(0) { $0 + $1.days.count }) ticket-days entered")
-                        .font(.callout).foregroundStyle(.secondary).monospacedDigit()
+                    Text(
+                        "\(tickets.reduce(0) { $0 + $1.enteredDays }) of \(tickets.reduce(0) { $0 + $1.days.count }) ticket-days entered"
+                    )
+                    .font(.callout).foregroundStyle(.secondary).monospacedDigit()
                 }
                 .padding(14)
                 List(groups, selection: Binding(get: { current?.id }, set: { selected = $0 })) { g in
@@ -33,11 +35,15 @@ struct ByTicketView: View {
             Divider()
             Group {
                 if let current {
-                    if current.key == nil { NoIssueDetail(group: current) { pane = .review } }
-                    else { TicketDetail(group: current) }
+                    if current.key == nil {
+                        NoIssueDetail(group: current) { pane = .review }
+                    } else {
+                        TicketDetail(group: current)
+                    }
                 } else {
-                    ContentUnavailableView("Nothing to log", systemImage: "checkmark.circle",
-                                           description: Text("Collect the month first; its tickets show up here."))
+                    ContentUnavailableView(
+                        "Nothing to log", systemImage: "checkmark.circle",
+                        description: Text("Collect the month first; its tickets show up here."))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -56,8 +62,12 @@ private struct TicketRow: View {
                 Spacer()
                 Text(DurationFormat.string(group.seconds)).monospacedDigit()
             }
-            Text(group.key == nil ? "\(group.days.count) days need a ticket" : "\(group.days.count) days · \(group.days.first?.description ?? "")")
-                .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            Text(
+                group.key == nil
+                    ? "\(group.days.count) days need a ticket"
+                    : "\(group.days.count) days · \(group.days.first?.description ?? "")"
+            )
+            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
             if group.key != nil {
                 ProgressView(value: Double(group.enteredDays), total: Double(max(group.days.count, 1)))
                     .tint(.green).controlSize(.small)
@@ -71,7 +81,6 @@ private struct TicketDetail: View {
     @Environment(AppState.self) private var state
     let group: TicketGroup
 
-
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
@@ -83,8 +92,9 @@ private struct TicketDetail: View {
             HStack(spacing: 8) {
                 Chip("\(group.days.count) days")
                 Chip("\(DurationFormat.string(group.seconds)) total")
-                Chip("\(group.enteredDays) of \(group.days.count) entered",
-                     tint: group.isDone ? .green : group.enteredDays > 0 ? .orange : nil)
+                Chip(
+                    "\(group.enteredDays) of \(group.days.count) entered",
+                    tint: group.isDone ? .green : group.enteredDays > 0 ? .orange : nil)
             }
             Table(group.days) {
                 TableColumn("In Tempo") { d in
@@ -99,7 +109,9 @@ private struct TicketDetail: View {
                         .strikethrough(d.entered).foregroundStyle(d.entered ? .secondary : .primary)
                 }
                 .width(80)
-                TableColumn("Description") { d in Text(d.description).lineLimit(1).foregroundStyle(d.entered ? .secondary : .primary) }
+                TableColumn("Description") { d in
+                    Text(d.description).lineLimit(1).foregroundStyle(d.entered ? .secondary : .primary)
+                }
                 TableColumn("") { d in
                     HStack(spacing: 4) {
                         CopyButton(title: "Duration", text: DurationFormat.string(d.seconds), small: true)
@@ -152,7 +164,10 @@ struct CopyButton: View {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(text, forType: .string)
             copied = true
-            Task { try? await Task.sleep(for: .seconds(1.2)); copied = false }
+            Task {
+                try? await Task.sleep(for: .seconds(1.2))
+                copied = false
+            }
         }
         .controlSize(small ? .small : .regular)
         if prominent { button.buttonStyle(.glassProminent) } else { button.buttonStyle(.glass) }
@@ -181,7 +196,10 @@ struct SignInChip: View {
 struct Chip: View {
     let text: LocalizedStringKey
     var tint: Color?
-    init(_ text: LocalizedStringKey, tint: Color? = nil) { self.text = text; self.tint = tint }
+    init(_ text: LocalizedStringKey, tint: Color? = nil) {
+        self.text = text
+        self.tint = tint
+    }
 
     var body: some View {
         Text(text).font(.caption).monospacedDigit()

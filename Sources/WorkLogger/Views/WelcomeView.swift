@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -16,8 +16,10 @@ struct WelcomeView: View {
         VStack(spacing: 24) {
             VStack(spacing: 6) {
                 Text("Welcome to WorkLogger").font(.largeTitle.weight(.semibold))
-                Text("Choose where your working time comes from, and how it gets into Tempo. You can change this any time with Modules.")
-                    .foregroundStyle(.secondary)
+                Text(
+                    "Choose where your working time comes from, and how it gets into Tempo. You can change this any time with Modules."
+                )
+                .foregroundStyle(.secondary)
             }
             HStack(alignment: .top, spacing: 16) {
                 ForEach(Module.allCases) { m in
@@ -32,11 +34,14 @@ struct WelcomeView: View {
                         .padding(16)
                         .frame(width: 180, height: 210)
                         .glassEffect(.regular, in: .rect(cornerRadius: 20))
-                        Toggle(String(localized: m.localizedTitle), isOn: Binding(
-                            get: { state.settings.modules.contains(m) },
-                            set: { on in
-                                if on { state.settings.modules.insert(m) } else { state.settings.modules.remove(m) }
-                            }))
+                        Toggle(
+                            String(localized: m.localizedTitle),
+                            isOn: Binding(
+                                get: { state.settings.modules.contains(m) },
+                                set: { on in
+                                    if on { state.settings.modules.insert(m) } else { state.settings.modules.remove(m) }
+                                })
+                        )
                         .toggleStyle(.switch).labelsHidden()
                     }
                 }

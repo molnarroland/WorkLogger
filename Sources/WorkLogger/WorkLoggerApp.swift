@@ -1,9 +1,9 @@
-import SwiftUI
 import AppKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
+import SwiftUI
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 

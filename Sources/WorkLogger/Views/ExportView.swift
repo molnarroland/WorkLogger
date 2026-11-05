@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -43,21 +43,35 @@ struct ExportView: View {
             GlassEffectContainer(spacing: 8) {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Claude in Chrome").font(.subheadline.weight(.semibold))
-                    Text("A Markdown checklist with instructions: give it to Claude and it fills your Tempo timesheet in the browser.")
-                        .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text(
+                        "A Markdown checklist with instructions: give it to Claude and it fills your Tempo timesheet in the browser."
+                    )
+                    .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     HStack {
-                        Button { state.copyMarkdown(ready) } label: { Label("Copy Markdown", systemImage: "doc.on.doc") }
-                            .buttonStyle(.glassProminent)
-                        Button { state.exportMarkdown(ready) } label: { Label("Save .md…", systemImage: "doc.text") }
-                            .buttonStyle(.glass)
+                        Button {
+                            state.copyMarkdown(ready)
+                        } label: {
+                            Label("Copy Markdown", systemImage: "doc.on.doc")
+                        }
+                        .buttonStyle(.glassProminent)
+                        Button {
+                            state.exportMarkdown(ready)
+                        } label: {
+                            Label("Save .md…", systemImage: "doc.text")
+                        }
+                        .buttonStyle(.glass)
                     }
                     .disabled(ready.isEmpty)
 
                     Text("Tempo API").font(.subheadline.weight(.semibold)).padding(.top, 6)
                     HStack {
-                        Button { confirmPush = true } label: { Label("Push to Tempo…", systemImage: "paperplane") }
-                            .buttonStyle(.glass)
-                            .disabled(ready.isEmpty || state.isBusy)
+                        Button {
+                            confirmPush = true
+                        } label: {
+                            Label("Push to Tempo…", systemImage: "paperplane")
+                        }
+                        .buttonStyle(.glass)
+                        .disabled(ready.isEmpty || state.isBusy)
                         Button("Mark as exported") { state.markExported(ready) }
                             .buttonStyle(.glass)
                             .disabled(ready.isEmpty)
@@ -76,8 +90,10 @@ struct ExportView: View {
         }
         .padding(18)
         .frame(width: 380)
-        .confirmationDialog("Send \(ready.count) worklogs (\(DurationFormat.string(total))) to Tempo?",
-                            isPresented: $confirmPush) {
+        .confirmationDialog(
+            "Send \(ready.count) worklogs (\(DurationFormat.string(total))) to Tempo?",
+            isPresented: $confirmPush
+        ) {
             Button("Send to Tempo") { Task { await state.pushToTempo(ready) } }
             Button("Cancel", role: .cancel) {}
         } message: {

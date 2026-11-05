@@ -24,12 +24,16 @@ let package = Package(
     ],
     targets: [
         .target(name: "WorkLoggerCore", resources: [.process("Localizable.xcstrings")]),
-        .target(name: "WorkLoggerStore", dependencies: ["WorkLoggerCore"],
-                linkerSettings: [.linkedLibrary("sqlite3")]),
+        .target(
+            name: "WorkLoggerStore", dependencies: ["WorkLoggerCore"],
+            linkerSettings: [.linkedLibrary("sqlite3")]),
         .target(name: "WorkLoggerGit", dependencies: ["WorkLoggerCore"]),
-        .target(name: "WorkLoggerCalendar", dependencies: ["WorkLoggerCore"],
-                linkerSettings: [.linkedFramework("EventKit")]),
-        .target(name: "WorkLoggerTempo", dependencies: ["WorkLoggerCore", "WorkLoggerStore"], resources: [.process("Localizable.xcstrings")]),
+        .target(
+            name: "WorkLoggerCalendar", dependencies: ["WorkLoggerCore"],
+            linkerSettings: [.linkedFramework("EventKit")]),
+        .target(
+            name: "WorkLoggerTempo", dependencies: ["WorkLoggerCore", "WorkLoggerStore"],
+            resources: [.process("Localizable.xcstrings")]),
         .target(name: "WorkLoggerWeb", dependencies: ["WorkLoggerCore"], resources: [.process("Localizable.xcstrings")]),
         .target(name: "WorkLoggerTestSupport", dependencies: ["WorkLoggerCore", "WorkLoggerTempo"]),
         .testTarget(name: "WorkLoggerCoreTests", dependencies: ["WorkLoggerCore", "WorkLoggerTestSupport"]),

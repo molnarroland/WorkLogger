@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -37,8 +37,9 @@ struct ChatBrowser: View {
                 if let chat = chats.first(where: { $0.id == selected }) {
                     ChatMessages(chat: chat).id(chat.id)
                 } else {
-                    ContentUnavailableView("Select a conversation", systemImage: "bubble.left.and.bubble.right",
-                                           description: Text("Its messages show here, oldest first."))
+                    ContentUnavailableView(
+                        "Select a conversation", systemImage: "bubble.left.and.bubble.right",
+                        description: Text("Its messages show here, oldest first."))
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 160, maxHeight: .infinity)
@@ -59,7 +60,9 @@ private struct ChatListRow: View {
             Text("\(chat.count) msg").foregroundStyle(.secondary).monospacedDigit()
             Text(DurationFormat.string(chat.activeSeconds)).monospacedDigit().frame(minWidth: 44, alignment: .trailing)
         }
-        .help("\(DayKey.hm(chat.times.first!)) – \(DayKey.hm(chat.times.last!)) · messages less than \(Int(chat.gap / 60)) minutes apart count as one stretch")
+        .help(
+            "\(DayKey.hm(chat.times.first!)) – \(DayKey.hm(chat.times.last!)) · messages less than \(Int(chat.gap / 60)) minutes apart count as one stretch"
+        )
     }
 }
 
@@ -83,17 +86,22 @@ private struct ChatMessages: View {
                         .disabled(JiraKey.normalize(issue) == nil || logged?.status == .exported)
                 }
                 // A rule: this conversation goes to the ticket every day, like a meeting rule.
-                Toggle("Always", isOn: Binding(
-                    get: { rule != nil },
-                    set: { state.setChatRule(chat, issue: $0 ? issue : nil) }))
-                    .toggleStyle(.checkbox)
-                    .disabled(rule == nil && JiraKey.normalize(issue) == nil)
-                    .help("Log this conversation to \(rule?.issueKey ?? String(localized: "this ticket")) on every day it has messages")
+                Toggle(
+                    "Always",
+                    isOn: Binding(
+                        get: { rule != nil },
+                        set: { state.setChatRule(chat, issue: $0 ? issue : nil) })
+                )
+                .toggleStyle(.checkbox)
+                .disabled(rule == nil && JiraKey.normalize(issue) == nil)
+                .help(
+                    "Log this conversation to \(rule?.issueKey ?? String(localized: "this ticket")) on every day it has messages")
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(state.chatLines(chat), id: \.self) { m in
-                        let who = m.me ? String(localized: "Me") : (m.sender.isEmpty ? "?" : m.sender.components(separatedBy: "@")[0])
+                        let who =
+                            m.me ? String(localized: "Me") : (m.sender.isEmpty ? "?" : m.sender.components(separatedBy: "@")[0])
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(DayKey.hm(m.time)).monospacedDigit().foregroundStyle(.secondary)
                             Text(who).fontWeight(.medium).foregroundStyle(m.me ? Color.accentColor : Color.primary)
@@ -128,7 +136,9 @@ struct ChatDaySummary: View {
     var body: some View {
         let chats = state.chats.filter { $0.day == day }
         if !chats.isEmpty {
-            Button { open(day) } label: {
+            Button {
+                open(day)
+            } label: {
                 HStack(spacing: 8) {
                     Image(systemName: WorklogSource.chat.icon).foregroundStyle(.secondary).frame(width: 18)
                     Text("Chats · \(chats.count) conversations")

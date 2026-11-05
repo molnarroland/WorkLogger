@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -20,7 +20,10 @@ extension AppState {
     }
 
     func scanWorkspace() {
-        guard !settings.workspaceRoot.isEmpty else { status = String(localized: "Choose your workspace folder first."); return }
+        guard !settings.workspaceRoot.isEmpty else {
+            status = String(localized: "Choose your workspace folder first.")
+            return
+        }
         let root = URL(fileURLWithPath: (settings.workspaceRoot as NSString).expandingTildeInPath)
         let found = services.git.findRepos(root: root, excluded: settings.excludedFolders)
         attempt("Scanning") {
@@ -55,7 +58,9 @@ extension AppState {
 
     func saveProject(_ p: ProjectMapping) {
         guard let key = JiraKey.normalize(p.key) else { return }
-        attempt("Saving project") { try db.upsertProject(ProjectMapping(key: key, defaultIssue: JiraKey.normalize(p.defaultIssue))) }
+        attempt("Saving project") {
+            try db.upsertProject(ProjectMapping(key: key, defaultIssue: JiraKey.normalize(p.defaultIssue)))
+        }
         projects = (try? db.projects()) ?? projects
     }
 

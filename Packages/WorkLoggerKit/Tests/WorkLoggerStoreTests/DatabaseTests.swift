@@ -1,9 +1,10 @@
 import Foundation
-import Testing
 import SQLite3
-@testable import WorkLoggerStore
+import Testing
 import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerStore
 
 @Suite struct DatabaseTests {
     let db: Database
@@ -39,13 +40,14 @@ import WorkLoggerTestSupport
         for (i, sql) in Database.migrations.prefix(2).enumerated() {
             #expect(sqlite3_exec(handle, sql + "\nPRAGMA user_version = \(i + 1);", nil, nil, nil) == SQLITE_OK)
         }
-        #expect(sqlite3_exec(handle, "INSERT INTO repos(path, name) VALUES('/w/billing', 'billing');", nil, nil, nil) == SQLITE_OK)
+        #expect(
+            sqlite3_exec(handle, "INSERT INTO repos(path, name) VALUES('/w/billing', 'billing');", nil, nil, nil) == SQLITE_OK)
         sqlite3_close(handle)
 
         let upgraded = try Database(url: url)
         #expect(try upgraded.query("PRAGMA user_version").first?.intValue("user_version") == Database.schemaVersion)
         #expect(try upgraded.repos().map(\.name) == ["billing"])
-        #expect(try upgraded.importChats(ChatExport(source: "t", conversations: [])) == 0)   // chat tables exist
+        #expect(try upgraded.importChats(ChatExport(source: "t", conversations: [])) == 0)  // chat tables exist
     }
 
     @Test func failedTransactionRollsBack() throws {
@@ -67,7 +69,7 @@ import WorkLoggerTestSupport
         s.fixedDailyHours = 6
         try db.saveSettings(s)
         s.jiraEmail = "me@x.hu"
-        try db.saveSettings(s)   // upsert
+        try db.saveSettings(s)  // upsert
         #expect(db.loadSettings() == s)
     }
 
@@ -105,9 +107,11 @@ import WorkLoggerTestSupport
         let on = try addRepo("on")
         off.enabled = false
         try db.updateRepo(off)
-        try db.saveCommits([Fixture.commit("a", day: "2026-03-03", "10:00", repoId: on.id),
-                            Fixture.commit("b", day: "2026-03-03", "11:00", repoId: off.id),
-                            Fixture.commit("c", day: "2026-03-04", "00:00", repoId: on.id)])
+        try db.saveCommits([
+            Fixture.commit("a", day: "2026-03-03", "10:00", repoId: on.id),
+            Fixture.commit("b", day: "2026-03-03", "11:00", repoId: off.id),
+            Fixture.commit("c", day: "2026-03-04", "00:00", repoId: on.id),
+        ])
         #expect(try db.commits(day: "2026-03-03").map(\.hash) == ["a"])
     }
 
@@ -125,10 +129,13 @@ import WorkLoggerTestSupport
 
     @Test func importReplacesTheImportedDays() throws {
         let day = "2026-03-03"
-        try db.importTimesheet(ParsedTimesheet(sessions: [Fixture.session(day: day, "08:00", "12:00"),
-                                                          Fixture.session(day: "2026-03-04", "08:00", "16:00")]))
+        try db.importTimesheet(
+            ParsedTimesheet(sessions: [
+                Fixture.session(day: day, "08:00", "12:00"),
+                Fixture.session(day: "2026-03-04", "08:00", "16:00"),
+            ]))
         let record = DayRecord(day: day, status: .leave, label: "Szabadság", reportedWorked: 8 * 3600, reportedBreaks: nil)
-        try db.importTimesheet(ParsedTimesheet(days: [record]))   // leave: no sessions, clears the day
+        try db.importTimesheet(ParsedTimesheet(days: [record]))  // leave: no sessions, clears the day
 
         #expect(try db.sessions(day: day).isEmpty)
         #expect(try db.sessions(day: "2026-03-04").count == 1)
@@ -137,9 +144,10 @@ import WorkLoggerTestSupport
 
     @Test func clearingSessionsClearsDayRecords() throws {
         let day = "2026-03-03"
-        try db.importTimesheet(ParsedTimesheet(
-            sessions: [Fixture.session(day: day, "08:00", "12:00")],
-            days: [DayRecord(day: day, status: .workday, label: "", reportedWorked: nil, reportedBreaks: nil)]))
+        try db.importTimesheet(
+            ParsedTimesheet(
+                sessions: [Fixture.session(day: day, "08:00", "12:00")],
+                days: [DayRecord(day: day, status: .workday, label: "", reportedWorked: nil, reportedBreaks: nil)]))
         try db.deleteSessions(fromDay: day, toDay: day)
         #expect(try db.sessions(fromDay: day, toDay: day).isEmpty)
         #expect(try db.dayRecords(fromDay: day, toDay: day).isEmpty)

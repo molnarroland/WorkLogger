@@ -133,7 +133,8 @@ public enum Intervals: Sendable {
 public enum DurationFormat: Sendable {
     public static func string(_ seconds: Int) -> String {
         let minutes = Int((Double(seconds) / 60).rounded())
-        let h = minutes / 60, m = minutes % 60
+        let h = minutes / 60
+        let m = minutes % 60
         if h == 0 { return "\(m)m" }
         return m == 0 ? "\(h)h" : "\(h)h \(m)m"
     }

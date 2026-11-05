@@ -1,9 +1,9 @@
-import SwiftUI
 import AppKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
+import SwiftUI
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -24,8 +24,9 @@ struct SettingsView: View {
                         Text("Whole hours").tag(60)
                     }
                     Stepper(value: $state.settings.fixedDailyHours, in: 1...12, step: 0.5) {
-                        LabeledContent("Hours per day without imported sessions",
-                                       value: String(format: "%.1f h", state.settings.fixedDailyHours))
+                        LabeledContent(
+                            "Hours per day without imported sessions",
+                            value: String(format: "%.1f h", state.settings.fixedDailyHours))
                     }
                 }
                 Picker("Round to", selection: $state.settings.granularityMinutes) {
@@ -39,18 +40,28 @@ struct SettingsView: View {
             } header: {
                 Text("Daily totals")
             } footer: {
-                Text("A day adds up to the time you worked according to the imported work sessions (HRmaster's worked hours), rounded up: with 15 minutes, 7h 22m becomes 7h 30m and 12h stays 12h. Days without imported sessions use the hours per day. Meetings keep their real length; commit entries fill the rest.")
+                Text(
+                    "A day adds up to the time you worked according to the imported work sessions (HRmaster's worked hours), rounded up: with 15 minutes, 7h 22m becomes 7h 30m and 12h stays 12h. Days without imported sessions use the hours per day. Meetings keep their real length; commit entries fill the rest."
+                )
             }
 
             Section {
-                Stepper("Shortest commit: \(state.settings.minCommitMinutes) min", value: $state.settings.minCommitMinutes, in: 5...60, step: 5)
-                Stepper("Longest commit: \(state.settings.maxCommitMinutes) min", value: $state.settings.maxCommitMinutes, in: 30...480, step: 15)
-                Stepper("Ignore gaps longer than: \(state.settings.maxCommitGapMinutes) min", value: $state.settings.maxCommitGapMinutes, in: 30...480, step: 15)
+                Stepper(
+                    "Shortest commit: \(state.settings.minCommitMinutes) min", value: $state.settings.minCommitMinutes,
+                    in: 5...60, step: 5)
+                Stepper(
+                    "Longest commit: \(state.settings.maxCommitMinutes) min", value: $state.settings.maxCommitMinutes,
+                    in: 30...480, step: 15)
+                Stepper(
+                    "Ignore gaps longer than: \(state.settings.maxCommitGapMinutes) min",
+                    value: $state.settings.maxCommitGapMinutes, in: 30...480, step: 15)
                 ListField(title: "Paths left out of the size estimate", values: $state.settings.ignoredPathPatterns)
             } header: {
                 Text("Commit estimates")
             } footer: {
-                Text("An estimate mixes the free working time since your previous commit with the size of the change (lines, files) and its kind (refactor, fix, typo…).")
+                Text(
+                    "An estimate mixes the free working time since your previous commit with the size of the change (lines, files) and its kind (refactor, fix, typo…)."
+                )
             }
 
             AbsenceSettings()
@@ -69,15 +80,20 @@ struct SettingsView: View {
                         Image(systemName: "arrow.right").foregroundStyle(.secondary)
                         Text(rule.issueKey).bold()
                         Spacer()
-                        Button(role: .destructive) { state.settings.chatRules.removeAll { $0.id == rule.id } } label: {
-                            Image(systemName: "trash") }
-                            .buttonStyle(.borderless)
+                        Button(role: .destructive) {
+                            state.settings.chatRules.removeAll { $0.id == rule.id }
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                        .buttonStyle(.borderless)
                     }
                 }
             } header: {
                 Text("Chats")
             } footer: {
-                Text("Messages closer together than the pause count as one stretch of chatting; each stretch is at least a minute. Conversations listed here (ticked “Always” on the Chats page) are logged to their ticket on every day they have messages.")
+                Text(
+                    "Messages closer together than the pause count as one stretch of chatting; each stretch is at least a minute. Conversations listed here (ticked “Always” on the Chats page) are logged to their ticket on every day they have messages."
+                )
             }
 
             SignedInSites()
@@ -92,7 +108,9 @@ struct SettingsView: View {
             } header: {
                 Text("Tempo API (optional)")
             } footer: {
-                Text("Only needed for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain; create the Jira token at id.atlassian.com and the Tempo token in Tempo → Settings → API Integration.")
+                Text(
+                    "Only needed for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain; create the Jira token at id.atlassian.com and the Tempo token in Tempo → Settings → API Integration."
+                )
             }
 
             Section("Storage") {
@@ -136,7 +154,9 @@ struct SignedInSites: View {
         } header: {
             Text("Signed-in sites")
         } footer: {
-            Text("Each site keeps its own cookies inside WorkLogger, separate from Safari; Sign out deletes them. HRmaster ends its session after about 25 idle minutes, so it often shows signed out; a fetch then asks you to sign in.")
+            Text(
+                "Each site keeps its own cookies inside WorkLogger, separate from Safari; Sign out deletes them. HRmaster ends its session after about 25 idle minutes, so it often shows signed out; a fetch then asks you to sign in."
+            )
         }
     }
 }
@@ -159,7 +179,9 @@ struct AbsenceSettings: View {
                     Spacer()
                     Button(role: .destructive) {
                         state.settings.absenceRules.removeAll { $0.id == rule.id }
-                    } label: { Image(systemName: "trash") }
+                    } label: {
+                        Image(systemName: "trash")
+                    }
                     .buttonStyle(.borderless)
                 }
             }
@@ -176,7 +198,9 @@ struct AbsenceSettings: View {
         } header: {
             Text("Absences")
         } footer: {
-            Text("Leave days (Szabadság and other leave codes) are logged with the hours HRmaster reports; public holidays only when it reports hours. Rest days, holidays and leave never get filled with commit time.")
+            Text(
+                "Leave days (Szabadság and other leave codes) are logged with the hours HRmaster reports; public holidays only when it reports hours. Rest days, holidays and leave never get filled with commit time."
+            )
         }
     }
 }

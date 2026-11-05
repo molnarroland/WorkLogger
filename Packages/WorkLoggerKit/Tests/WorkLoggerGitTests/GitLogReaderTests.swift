@@ -1,13 +1,16 @@
 import Foundation
 import Testing
-@testable import WorkLoggerGit
-import WorkLoggerTestSupport
 import WorkLoggerCore
+import WorkLoggerTestSupport
+
+@testable import WorkLoggerGit
 
 @Suite struct GitLogReaderTests {
     /// One record in the `--pretty` format `GitLogReader.log` asks git for, followed by `--numstat` lines.
-    func record(_ hash: String, date: String = "2026-03-03T10:00:00+01:00", subject: String = "TAO-1 Fix",
-                body: String = "Body text\n", ref: String = "refs/heads/main", numstat: [String] = []) -> String {
+    func record(
+        _ hash: String, date: String = "2026-03-03T10:00:00+01:00", subject: String = "TAO-1 Fix",
+        body: String = "Body text\n", ref: String = "refs/heads/main", numstat: [String] = []
+    ) -> String {
         "\u{1e}" + [hash, date, "Roland", "me@example.com", subject, body, ref].joined(separator: "\u{1f}")
             + "\u{1d}\n" + numstat.joined(separator: "\n") + "\n"
     }
@@ -22,8 +25,11 @@ import WorkLoggerCore
         #expect(commit.subject == "TAO-1 Fix")
         #expect(commit.body == "Body text")
         #expect(commit.ref == "refs/heads/main")
-        #expect(commit.files == [FileStat(added: 5, deleted: 2, path: "src/a.swift"),
-                                 FileStat(added: 0, deleted: 0, path: "img.png")])   // binary
+        #expect(
+            commit.files == [
+                FileStat(added: 5, deleted: 2, path: "src/a.swift"),
+                FileStat(added: 0, deleted: 0, path: "img.png"),
+            ])  // binary
     }
 
     @Test func pathsWithTabsStayWhole() throws {
@@ -48,10 +54,13 @@ import WorkLoggerCore
 
 @Suite struct StoredCommitTests {
     @Test func ignoredPathsAreRemovedFromTheStats() {
-        let git = GitCommit(hash: "a", date: Date(), author: "", email: "", subject: "", body: "", ref: "",
-                            files: [FileStat(added: 5, deleted: 2, path: "src/a.swift"),
-                                    FileStat(added: 1000, deleted: 500, path: "package-lock.json"),
-                                    FileStat(added: 3, deleted: 0, path: "web/dist/app.js")])
+        let git = GitCommit(
+            hash: "a", date: Date(), author: "", email: "", subject: "", body: "", ref: "",
+            files: [
+                FileStat(added: 5, deleted: 2, path: "src/a.swift"),
+                FileStat(added: 1000, deleted: 500, path: "package-lock.json"),
+                FileStat(added: 3, deleted: 0, path: "web/dist/app.js"),
+            ])
         let stored = StoredCommit(git, repoId: 7, ignoredPaths: ["package-lock.json", "/dist/", ""])
         #expect(stored.repoId == 7)
         #expect(stored.filesChanged == 1)

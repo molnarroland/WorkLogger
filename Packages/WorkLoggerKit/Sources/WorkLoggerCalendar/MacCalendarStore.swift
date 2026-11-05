@@ -1,13 +1,13 @@
-import Foundation
-import EventKit
 import AppKit
+import EventKit
+import Foundation
 import SwiftUI
 import WorkLoggerCore
 
 public struct MacCalendarInfo: Identifiable, Hashable {
-    public var id: String          // EKCalendar.calendarIdentifier
+    public var id: String  // EKCalendar.calendarIdentifier
     public var title: String
-    public var account: String     // e.g. the Google account's e-mail address
+    public var account: String  // e.g. the Google account's e-mail address
     public var color: Color
 
     public init(id: String, title: String, account: String, color: Color) {
@@ -41,14 +41,17 @@ public final class MacCalendarStore {
     /// Shows the system prompt once; later answers come from System Settings → Privacy → Calendars.
     public func requestAccess() async throws -> Bool {
         let granted = try await store.requestFullAccessToEvents()
-        if granted { store = EKEventStore() }   // a fresh store sees the calendars right away
+        if granted { store = EKEventStore() }  // a fresh store sees the calendars right away
         return granted
     }
 
     public func calendars() -> [MacCalendarInfo] {
         store.calendars(for: .event)
-            .map { MacCalendarInfo(id: $0.calendarIdentifier, title: $0.title,
-                                   account: $0.source?.title ?? "On My Mac", color: Color(cgColor: $0.cgColor)) }
+            .map {
+                MacCalendarInfo(
+                    id: $0.calendarIdentifier, title: $0.title,
+                    account: $0.source?.title ?? "On My Mac", color: Color(cgColor: $0.cgColor))
+            }
             .sorted { ($0.account, $0.title) < ($1.account, $1.title) }
     }
 
@@ -59,13 +62,15 @@ public final class MacCalendarStore {
         let predicate = store.predicateForEvents(withStart: from, end: to, calendars: calendars)
         return store.events(matching: predicate).compactMap { e -> Meeting? in
             guard !e.isAllDay, e.status != .canceled,
-                  let start = e.startDate, let end = e.endDate, end > start else { return nil }
+                let start = e.startDate, let end = e.endDate, end > start
+            else { return nil }
             if let me = e.attendees?.first(where: { $0.isCurrentUser }), me.participantStatus == .declined { return nil }
             // Occurrences of a recurring event share an identifier, so the start time makes each one unique.
             let base = e.eventIdentifier ?? e.calendarItemIdentifier
-            return Meeting(id: "ek:\(base)@\(Int(start.timeIntervalSince1970))",
-                           calendarId: e.calendar.calendarIdentifier, title: e.title ?? "(no title)",
-                           details: e.notes ?? "", start: start, end: end, skipped: false)
+            return Meeting(
+                id: "ek:\(base)@\(Int(start.timeIntervalSince1970))",
+                calendarId: e.calendar.calendarIdentifier, title: e.title ?? "(no title)",
+                details: e.notes ?? "", start: start, end: end, skipped: false)
         }
     }
 
@@ -73,8 +78,10 @@ public final class MacCalendarStore {
 
     /// Opens Internet Accounts, where "Add Account… → Google" runs Google's own sign-in.
     public static func openInternetAccounts() {
-        let candidates = ["x-apple.systempreferences:com.apple.Internet-Accounts-Settings.extension",
-                          "x-apple.systempreferences:com.apple.preferences.internetaccounts"]
+        let candidates = [
+            "x-apple.systempreferences:com.apple.Internet-Accounts-Settings.extension",
+            "x-apple.systempreferences:com.apple.preferences.internetaccounts",
+        ]
         for s in candidates {
             if let url = URL(string: s), NSWorkspace.shared.open(url) { return }
         }

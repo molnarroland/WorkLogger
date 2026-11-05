@@ -30,7 +30,8 @@ public enum Shell {
         env["PATH"] = (env["PATH"] ?? "") + ":/usr/bin:/usr/local/bin:/opt/homebrew/bin"
         env["GIT_TERMINAL_PROMPT"] = "0"
         p.environment = env
-        let out = Pipe(), err = Pipe()
+        let out = Pipe()
+        let err = Pipe()
         p.standardOutput = out
         p.standardError = err
         try p.run()
@@ -48,8 +49,9 @@ public enum Shell {
         p.waitUntilExit()
 
         guard p.terminationStatus == 0 else {
-            throw ShellError.failed(args.prefix(3).joined(separator: " "), p.terminationStatus,
-                                    String(decoding: errData.get(), as: UTF8.self))
+            throw ShellError.failed(
+                args.prefix(3).joined(separator: " "), p.terminationStatus,
+                String(decoding: errData.get(), as: UTF8.self))
         }
         return String(decoding: data, as: UTF8.self)
     }

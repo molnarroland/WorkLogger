@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -25,7 +25,8 @@ struct CalendarView: View {
 
                 Section("Logging meetings") {
                     TextField("Default issue for meetings, e.g. INT-12", text: $state.settings.defaultMeetingIssue)
-                    ListField(title: "Never log meetings containing (comma separated)", values: $state.settings.skipMeetingKeywords)
+                    ListField(
+                        title: "Never log meetings containing (comma separated)", values: $state.settings.skipMeetingKeywords)
                 }
                 Section {
                     ForEach(state.settings.meetingRules) { rule in
@@ -36,7 +37,9 @@ struct CalendarView: View {
                             Spacer()
                             Button(role: .destructive) {
                                 state.settings.meetingRules.removeAll { $0.id == rule.id }
-                            } label: { Image(systemName: "trash") }
+                            } label: {
+                                Image(systemName: "trash")
+                            }
                             .buttonStyle(.borderless)
                         }
                     }
@@ -53,7 +56,9 @@ struct CalendarView: View {
                 } header: {
                     Text("Rules")
                 } footer: {
-                    Text("An issue key in the meeting title or description wins, then the first matching rule, then the default issue.")
+                    Text(
+                        "An issue key in the meeting title or description wins, then the first matching rule, then the default issue."
+                    )
                 }
 
                 Section {
@@ -74,7 +79,9 @@ struct CalendarView: View {
                         }
                     }
                 } footer: {
-                    Text("Only needed when you can't add the Google account to macOS. Requires a “Desktop app” OAuth client in Google Cloud.")
+                    Text(
+                        "Only needed when you can't add the Google account to macOS. Requires a “Desktop app” OAuth client in Google Cloud."
+                    )
                 }
             }
             .formStyle(.grouped)
@@ -98,8 +105,11 @@ struct CalendarView: View {
                         .padding(.horizontal, 12).padding(.top, 10)
                 }
                 if state.meetings.isEmpty {
-                    ContentUnavailableView("No meetings in this range", systemImage: "calendar",
-                                           description: Text(state.canReadMeetings ? "Choose Read meetings to load them." : "Add an online account and pick your calendars first."))
+                    ContentUnavailableView(
+                        "No meetings in this range", systemImage: "calendar",
+                        description: Text(
+                            state.canReadMeetings
+                                ? "Choose Read meetings to load them." : "Add an online account and pick your calendars first."))
                 } else {
                     List(state.meetings) { m in
                         HStack(spacing: 10) {

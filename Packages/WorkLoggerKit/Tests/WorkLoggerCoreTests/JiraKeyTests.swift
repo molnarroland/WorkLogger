@@ -1,6 +1,7 @@
 import Testing
-@testable import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerCore
 
 @Suite struct JiraKeyTests {
     @Test func findsFirstKey() {
@@ -10,7 +11,7 @@ import WorkLoggerTestSupport
     @Test func knownPrefixesWin() {
         let text = "UTF-8 handling, FOO-1 and TAO-2"
         #expect(JiraKey.find(in: text, known: ["TAO"]) == "TAO-2")
-        #expect(JiraKey.find(in: text, known: []) == "FOO-1")   // UTF is on the deny list
+        #expect(JiraKey.find(in: text, known: []) == "FOO-1")  // UTF is on the deny list
     }
 
     @Test(arguments: ["UTF-8 and ISO-8601", "xABC-12", "ABC-12a", "abc-12", "A-1", "no keys here"])
@@ -32,9 +33,11 @@ import WorkLoggerTestSupport
         #expect(JiraKey.prefix(of: "TAO-12") == "TAO")
     }
 
-    @Test(arguments: [("ABC-12: Fix login", "Fix login"), ("[ABC-12] Fix login", "Fix login"),
-                      ("ABC-12 - Fix login", "Fix login"), ("ABC-12 – Fix login", "Fix login"),
-                      ("Fix ABC-12 login", "Fix ABC-12 login")])
+    @Test(arguments: [
+        ("ABC-12: Fix login", "Fix login"), ("[ABC-12] Fix login", "Fix login"),
+        ("ABC-12 - Fix login", "Fix login"), ("ABC-12 – Fix login", "Fix login"),
+        ("Fix ABC-12 login", "Fix ABC-12 login"),
+    ])
     func stripLeadingKey(subject: String, expected: String) {
         #expect(JiraKey.stripLeadingKey(subject) == expected)
     }

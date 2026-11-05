@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -15,7 +15,9 @@ extension AppState {
 
     func importTimesheet(_ t: ParsedTimesheet) {
         attempt("Importing work sessions") { try db.importTimesheet(t) }
-        status = String(localized: "Imported \(t.sessions.count) sessions and breaks for \(t.dayKeys.count) days. Rebuild drafts to apply them.")
+        status = String(
+            localized:
+                "Imported \(t.sessions.count) sessions and breaks for \(t.dayKeys.count) days. Rebuild drafts to apply them.")
         reloadRange()
     }
 

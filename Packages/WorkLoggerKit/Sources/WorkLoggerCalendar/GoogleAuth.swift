@@ -1,11 +1,14 @@
+import AppKit
+import CryptoKit
 import Foundation
 import Network
-import CryptoKit
-import AppKit
 import WorkLoggerCore
 
 public enum GoogleAuthError: LocalizedError {
-    case notConfigured, notSignedIn, denied(String), badResponse(String), timedOut
+    case notConfigured, notSignedIn
+    case denied(String)
+    case badResponse(String)
+    case timedOut
     public var errorDescription: String? {
         switch self {
         case .notConfigured: return "Add the Google OAuth client ID and secret first."
@@ -86,26 +89,33 @@ public final class LoopbackReceiver: @unchecked Sendable {
         conn.start(queue: queue)
         conn.receive(minimumIncompleteLength: 1, maximumLength: 16_384) { [weak self] data, _, _, _ in
             guard let self, let data, let request = String(data: data, encoding: .utf8),
-                  let firstLine = request.components(separatedBy: "\r\n").first else { conn.cancel(); return }
+                let firstLine = request.components(separatedBy: "\r\n").first
+            else {
+                conn.cancel()
+                return
+            }
             let parts = firstLine.split(separator: " ")
             guard parts.count >= 2,
-                  let comps = URLComponents(string: "http://127.0.0.1" + String(parts[1])),
-                  comps.queryItems?.contains(where: { $0.name == "code" || $0.name == "error" }) == true
+                let comps = URLComponents(string: "http://127.0.0.1" + String(parts[1])),
+                comps.queryItems?.contains(where: { $0.name == "code" || $0.name == "error" }) == true
             else {
                 self.respond(conn, status: "404 Not Found", body: "")
                 return
             }
-            self.respond(conn, status: "200 OK", body: """
-                <html><body style="font-family:-apple-system,sans-serif;padding:48px">
-                <h2>WorkLogger received the Google response.</h2><p>You can close this tab and return to the app.</p>
-                </body></html>
-                """)
+            self.respond(
+                conn, status: "200 OK",
+                body: """
+                    <html><body style="font-family:-apple-system,sans-serif;padding:48px">
+                    <h2>WorkLogger received the Google response.</h2><p>You can close this tab and return to the app.</p>
+                    </body></html>
+                    """)
             self.deliver(.success(comps))
         }
     }
 
     private func respond(_ conn: NWConnection, status: String, body: String) {
-        let response = "HTTP/1.1 \(status)\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \(body.utf8.count)\r\nConnection: close\r\n\r\n\(body)"
+        let response =
+            "HTTP/1.1 \(status)\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: \(body.utf8.count)\r\nConnection: close\r\n\r\n\(body)"
         conn.send(content: Data(response.utf8), completion: .contentProcessed { _ in conn.cancel() })
     }
 }

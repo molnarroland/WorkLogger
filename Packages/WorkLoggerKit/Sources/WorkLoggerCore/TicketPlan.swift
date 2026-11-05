@@ -24,7 +24,7 @@ public struct TicketDay: Identifiable, Hashable, Sendable {
 }
 
 public struct TicketGroup: Identifiable, Hashable, Sendable {
-    public var key: String?    // nil: entries without an issue
+    public var key: String?  // nil: entries without an issue
     public var days: [TicketDay]
 
     public var id: String { key ?? "" }
@@ -48,8 +48,9 @@ public enum TicketPlan: Sendable {
                 let sorted = items.sorted { $0.start < $1.start }
                 var seen: Set<String> = []
                 let texts = sorted.map(\.description).filter { !$0.isEmpty && seen.insert($0).inserted }
-                return TicketDay(key: key, day: day, seconds: items.totalDuration, description: texts.joined(separator: "; "),
-                                 ids: sorted.map(\.id), entered: items.allSatisfy { $0.status == .exported })
+                return TicketDay(
+                    key: key, day: day, seconds: items.totalDuration, description: texts.joined(separator: "; "),
+                    ids: sorted.map(\.id), entered: items.allSatisfy { $0.status == .exported })
             }
             return TicketGroup(key: key, days: days.sorted { $0.day < $1.day })
         }
@@ -61,9 +62,10 @@ public enum TicketPlan: Sendable {
 
     /// Plain list for a note or for Claude: "2026-11-03  1h 15m  Daily standup".
     public static func text(_ g: TicketGroup) -> String {
-        ([g.key ?? "No issue"] + g.days.map { d in
-            let dur = DurationFormat.string(d.seconds)
-            return "\(d.day)  \(dur.padding(toLength: max(7, dur.count), withPad: " ", startingAt: 0))  \(d.description)"
-        }).joined(separator: "\n")
+        ([g.key ?? "No issue"]
+            + g.days.map { d in
+                let dur = DurationFormat.string(d.seconds)
+                return "\(d.day)  \(dur.padding(toLength: max(7, dur.count), withPad: " ", startingAt: 0))  \(d.description)"
+            }).joined(separator: "\n")
     }
 }

@@ -1,11 +1,12 @@
 import Foundation
 import Testing
-@testable import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerCore
 
 /// Week used throughout: Mon 2026-03-02 … Fri 2026-03-06, Sat 03-07, Sun 03-08.
 @Suite struct WorklogAllocationTests {
-    let g = 900   // 15 minutes
+    let g = 900  // 15 minutes
 
     @Test func noWeightsGiveNoAllocations() {
         #expect(WorklogBuilder.allocate([], target: 28800, granularity: g).isEmpty)
@@ -84,9 +85,9 @@ import WorkLoggerTestSupport
 
     @Test func hrStatusOverridesTheCalendar() {
         let b = Fixture.builder()
-        #expect(b.isWorkday("2026-03-07", info: record("2026-03-07", .workday)))       // transferred Saturday
+        #expect(b.isWorkday("2026-03-07", info: record("2026-03-07", .workday)))  // transferred Saturday
         #expect(!b.isWorkday("2026-03-02", info: record("2026-03-02", .publicHoliday)))
-        #expect(b.isWorkday("2026-03-02", info: record("2026-03-02", .other)))         // unknown → calendar
+        #expect(b.isWorkday("2026-03-02", info: record("2026-03-02", .other)))  // unknown → calendar
     }
 
     // MARK: dailyTarget
@@ -98,7 +99,7 @@ import WorkLoggerTestSupport
     }
 
     @Test func sessionsAreRoundedUp() {
-        let windows = [Fixture.interval("2026-03-02", "08:00", "15:22")]   // 7h 22m
+        let windows = [Fixture.interval("2026-03-02", "08:00", "15:22")]  // 7h 22m
         let target = Fixture.builder().dailyTarget(day: "2026-03-02", info: nil, windows: windows, fromSessions: true)
         #expect(target == 7 * 3600 + 30 * 60)
     }
@@ -136,7 +137,8 @@ import WorkLoggerTestSupport
     }
 
     @Test func workedRestDayKeepsItsCommits() {
-        #expect(Fixture.builder().commitDay(for: "2026-03-07", info: { _ in nil }, worked: { $0 == "2026-03-07" }) == "2026-03-07")
+        #expect(
+            Fixture.builder().commitDay(for: "2026-03-07", info: { _ in nil }, worked: { $0 == "2026-03-07" }) == "2026-03-07")
     }
 
     @Test func includedWeekendsKeepTheirCommits() {
@@ -157,9 +159,13 @@ import WorkLoggerTestSupport
 
     @Test func sessionsMinusBreaks() {
         let day = "2026-03-03"
-        let input = DayInput(day: day, sessions: [Fixture.session(day: day, "08:00", "16:30"),
-                                                  Fixture.session(day: day, "12:00", "12:30", kind: .pause)],
-                             commits: [], meetings: [], kept: [])
+        let input = DayInput(
+            day: day,
+            sessions: [
+                Fixture.session(day: day, "08:00", "16:30"),
+                Fixture.session(day: day, "12:00", "12:30", kind: .pause),
+            ],
+            commits: [], meetings: [], kept: [])
         let (windows, fromSessions) = Fixture.builder().workWindows(input)
         #expect(fromSessions)
         #expect(windows == [Fixture.interval(day, "08:00", "12:00"), Fixture.interval(day, "12:30", "16:30")])
@@ -167,7 +173,8 @@ import WorkLoggerTestSupport
 
     @Test func defaultWorkdayWithoutSessions() {
         let day = "2026-03-03"
-        let (windows, fromSessions) = Fixture.builder().workWindows(DayInput(day: day, sessions: [], commits: [], meetings: [], kept: []))
+        let (windows, fromSessions) = Fixture.builder().workWindows(
+            DayInput(day: day, sessions: [], commits: [], meetings: [], kept: []))
         #expect(!fromSessions)
         #expect(windows == [Fixture.interval(day, "09:00", "17:30")])
     }
@@ -175,7 +182,8 @@ import WorkLoggerTestSupport
     @Test func invalidDefaultWorkdayGivesNoWindows() {
         var s = AppSettings()
         s.defaultDayEnd = "08:00"
-        let (windows, _) = Fixture.builder(s).workWindows(DayInput(day: "2026-03-03", sessions: [], commits: [], meetings: [], kept: []))
+        let (windows, _) = Fixture.builder(s).workWindows(
+            DayInput(day: "2026-03-03", sessions: [], commits: [], meetings: [], kept: []))
         #expect(windows.isEmpty)
     }
 }
@@ -197,8 +205,9 @@ import WorkLoggerTestSupport
     @Test func repositoryIssueThenProjectDefault() {
         let c = Fixture.commit(day: "2026-03-03", "10:00", subject: "Fix totals")
         #expect(Fixture.builder(repos: [Fixture.repo(issueKey: "TAO-1")]).issue(for: c) == "TAO-1")
-        let b = Fixture.builder(repos: [Fixture.repo(projectKey: "TAO")],
-                                projects: [ProjectMapping(key: "TAO", defaultIssue: "TAO-99")])
+        let b = Fixture.builder(
+            repos: [Fixture.repo(projectKey: "TAO")],
+            projects: [ProjectMapping(key: "TAO", defaultIssue: "TAO-99")])
         #expect(b.issue(for: c) == "TAO-99")
         #expect(Fixture.builder().issue(for: c) == nil)
     }
@@ -241,9 +250,11 @@ import WorkLoggerTestSupport
 
     @Test func latestPeriodWinsAndPeriodsWithoutIssueAreIgnored() {
         var s = AppSettings()
-        s.periods = [ProjectPeriod(title: "Old", issueKey: "TAO-1", from: "2026-03-01", to: "2026-03-31"),
-                     ProjectPeriod(title: "New", issueKey: "TAO-2", from: "2026-03-02", to: "2026-03-06"),
-                     ProjectPeriod(title: "Empty", issueKey: " ", from: "2026-03-01", to: "2026-03-31")]
+        s.periods = [
+            ProjectPeriod(title: "Old", issueKey: "TAO-1", from: "2026-03-01", to: "2026-03-31"),
+            ProjectPeriod(title: "New", issueKey: "TAO-2", from: "2026-03-02", to: "2026-03-06"),
+            ProjectPeriod(title: "Empty", issueKey: " ", from: "2026-03-01", to: "2026-03-31"),
+        ]
         let b = Fixture.builder(s)
         #expect(b.period(for: "2026-03-03")?.title == "New")
         #expect(b.period(for: "2026-03-10")?.title == "Old")
@@ -253,10 +264,12 @@ import WorkLoggerTestSupport
 
 @Suite struct WorklogBuildTests {
     init() { Fixture.pinTimeZone() }
-    let day = "2026-03-03"   // Tuesday
+    let day = "2026-03-03"  // Tuesday
 
-    func input(sessions: [WorkSession] = [], commits: [StoredCommit] = [], meetings: [Meeting] = [],
-               kept: [Worklog] = [], info: DayRecord? = nil, on day: String? = nil) -> DayInput {
+    func input(
+        sessions: [WorkSession] = [], commits: [StoredCommit] = [], meetings: [Meeting] = [],
+        kept: [Worklog] = [], info: DayRecord? = nil, on day: String? = nil
+    ) -> DayInput {
         DayInput(day: day ?? self.day, sessions: sessions, commits: commits, meetings: meetings, kept: kept, info: info)
     }
 
@@ -285,10 +298,13 @@ import WorkLoggerTestSupport
     @Test func meetingsKeepTheirSlotAndCommitsFillTheRestOfTheDay() throws {
         var s = AppSettings()
         s.meetingRules = [MeetingRule(contains: "standup", issueKey: "INT-12")]
-        let logs = Fixture.builder(s).build(input(
-            commits: [Fixture.commit(day: day, "11:00", subject: "TAO-5 Invoices"),
-                      Fixture.commit(day: day, "15:00", subject: "TAO-6: Reports")],
-            meetings: [Fixture.meeting(day: day, "09:00", "09:15", title: "Daily standup")]))
+        let logs = Fixture.builder(s).build(
+            input(
+                commits: [
+                    Fixture.commit(day: day, "11:00", subject: "TAO-5 Invoices"),
+                    Fixture.commit(day: day, "15:00", subject: "TAO-6: Reports"),
+                ],
+                meetings: [Fixture.meeting(day: day, "09:00", "09:15", title: "Daily standup")]))
 
         #expect(logs.totalDuration == 8 * 3600)
         let meeting = try #require(logs.first)
@@ -300,16 +316,18 @@ import WorkLoggerTestSupport
         let git = logs.filter { $0.source == .git }
         #expect(git.map(\.issueKey) == ["TAO-5", "TAO-6"])
         #expect(git.map(\.description) == ["Invoices", "Reports"])
-        #expect(DayKey.hm(git[0].start) == "09:15")             // right after the meeting
+        #expect(DayKey.hm(git[0].start) == "09:15")  // right after the meeting
         #expect(git[1].start == git[0].end)
         #expect(logs == logs.sorted { $0.start < $1.start })
     }
 
     @Test func commitsOfTheSameIssueAreGrouped() throws {
-        let logs = Fixture.builder().build(input(commits: [
-            Fixture.commit("a", day: day, "10:00", subject: "TAO-5 First"),
-            Fixture.commit("b", day: day, "11:00", subject: "TAO-5 Second"),
-            Fixture.commit("c", day: day, "12:00", subject: "TAO-5 First")]))
+        let logs = Fixture.builder().build(
+            input(commits: [
+                Fixture.commit("a", day: day, "10:00", subject: "TAO-5 First"),
+                Fixture.commit("b", day: day, "11:00", subject: "TAO-5 Second"),
+                Fixture.commit("c", day: day, "12:00", subject: "TAO-5 First"),
+            ]))
         let entry = try #require(logs.only)
         #expect(entry.refs == ["a", "b", "c"])
         #expect(entry.description == "First; Second")
@@ -317,12 +335,17 @@ import WorkLoggerTestSupport
     }
 
     @Test func keptEntriesOwnTheirCommitsAndReduceTheTarget() {
-        let kept = [Fixture.worklog(day: day, "09:00", duration: 3600, source: .manual, locked: true),
-                    Fixture.worklog(day: day, "10:00", duration: 1800, ref: "claimed", locked: true)]
-        let logs = Fixture.builder().build(input(
-            commits: [Fixture.commit("claimed", day: day, "10:20", subject: "TAO-1 Old"),
-                      Fixture.commit("new", day: day, "14:00", subject: "TAO-2 New")],
-            kept: kept))
+        let kept = [
+            Fixture.worklog(day: day, "09:00", duration: 3600, source: .manual, locked: true),
+            Fixture.worklog(day: day, "10:00", duration: 1800, ref: "claimed", locked: true),
+        ]
+        let logs = Fixture.builder().build(
+            input(
+                commits: [
+                    Fixture.commit("claimed", day: day, "10:20", subject: "TAO-1 Old"),
+                    Fixture.commit("new", day: day, "14:00", subject: "TAO-2 New"),
+                ],
+                kept: kept))
         #expect(logs.map(\.sourceRef) == ["new"])
         #expect(logs.totalDuration == 8 * 3600 - 3600 - 1800)
         #expect(!logs.contains { log in kept.contains { Interval(start: $0.start, end: $0.end).overlaps(log) } })
@@ -342,7 +365,8 @@ import WorkLoggerTestSupport
 
     @Test func longDescriptionsAreTruncated() throws {
         let subject = "TAO-1 " + String(repeating: "a", count: 300)
-        let entry = try #require(Fixture.builder().build(input(commits: [Fixture.commit(day: day, "10:00", subject: subject)])).only)
+        let entry = try #require(
+            Fixture.builder().build(input(commits: [Fixture.commit(day: day, "10:00", subject: subject)])).only)
         #expect(entry.description.count == 253)
         #expect(entry.description.hasSuffix("…"))
     }
@@ -351,25 +375,30 @@ import WorkLoggerTestSupport
         var s = AppSettings()
         s.roundingMode = .estimate
         // First commit of the day: the gap from 09:00 is 60 minutes → 45 minute estimate.
-        let entry = try #require(Fixture.builder(s).build(input(commits: [
-            Fixture.commit(day: day, "10:00", subject: "TAO-1 Add feature")])).only)
+        let entry = try #require(
+            Fixture.builder(s).build(
+                input(commits: [
+                    Fixture.commit(day: day, "10:00", subject: "TAO-1 Add feature")
+                ])
+            ).only)
         #expect(entry.estimated == 45 * 60)
         #expect(entry.duration == 45 * 60)
     }
 
     @Test func sessionsDriveTheTarget() {
         let sessions = [Fixture.session(day: day, "08:00", "15:22")]
-        let logs = Fixture.builder().build(input(sessions: sessions, commits: [Fixture.commit(day: day, "10:00", subject: "TAO-1 x")]))
+        let logs = Fixture.builder().build(
+            input(sessions: sessions, commits: [Fixture.commit(day: day, "10:00", subject: "TAO-1 x")]))
         #expect(logs.totalDuration == 7 * 3600 + 30 * 60)
         #expect(logs.first.map { DayKey.hm($0.start) } == "08:00")
     }
 }
 
-private extension Array {
+extension Array {
     /// The single element, or nil when there are zero or several.
-    var only: Element? { count == 1 ? first : nil }
+    fileprivate var only: Element? { count == 1 ? first : nil }
 }
 
-private extension Interval {
-    func overlaps(_ w: Worklog) -> Bool { w.start < end && start < w.end }
+extension Interval {
+    fileprivate func overlaps(_ w: Worklog) -> Bool { w.start < end && start < w.end }
 }

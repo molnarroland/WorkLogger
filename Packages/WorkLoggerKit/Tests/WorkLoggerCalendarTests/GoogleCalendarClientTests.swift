@@ -1,32 +1,33 @@
 import Foundation
 import Testing
-@testable import WorkLoggerCalendar
-import WorkLoggerTestSupport
 import WorkLoggerCore
+import WorkLoggerTestSupport
+
+@testable import WorkLoggerCalendar
 
 @MainActor
 @Suite struct GoogleCalendarClientTests {
     init() { Fixture.pinTimeZone() }
 
     nonisolated static let page1 = """
-    {"nextPageToken": "p2", "items": [
-      {"id": "standup", "summary": "Standup", "description": "TAO-1",
-       "start": {"dateTime": "2026-03-03T09:00:00+01:00"}, "end": {"dateTime": "2026-03-03T09:15:00+01:00"}},
-      {"id": "allday", "summary": "Holiday", "start": {"date": "2026-03-03"}, "end": {"date": "2026-03-04"}},
-      {"id": "cancelled", "status": "cancelled",
-       "start": {"dateTime": "2026-03-03T10:00:00+01:00"}, "end": {"dateTime": "2026-03-03T11:00:00+01:00"}},
-      {"id": "ooo", "eventType": "outOfOffice",
-       "start": {"dateTime": "2026-03-03T12:00:00+01:00"}, "end": {"dateTime": "2026-03-03T13:00:00+01:00"}}
-    ]}
-    """
+        {"nextPageToken": "p2", "items": [
+          {"id": "standup", "summary": "Standup", "description": "TAO-1",
+           "start": {"dateTime": "2026-03-03T09:00:00+01:00"}, "end": {"dateTime": "2026-03-03T09:15:00+01:00"}},
+          {"id": "allday", "summary": "Holiday", "start": {"date": "2026-03-03"}, "end": {"date": "2026-03-04"}},
+          {"id": "cancelled", "status": "cancelled",
+           "start": {"dateTime": "2026-03-03T10:00:00+01:00"}, "end": {"dateTime": "2026-03-03T11:00:00+01:00"}},
+          {"id": "ooo", "eventType": "outOfOffice",
+           "start": {"dateTime": "2026-03-03T12:00:00+01:00"}, "end": {"dateTime": "2026-03-03T13:00:00+01:00"}}
+        ]}
+        """
     nonisolated static let page2 = """
-    {"items": [
-      {"id": "declined", "attendees": [{"self": true, "responseStatus": "declined"}],
-       "start": {"dateTime": "2026-03-03T14:00:00+01:00"}, "end": {"dateTime": "2026-03-03T15:00:00+01:00"}},
-      {"id": "review", "attendees": [{"self": true, "responseStatus": "accepted"}],
-       "start": {"dateTime": "2026-03-03T16:00:00+01:00"}, "end": {"dateTime": "2026-03-03T17:00:00+01:00"}}
-    ]}
-    """
+        {"items": [
+          {"id": "declined", "attendees": [{"self": true, "responseStatus": "declined"}],
+           "start": {"dateTime": "2026-03-03T14:00:00+01:00"}, "end": {"dateTime": "2026-03-03T15:00:00+01:00"}},
+          {"id": "review", "attendees": [{"self": true, "responseStatus": "accepted"}],
+           "start": {"dateTime": "2026-03-03T16:00:00+01:00"}, "end": {"dateTime": "2026-03-03T17:00:00+01:00"}}
+        ]}
+        """
 
     func makeHTTP() -> FakeHTTP {
         FakeHTTP { r in
@@ -38,8 +39,9 @@ import WorkLoggerCore
 
     @Test func readsTimedEventsAcrossPages() async throws {
         let http = makeHTTP()
-        let auth = GoogleAuth(clientId: "id", clientSecret: "secret",
-                              secrets: InMemorySecrets([SecretKey.googleRefresh: "refresh"]), http: http)
+        let auth = GoogleAuth(
+            clientId: "id", clientSecret: "secret",
+            secrets: InMemorySecrets([SecretKey.googleRefresh: "refresh"]), http: http)
         let (from, to) = DayKey.bounds("2026-03-03")
 
         let meetings = try await auth.meetings(calendarId: "me@example.com", from: from, to: to)
@@ -52,7 +54,7 @@ import WorkLoggerCore
         #expect(meetings.last?.title == "(no title)")
 
         let requests = http.requests
-        #expect(requests.count == 3)   // token refresh + two pages
+        #expect(requests.count == 3)  // token refresh + two pages
         #expect(requests[1].value(forHTTPHeaderField: "Authorization") == "Bearer at")
         #expect(requests[1].url?.path == "/calendar/v3/calendars/me@example.com/events")
     }

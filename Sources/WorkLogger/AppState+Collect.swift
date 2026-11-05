@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -31,7 +31,8 @@ extension AppState {
         }
 
         let enabled = useGit ? repos.filter(\.enabled) : []
-        let start = rangeStart, end = rangeEnd
+        let start = rangeStart
+        let end = rangeEnd
         let ignored = settings.ignoredPathPatterns
         status = String(localized: "Reading git history of \(enabled.count) repositories…")
         let (results, errors) = await GitHistory.read(enabled, since: start, until: end, authors: authors, git: services.git)
@@ -58,7 +59,9 @@ extension AppState {
         // Whole sentences, so translations can order the parts their own way.
         var summary: String
         switch (useGit, canReadMeetings) {
-        case (true, true): summary = String(localized: "Collected \(commitCount) commits and \(meetingCount) meetings for \(fromDay) – \(toDay).")
+        case (true, true):
+            summary = String(
+                localized: "Collected \(commitCount) commits and \(meetingCount) meetings for \(fromDay) – \(toDay).")
         case (true, false): summary = String(localized: "Collected \(commitCount) commits for \(fromDay) – \(toDay).")
         case (false, true): summary = String(localized: "Collected \(meetingCount) meetings for \(fromDay) – \(toDay).")
         case (false, false): summary = String(localized: "Nothing to collect for \(fromDay) – \(toDay).")

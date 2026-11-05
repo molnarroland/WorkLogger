@@ -1,9 +1,9 @@
-import SwiftUI
 import AppKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
+import SwiftUI
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -35,19 +35,40 @@ struct DayDetail: View {
     private var legend: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Timesheet").font(.headline)
-            Text("Click a day to see its entries. Shift-click a second day to select a stretch and book it to a project period. Drag a line from a card (or an entry from this panel) onto a workday to log it there.")
-                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            ForEach(Array(([(Color.green, "Complete"), (.orange, "Partly logged"), (.red, "Nothing logged"),
-                            (.purple, "Leave or holiday"), (.blue, "Logged on a rest day"), (.gray, "Rest day or upcoming")]
-                           as [(Color, LocalizedStringKey)]).enumerated()), id: \.offset) { _, item in
-                Label { Text(item.1) } icon: { Circle().fill(item.0).frame(width: 10, height: 10) }
+            Text(
+                "Click a day to see its entries. Shift-click a second day to select a stretch and book it to a project period. Drag a line from a card (or an entry from this panel) onto a workday to log it there."
+            )
+            .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            ForEach(
+                Array(
+                    ([
+                        (Color.green, "Complete"), (.orange, "Partly logged"), (.red, "Nothing logged"),
+                        (.purple, "Leave or holiday"), (.blue, "Logged on a rest day"), (.gray, "Rest day or upcoming"),
+                    ]
+                        as [(Color, LocalizedStringKey)]).enumerated()), id: \.offset
+            ) { _, item in
+                Label {
+                    Text(item.1)
+                } icon: {
+                    Circle().fill(item.0).frame(width: 10, height: 10)
+                }
             }
             .font(.callout)
             Text("Bar colors").font(.subheadline.weight(.semibold)).padding(.top, 4)
-            ForEach(Array(([(WorklogSource.git.color, "Coding"), (WorklogSource.meeting.color, "Meetings"), (WorklogSource.chat.color, "Chats"),
-                            (WorklogSource.absence.color, "Leave"), (Color.orange, "Needs a ticket")]
-                           as [(Color, LocalizedStringKey)]).enumerated()), id: \.offset) { _, item in
-                Label { Text(item.1) } icon: { RoundedRectangle(cornerRadius: 2).fill(item.0).frame(width: 10, height: 10) }
+            ForEach(
+                Array(
+                    ([
+                        (WorklogSource.git.color, "Coding"), (WorklogSource.meeting.color, "Meetings"),
+                        (WorklogSource.chat.color, "Chats"),
+                        (WorklogSource.absence.color, "Leave"), (Color.orange, "Needs a ticket"),
+                    ]
+                        as [(Color, LocalizedStringKey)]).enumerated()), id: \.offset
+            ) { _, item in
+                Label {
+                    Text(item.1)
+                } icon: {
+                    RoundedRectangle(cornerRadius: 2).fill(item.0).frame(width: 10, height: 10)
+                }
             }
             .font(.callout)
         }
@@ -95,16 +116,22 @@ struct DayDetail: View {
                             }
                             .contentShape(.rect)
                             .draggable(WorklogDrag.payload([w])) {
-                                Label("\(w.issueKey ?? "No issue") \(DurationFormat.string(w.duration))", systemImage: w.source.icon)
-                                    .padding(6).glassEffect(.regular, in: .capsule)
+                                Label(
+                                    "\(w.issueKey ?? "No issue") \(DurationFormat.string(w.duration))", systemImage: w.source.icon
+                                )
+                                .padding(6).glassEffect(.regular, in: .capsule)
                             }
                         }
                     }
                 }
             }
             HStack {
-                Button { state.addManual(day: day) } label: { Label("Add entry", systemImage: "plus") }
-                    .buttonStyle(.glass)
+                Button {
+                    state.addManual(day: day)
+                } label: {
+                    Label("Add entry", systemImage: "plus")
+                }
+                .buttonStyle(.glass)
                 Button("Mark reviewed") { state.setStatus(.reviewed, forAllIn: day) }
                     .buttonStyle(.glass)
                     .disabled(logs.isEmpty)
@@ -113,7 +140,8 @@ struct DayDetail: View {
     }
 
     private var periodForm: some View {
-        let first = selection.first!, last = selection.last!
+        let first = selection.first!
+        let last = selection.last!
         return VStack(alignment: .leading, spacing: 10) {
             Text("\(selection.count) days selected").font(.headline)
             Text("\(DayKey.title(first)) – \(DayKey.title(last))").font(.callout).foregroundStyle(.secondary)
@@ -123,7 +151,8 @@ struct DayDetail: View {
             TextField("Issue, e.g. TAO-200", text: $issue)
             HStack {
                 Button("Mark as period") {
-                    state.settings.periods.append(ProjectPeriod(title: title, issueKey: issue.uppercased(), from: first, to: last))
+                    state.settings.periods.append(
+                        ProjectPeriod(title: title, issueKey: issue.uppercased(), from: first, to: last))
                     state.rebuild()
                     title = ""
                     issue = ""

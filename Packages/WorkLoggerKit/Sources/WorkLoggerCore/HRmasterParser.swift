@@ -22,9 +22,9 @@ public enum DayStatus: String, Codable, CaseIterable, Sendable {
 public struct DayRecord: Identifiable, Hashable, Sendable {
     public var day: String
     public var status: DayStatus
-    public var label: String            // e.g. "Munkanap (Home Office)", "Szabadság", "Pihenőnap"
-    public var reportedWorked: Int?     // "Ledolgozott órák", seconds
-    public var reportedBreaks: Int?     // "Napi nem fizetett szünet", seconds
+    public var label: String  // e.g. "Munkanap (Home Office)", "Szabadság", "Pihenőnap"
+    public var reportedWorked: Int?  // "Ledolgozott órák", seconds
+    public var reportedBreaks: Int?  // "Napi nem fizetett szünet", seconds
     public var id: String { day }
 
     public init(day: String, status: DayStatus, label: String, reportedWorked: Int?, reportedBreaks: Int?) {
@@ -76,10 +76,13 @@ public struct HRmasterParser: Sendable {
     private static let periodRegex = re(#"data-e2e-testing="Datacenter\.Calendar\.PeriodSelect"[^>]*>\s*(\d{4})\.?\s*([^\s<]+)"#)
     private static let dayRegex = re(#"data-e2e-testing="Datacenter\.Calendar\.Day"[^>]*>\s*(\d{1,2})"#)
     private static let statusTypeRegex = re(#"Type_CalendarDayStatus_([A-Za-z]+)"#)
-    private static let statusLabelRegex = re(#"data-e2e-testing="Datacenter\.Calendar\.Day\.Status\.[A-Za-z]+"[^>]*>\s*<div[^>]*>([^<]*)"#)
+    private static let statusLabelRegex = re(
+        #"data-e2e-testing="Datacenter\.Calendar\.Day\.Status\.[A-Za-z]+"[^>]*>\s*<div[^>]*>([^<]*)"#)
     private static let workedRegex = re(#"FactWorkedHoursSum"[^>]*>\s*(\d{1,3}):(\d{2})"#)
     private static let unpaidRegex = re(#"UnpaidRestBreaksSum"[^>]*>\s*(\d{1,3}):(\d{2})"#)
-    private static let cellRegex = re(#"data-e2e-testing="Datacenter\.(?:Employee\.Calendar\.(WorkScheduleRepeater|RestBreaksRepeater)|Calendar\.Actual\.PaidRestBreak\.Column)""#)
+    private static let cellRegex = re(
+        #"data-e2e-testing="Datacenter\.(?:Employee\.Calendar\.(WorkScheduleRepeater|RestBreaksRepeater)|Calendar\.Actual\.PaidRestBreak\.Column)""#
+    )
     private static let pickerRegex = re(#"data-e2e-testing="Evolution\.TimepickerSwitchInput"[^>]*>([^<]*)<"#)
     private static let inputValueRegex = re(#"value="(\d{1,2}:\d{2})""#)
     private static let timeRegex = re(#"^\s*(\d{1,2}):(\d{2})(?::\d{2})?\s*$"#)
@@ -88,7 +91,7 @@ public struct HRmasterParser: Sendable {
         "január": 1, "február": 2, "március": 3, "április": 4, "május": 5, "június": 6,
         "július": 7, "augusztus": 8, "szeptember": 9, "október": 10, "november": 11, "december": 12,
         "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
-        "july": 7, "august": 8, "september": 9, "october": 10
+        "july": 7, "august": 8, "september": 9, "october": 10,
     ]
 
     public static func monthNumber(_ s: String) -> Int? {
@@ -146,30 +149,33 @@ public struct HRmasterParser: Sendable {
         }
         func duration(_ r: NSRegularExpression) -> Int? {
             guard let m = r.firstMatch(in: row, range: all),
-                  let h = Int(ns.substring(with: m.range(at: 1))), let mi = Int(ns.substring(with: m.range(at: 2)))
+                let h = Int(ns.substring(with: m.range(at: 1))), let mi = Int(ns.substring(with: m.range(at: 2)))
             else { return nil }
             return (h * 60 + mi) * 60
         }
 
         guard let dayText = first(Self.dayRegex), let dayNumber = Int(dayText),
-              let date = DayKey.calendar.date(from: DateComponents(year: year, month: month, day: dayNumber)),
-              DayKey.calendar.component(.month, from: date) == month
+            let date = DayKey.calendar.date(from: DateComponents(year: year, month: month, day: dayNumber)),
+            DayKey.calendar.component(.month, from: date) == month
         else { return }
         let day = DayKey.key(date)
 
         let status = first(Self.statusTypeRegex).map(DayStatus.init(hrmasterType:)) ?? .other
-        let label = first(Self.statusLabelRegex)
+        let label =
+            first(Self.statusLabelRegex)
             .map { Self.decodeEntities($0).trimmingCharacters(in: .whitespacesAndNewlines) } ?? ""
-        let record = DayRecord(day: day, status: status, label: label,
-                               reportedWorked: duration(Self.workedRegex), reportedBreaks: duration(Self.unpaidRegex))
+        let record = DayRecord(
+            day: day, status: status, label: label,
+            reportedWorked: duration(Self.workedRegex), reportedBreaks: duration(Self.unpaidRegex))
         result.days.append(record)
 
         // Cells: each marker starts a cell that runs until the next marker.
         let cells = Self.cellRegex.matches(in: row, range: all)
-        var workIndex = 0, breakIndex = 0
+        var workIndex = 0
+        var breakIndex = 0
         var daySessions: [WorkSession] = []
         for (i, cell) in cells.enumerated() {
-            guard cell.range(at: 1).location != NSNotFound else { continue } // paid-break column
+            guard cell.range(at: 1).location != NSNotFound else { continue }  // paid-break column
             let isWork = ns.substring(with: cell.range(at: 1)) == "WorkScheduleRepeater"
             let start = cell.range.location + cell.range.length
             let end = i + 1 < cells.count ? cells[i + 1].range.location : ns.length
@@ -183,8 +189,10 @@ public struct HRmasterParser: Sendable {
                 continue
             }
             if e <= s { e = DayKey.calendar.date(byAdding: .day, value: 1, to: e)! }  // past midnight
-            daySessions.append(WorkSession(id: nil, day: day, start: s, end: e, kind: isWork ? .work : .pause,
-                                           label: isWork ? "Munkaidő \(workIndex)" : "Szünet \(breakIndex)"))
+            daySessions.append(
+                WorkSession(
+                    id: nil, day: day, start: s, end: e, kind: isWork ? .work : .pause,
+                    label: isWork ? "Munkaidő \(workIndex)" : "Szünet \(breakIndex)"))
         }
         result.sessions += daySessions
 
@@ -194,7 +202,8 @@ public struct HRmasterParser: Sendable {
         if !work.isEmpty, let reported = record.reportedWorked {
             let net = Int(Intervals.total(Intervals.subtract(work, pauses)))
             if abs(net - reported) > 60 {
-                result.warnings.append("\(day): sessions add up to \(DurationFormat.string(net)), HRmaster says \(DurationFormat.string(reported)).")
+                result.warnings.append(
+                    "\(day): sessions add up to \(DurationFormat.string(net)), HRmaster says \(DurationFormat.string(reported)).")
             }
         }
     }
@@ -216,9 +225,9 @@ public struct HRmasterParser: Sendable {
     private static func date(_ day: String, _ hm: String) -> Date? {
         let ns = hm as NSString
         guard let m = timeRegex.firstMatch(in: hm, range: NSRange(location: 0, length: ns.length)),
-              let h = Int(ns.substring(with: m.range(at: 1))), let mi = Int(ns.substring(with: m.range(at: 2)))
+            let h = Int(ns.substring(with: m.range(at: 1))), let mi = Int(ns.substring(with: m.range(at: 2)))
         else { return nil }
-        if h == 24 && mi == 0 {   // "24:00" = midnight at the end of the day
+        if h == 24 && mi == 0 {  // "24:00" = midnight at the end of the day
             return DayKey.at(day, hour: 0, minute: 0).map { DayKey.calendar.date(byAdding: .day, value: 1, to: $0)! }
         }
         return DayKey.at(day, hour: h, minute: mi)
@@ -232,9 +241,11 @@ public struct HRmasterParser: Sendable {
     /// Named and numeric HTML entities (&nbsp;, &#233;, &#x151;…) in cell text.
     public static func decodeEntities(_ s: String) -> String {
         var r = s
-        let named: [(String, String)] = [("&nbsp;", " "), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""),
-                                         ("&#39;", "'"), ("&apos;", "'"), ("&ndash;", "–"), ("&mdash;", "—"),
-                                         ("&amp;", "&")]
+        let named: [(String, String)] = [
+            ("&nbsp;", " "), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""),
+            ("&#39;", "'"), ("&apos;", "'"), ("&ndash;", "–"), ("&mdash;", "—"),
+            ("&amp;", "&"),
+        ]
         for (k, v) in named { r = r.replacingOccurrences(of: k, with: v) }
 
         let regex = try! NSRegularExpression(pattern: "&#(x?)([0-9a-fA-F]+);")
@@ -245,7 +256,8 @@ public struct HRmasterParser: Sendable {
             result += ns.substring(with: NSRange(location: last, length: m.range.location - last))
             let isHex = ns.substring(with: m.range(at: 1)) == "x"
             if let code = UInt32(ns.substring(with: m.range(at: 2)), radix: isHex ? 16 : 10),
-               let scalar = Unicode.Scalar(code) {
+                let scalar = Unicode.Scalar(code)
+            {
                 result.append(Character(scalar))
             } else {
                 result += ns.substring(with: m.range)

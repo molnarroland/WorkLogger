@@ -2,7 +2,9 @@ import Foundation
 
 /// Totals of worklogs per day, week or month, split by issue and by source (the Reports pane).
 public enum Period: String, CaseIterable, Identifiable, Sendable {
-    case day = "Daily", week = "Weekly", month = "Monthly"
+    case day = "Daily"
+    case week = "Weekly"
+    case month = "Monthly"
     public var id: String { rawValue }
 }
 
@@ -67,8 +69,9 @@ public enum Report: Sendable {
                 let s = items.filter { $0.source == src }.totalDuration
                 return s > 0 ? SourceSlice(source: src.label, hours: Double(s) / 3600) : nil
             }
-            return ReportGroup(id: key, label: label(key, period: period, days: items.map(\.day)),
-                               total: items.totalDuration, byIssue: issues, bySource: sources)
+            return ReportGroup(
+                id: key, label: label(key, period: period, days: items.map(\.day)),
+                total: items.totalDuration, byIssue: issues, bySource: sources)
         }
     }
 
@@ -77,7 +80,8 @@ public enum Report: Sendable {
         case .day:
             return DayKey.date(key).formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
         case .week:
-            guard let first = days.min(), let start = DayKey.calendar.dateInterval(of: .weekOfYear, for: DayKey.date(first))?.start
+            guard let first = days.min(),
+                let start = DayKey.calendar.dateInterval(of: .weekOfYear, for: DayKey.date(first))?.start
             else { return key }
             let date = start.formatted(.dateTime.day().month(.abbreviated))
             return String(localized: "Week of \(date)", bundle: .module)

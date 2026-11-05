@@ -2,16 +2,14 @@ import Foundation
 import SwiftUI
 import Testing
 import UniformTypeIdentifiers
-@testable import WorkLogger
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
-
-
+@testable import WorkLogger
 
 final class FakeGit: GitService, @unchecked Sendable {
     private let lock = NSLock()
@@ -64,7 +62,6 @@ final class FakeFiles: FilePresenter {
     func copyToPasteboard(_ text: String) { copied.append(text) }
 }
 
-
 final class FakeGoogle: GoogleCalendarAccount {
     let clientId: String
     let clientSecret: String
@@ -107,23 +104,25 @@ final class AppHarness {
         if let settings { try db.saveSettings(settings) }
     }
 
-    private(set) lazy var state = AppState(db: db, services: AppDependencies(
-        secrets: secrets,
-        git: git,
-        calendars: calendars,
-        files: files,
-        makeGoogle: { [unowned self] id, secret in
-            let account = FakeGoogle(clientId: id, clientSecret: secret)
-            account.events = googleEvents
-            account.signInError = googleSignInError
-            googleAccounts.append(account)
-            return account
-        },
-        makeTempo: { [unowned self] _ in
-            if let tempoError { throw tempoError }
-            return tempo
-        },
-        now: { [unowned self] in now }))
+    private(set) lazy var state = AppState(
+        db: db,
+        services: AppDependencies(
+            secrets: secrets,
+            git: git,
+            calendars: calendars,
+            files: files,
+            makeGoogle: { [unowned self] id, secret in
+                let account = FakeGoogle(clientId: id, clientSecret: secret)
+                account.events = googleEvents
+                account.signInError = googleSignInError
+                googleAccounts.append(account)
+                return account
+            },
+            makeTempo: { [unowned self] _ in
+                if let tempoError { throw tempoError }
+                return tempo
+            },
+            now: { [unowned self] in now }))
 
     @discardableResult
     func addRepo(_ name: String = "billing") throws -> Repo {
@@ -140,4 +139,3 @@ final class AppHarness {
         return w
     }
 }
-

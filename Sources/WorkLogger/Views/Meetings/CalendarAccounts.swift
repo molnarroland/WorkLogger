@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -16,8 +16,10 @@ struct ConnectSection: View {
                 Image(systemName: "1.circle.fill").font(.title2).foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Add your calendar account in macOS")
-                    Text("Add Account…, sign in, keep Calendars switched on. Any account that syncs calendars to macOS works: Google, Microsoft Exchange / Outlook, iCloud, Yahoo or CalDAV.")
-                        .font(.callout).foregroundStyle(.secondary)
+                    Text(
+                        "Add Account…, sign in, keep Calendars switched on. Any account that syncs calendars to macOS works: Google, Microsoft Exchange / Outlook, iCloud, Yahoo or CalDAV."
+                    )
+                    .font(.callout).foregroundStyle(.secondary)
                     Button {
                         state.openInternetAccounts()
                     } label: {
@@ -72,8 +74,11 @@ struct CalendarPicker: View {
             ForEach(byAccount.keys.sorted(), id: \.self) { account in
                 Text(account).font(.caption).foregroundStyle(.secondary)
                 ForEach(byAccount[account] ?? []) { cal in
-                    Toggle(isOn: Binding(get: { state.isCalendarSelected(cal.id) },
-                                         set: { state.setCalendar(cal.id, selected: $0) })) {
+                    Toggle(
+                        isOn: Binding(
+                            get: { state.isCalendarSelected(cal.id) },
+                            set: { state.setCalendar(cal.id, selected: $0) })
+                    ) {
                         HStack(spacing: 8) {
                             Circle().fill(cal.color).frame(width: 10, height: 10)
                             Text(cal.title)

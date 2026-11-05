@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -38,7 +38,8 @@ struct ReviewView: View {
 
     var body: some View {
         // Group once per render: each section then only builds its own rows (was days × all entries).
-        let byDay = Dictionary(grouping: state.worklogs.indices.filter { shown(state.worklogs[$0]) }, by: { state.worklogs[$0].day })
+        let byDay = Dictionary(
+            grouping: state.worklogs.indices.filter { shown(state.worklogs[$0]) }, by: { state.worklogs[$0].day })
         let builder = state.makeBuilder()
         let missing = state.worklogs.missingIssue.count
         VStack(spacing: 0) {
@@ -63,7 +64,10 @@ struct ReviewView: View {
                     TextField("Ticket, e.g. TAO-12", text: $bulkIssue).textFieldStyle(.roundedBorder).frame(width: 150)
                         .onSubmit(applyIssue)
                     Button("Set ticket", action: applyIssue).disabled(JiraKey.normalize(bulkIssue) == nil)
-                    Button("Mark reviewed") { state.setStatus(.reviewed, for: checked); checked = [] }
+                    Button("Mark reviewed") {
+                        state.setStatus(.reviewed, for: checked)
+                        checked = []
+                    }
                     Spacer()
                     Button("Clear selection") { checked = [] }
                 }
@@ -86,10 +90,13 @@ struct ReviewView: View {
                             ChatDaySummary(day: day) { chatDay = $0 }
                             ForEach(rows, id: \.log.id) { row in
                                 HStack(spacing: 8) {
-                                    Toggle("Select", isOn: Binding(
-                                        get: { checked.contains(row.log.id) },
-                                        set: { if $0 { checked.insert(row.log.id) } else { checked.remove(row.log.id) } }))
-                                        .labelsHidden().toggleStyle(.checkbox)
+                                    Toggle(
+                                        "Select",
+                                        isOn: Binding(
+                                            get: { checked.contains(row.log.id) },
+                                            set: { if $0 { checked.insert(row.log.id) } else { checked.remove(row.log.id) } })
+                                    )
+                                    .labelsHidden().toggleStyle(.checkbox)
                                     if selected == row.log.id {
                                         WorklogRow(log: binding(row.index, row.log))
                                     } else {
@@ -128,8 +135,9 @@ struct ReviewView: View {
     /// Binding to one entry by index, guarded by id so a row that is being removed never reads a shifted index.
     private func binding(_ i: Int, _ snapshot: Worklog) -> Binding<Worklog> {
         func valid() -> Bool { state.worklogs.indices.contains(i) && state.worklogs[i].id == snapshot.id }
-        return Binding(get: { valid() ? state.worklogs[i] : snapshot },
-                       set: { if valid() { state.worklogs[i] = $0 } })
+        return Binding(
+            get: { valid() ? state.worklogs[i] : snapshot },
+            set: { if valid() { state.worklogs[i] = $0 } })
     }
 }
 

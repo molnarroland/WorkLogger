@@ -1,9 +1,9 @@
-import SwiftUI
 import AppKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
+import SwiftUI
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -18,7 +18,9 @@ struct DayCell: View {
 
     var body: some View {
         // Only the selected range is loaded, so days of the neighbouring months show just their date.
-        if inRange { cell } else {
+        if inRange {
+            cell
+        } else {
             Text(DayKey.date(day).formatted(.dateTime.day()))
                 .font(.headline).foregroundStyle(.tertiary)
                 .padding(8)
@@ -73,15 +75,20 @@ struct DayCell: View {
                 .help("\(String(localized: source.localizedLabel)) — drag to another day to log it there")
                 .contentShape(.rect)
                 .draggable(WorklogDrag.payload(logs.filter { $0.source == source })) {
-                    Label("\(String(localized: source.localizedLabel)) \(DurationFormat.string(seconds))", systemImage: source.icon)
-                        .padding(6).glassEffect(.regular, in: .capsule)
+                    Label(
+                        "\(String(localized: source.localizedLabel)) \(DurationFormat.string(seconds))", systemImage: source.icon
+                    )
+                    .padding(6).glassEffect(.regular, in: .capsule)
                 }
             }
             Spacer(minLength: 0)
             if expected > 0 || logged > 0 {
                 SourceStack(logs: logs, scale: expected)
-                Text(expected > 0 ? "\(DurationFormat.string(logged)) / \(DurationFormat.string(expected))" : DurationFormat.string(logged))
-                    .font(.caption2).monospacedDigit().foregroundStyle(.secondary)
+                Text(
+                    expected > 0
+                        ? "\(DurationFormat.string(logged)) / \(DurationFormat.string(expected))" : DurationFormat.string(logged)
+                )
+                .font(.caption2).monospacedDigit().foregroundStyle(.secondary)
             }
         }
         .padding(8)
@@ -100,7 +107,9 @@ struct DayCell: View {
             guard !ids.isEmpty, state.acceptsWork(day) else { return false }
             state.move(Set(ids), to: day)
             return true
-        } isTargeted: { dropTargeted = $0 && state.acceptsWork(day) }
+        } isTargeted: {
+            dropTargeted = $0 && state.acceptsWork(day)
+        }
         .contentShape(.rect)
     }
 

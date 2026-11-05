@@ -1,9 +1,10 @@
 import Foundation
 import Testing
-@testable import WorkLoggerTempo
-import WorkLoggerTestSupport
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerTestSupport
+
+@testable import WorkLoggerTempo
 
 @Suite struct TempoClientTests {
     var settings: AppSettings {
@@ -27,8 +28,12 @@ import WorkLoggerStore
         var noSite = settings
         noSite.jiraBaseURL = " / "
         #expect(throws: TempoError.self) { try TempoClient(settings: noSite, secrets: secrets, http: FakeHTTP()) }
-        #expect(throws: TempoError.self) { try TempoClient(settings: settings, secrets: InMemorySecrets([SecretKey.tempoToken: "t"]), http: FakeHTTP()) }
-        #expect(throws: TempoError.self) { try TempoClient(settings: settings, secrets: InMemorySecrets([SecretKey.jiraToken: "t"]), http: FakeHTTP()) }
+        #expect(throws: TempoError.self) {
+            try TempoClient(settings: settings, secrets: InMemorySecrets([SecretKey.tempoToken: "t"]), http: FakeHTTP())
+        }
+        #expect(throws: TempoError.self) {
+            try TempoClient(settings: settings, secrets: InMemorySecrets([SecretKey.jiraToken: "t"]), http: FakeHTTP())
+        }
     }
 
     @Test func accountIdUsesJiraBasicAuth() async throws {
@@ -51,9 +56,10 @@ import WorkLoggerStore
 
     @Test func createPostsTheWorklogWithTheTempoToken() async throws {
         let http = FakeHTTP { _ in (200, #"{"tempoWorklogId": 77}"#) }
-        let payload = TempoWorklogPayload(issueKey: "TAO-1", issueId: 10001, authorAccountId: "acc-1",
-                                          startDate: "2026-03-03", startTime: "09:00:00",
-                                          timeSpentSeconds: 5400, description: "Fix")
+        let payload = TempoWorklogPayload(
+            issueKey: "TAO-1", issueId: 10001, authorAccountId: "acc-1",
+            startDate: "2026-03-03", startTime: "09:00:00",
+            timeSpentSeconds: 5400, description: "Fix")
         #expect(try await client(http).create(payload) == 77)
 
         let request = try #require(http.requests.first)
@@ -65,12 +71,13 @@ import WorkLoggerStore
         #expect(json["authorAccountId"] as? String == "acc-1")
         #expect(json["startTime"] as? String == "09:00:00")
         #expect(json["timeSpentSeconds"] as? Int == 5400)
-        #expect(json["issueKey"] == nil)   // Tempo v4 takes the numeric id only
+        #expect(json["issueKey"] == nil)  // Tempo v4 takes the numeric id only
     }
 
     @Test func createNeedsIssueAndAccountIds() async throws {
-        let payload = TempoWorklogPayload(issueKey: "TAO-1", issueId: nil, authorAccountId: "acc-1", startDate: "",
-                                          startTime: "", timeSpentSeconds: 60, description: "")
+        let payload = TempoWorklogPayload(
+            issueKey: "TAO-1", issueId: nil, authorAccountId: "acc-1", startDate: "",
+            startTime: "", timeSpentSeconds: 60, description: "")
         let http = FakeHTTP()
         await #expect(throws: TempoError.self) { try await client(http).create(payload) }
         #expect(http.requests.isEmpty)
@@ -106,8 +113,10 @@ import WorkLoggerStore
     @Test func usesCachedIssueIdsAndCachesNewOnes() async throws {
         try db.cacheIssueId("TAO-1", 1)
         tempo.issueIds = ["TAO-2": 2]
-        let logs = [try insert(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1")),
-                    try insert(Fixture.worklog(day: "2026-03-03", "10:00", duration: 3600, issue: "TAO-2"))]
+        let logs = [
+            try insert(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1")),
+            try insert(Fixture.worklog(day: "2026-03-03", "10:00", duration: 3600, issue: "TAO-2")),
+        ]
 
         let outcome = await TempoExporter(db: db, client: tempo).push(logs, accountId: "acc-1")
 
@@ -120,9 +129,11 @@ import WorkLoggerStore
     @Test func successfulEntriesAreMarkedExportedAndFailuresAreReported() async throws {
         tempo.issueIds = ["TAO-1": 1, "TAO-2": 2]
         tempo.failingKeys = ["TAO-2"]
-        let logs = [try insert(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1")),
-                    try insert(Fixture.worklog(day: "2026-03-03", "10:00", duration: 3600, issue: "TAO-2")),
-                    try insert(Fixture.worklog(day: "2026-03-03", "11:00", duration: 3600, issue: nil))]
+        let logs = [
+            try insert(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1")),
+            try insert(Fixture.worklog(day: "2026-03-03", "10:00", duration: 3600, issue: "TAO-2")),
+            try insert(Fixture.worklog(day: "2026-03-03", "11:00", duration: 3600, issue: nil)),
+        ]
         var progress: [[Int]] = []
 
         let outcome = await TempoExporter(db: db, client: tempo).push(logs, accountId: "acc-1") { progress.append([$0, $1]) }

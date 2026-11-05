@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -54,9 +54,11 @@ extension AppState {
             w.issueKey = key
             try db.updateWorklog(w)
         } else {
-            try db.insertWorklog(Worklog(id: 0, day: c.day, start: c.times[0], duration: Self.chatMinutes(c) * 60, issueKey: key,
-                                         description: "Chat: \(c.name)", source: .chat, sourceRef: c.ref, repoId: nil,
-                                         estimated: c.activeSeconds, status: .draft, locked: true, tempoId: nil))
+            try db.insertWorklog(
+                Worklog(
+                    id: 0, day: c.day, start: c.times[0], duration: Self.chatMinutes(c) * 60, issueKey: key,
+                    description: "Chat: \(c.name)", source: .chat, sourceRef: c.ref, repoId: nil,
+                    estimated: c.activeSeconds, status: .draft, locked: true, tempoId: nil))
         }
     }
 
@@ -73,7 +75,9 @@ extension AppState {
     @discardableResult
     func applyChatRules() -> Int {
         let rules = Dictionary(settings.chatRules.map { ($0.conversationId, $0.issueKey) }, uniquingKeysWith: { a, _ in a })
-        let open = chats.filter { rules[$0.conversationId] != nil && chatWorklog($0) == nil && $0.activeSeconds > ChatDay.minLoggable }
+        let open = chats.filter {
+            rules[$0.conversationId] != nil && chatWorklog($0) == nil && $0.activeSeconds > ChatDay.minLoggable
+        }
         guard !open.isEmpty else { return 0 }
         attempt("Logging chats by rule") {
             try db.transaction { for c in open { try writeChatWorklog(c, key: rules[c.conversationId]!) } }
@@ -88,7 +92,10 @@ extension AppState {
     func fetchGoogleChat() async -> Bool {
         guard !isBusy else { return false }
         let email = settings.chatEmail.isEmpty ? (settings.authorEmails.first ?? "") : settings.chatEmail
-        guard !email.isEmpty else { status = String(localized: "Enter your Google Chat email on the Chats page first."); return false }
+        guard !email.isEmpty else {
+            status = String(localized: "Enter your Google Chat email on the Chats page first.")
+            return false
+        }
         isBusy = true
         defer { isBusy = false }
         do {

@@ -15,7 +15,10 @@ public struct ChatExport: Decodable, Sendable {
         public var displayName: String {
             if let name, !name.isEmpty { return name }
             if type == "space", let first = messages.first?.extra?.components(separatedBy: " | ").first,
-               !first.isEmpty { return first }
+                !first.isEmpty
+            {
+                return first
+            }
             return id
         }
 
@@ -29,7 +32,7 @@ public struct ChatExport: Decodable, Sendable {
 
     public struct Message: Decodable, Sendable {
         public var time: Date
-        public var sender: String?   // null when the exporter couldn't tell who wrote it
+        public var sender: String?  // null when the exporter couldn't tell who wrote it
         public var me: Bool
         public var text: String
         public var extra: String?
@@ -58,7 +61,9 @@ public struct ChatExport: Decodable, Sendable {
 
     public enum ParseError: LocalizedError, Sendable {
         case notRecognized
-        public var errorDescription: String? { String(localized: "Paste the base64 text of the chat export, or its JSON.", bundle: .module) }
+        public var errorDescription: String? {
+            String(localized: "Paste the base64 text of the chat export, or its JSON.", bundle: .module)
+        }
     }
 
     public static func parse(_ pasted: String) throws -> ChatExport {
@@ -75,7 +80,8 @@ public struct ChatExport: Decodable, Sendable {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { d in
             let s = try d.singleValueContainer().decode(String.self)
-            guard let date = (try? Date(s, strategy: .iso8601.year().month().day().time(includingFractionalSeconds: true)))
+            guard
+                let date = (try? Date(s, strategy: .iso8601.year().month().day().time(includingFractionalSeconds: true)))
                     ?? (try? Date(s, strategy: .iso8601))
             else { throw DecodingError.dataCorrupted(.init(codingPath: d.codingPath, debugDescription: "Bad date \(s)")) }
             return date
@@ -111,7 +117,7 @@ public struct ChatDay: Identifiable, Hashable, Sendable {
     public var name: String
     public var type: String
     public var day: String
-    public var times: [Date]   // sorted
+    public var times: [Date]  // sorted
     /// Messages further apart than this start a new stretch (Settings → Chats).
     public var gap: TimeInterval = ChatDay.defaultGap
 
@@ -138,8 +144,10 @@ public struct ChatDay: Identifiable, Hashable, Sendable {
         return Int(total)
     }
 
-    public init(conversationId: String, name: String, type: String, day: String, times: [Date],
-                gap: TimeInterval = ChatDay.defaultGap) {
+    public init(
+        conversationId: String, name: String, type: String, day: String, times: [Date],
+        gap: TimeInterval = ChatDay.defaultGap
+    ) {
         self.gap = gap
         self.conversationId = conversationId
         self.name = name

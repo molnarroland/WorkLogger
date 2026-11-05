@@ -1,9 +1,9 @@
-import SwiftUI
 import Charts
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
+import SwiftUI
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -34,68 +34,78 @@ struct ReportsView: View {
             Divider()
 
             if groups.isEmpty {
-                ContentUnavailableView("Nothing logged in this range", systemImage: "chart.bar",
-                                       description: Text("Collect worklogs on the Review page first."))
+                ContentUnavailableView(
+                    "Nothing logged in this range", systemImage: "chart.bar",
+                    description: Text("Collect worklogs on the Review page first."))
             } else {
                 ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(DurationFormat.string(total)).font(.title2).monospacedDigit()
-                    Text("in \(state.fromDay) – \(state.toDay)").foregroundStyle(.secondary)
-                }
-                TicketTotals(groups: TicketPlan.groups(state.worklogs))
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("By source").font(.headline)
-                    SourceStack(logs: state.worklogs, height: 18)
-                    HStack(spacing: 14) {
-                        ForEach(state.worklogs.filter { !$0.needsIssue }.totalsBySource, id: \.source) { s in
-                            Label { Text("\(String(localized: s.source.localizedLabel)) \(DurationFormat.string(s.seconds))") } icon: {
-                                RoundedRectangle(cornerRadius: 2).fill(s.source.color).frame(width: 10, height: 10) }
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(DurationFormat.string(total)).font(.title2).monospacedDigit()
+                            Text("in \(state.fromDay) – \(state.toDay)").foregroundStyle(.secondary)
                         }
-                        let none = state.worklogs.missingIssue.totalDuration
-                        if none > 0 {
-                            Label { Text("No ticket \(DurationFormat.string(none))") } icon: {
-                                RoundedRectangle(cornerRadius: 2).fill(.orange).frame(width: 10, height: 10) }
+                        TicketTotals(groups: TicketPlan.groups(state.worklogs))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("By source").font(.headline)
+                            SourceStack(logs: state.worklogs, height: 18)
+                            HStack(spacing: 14) {
+                                ForEach(state.worklogs.filter { !$0.needsIssue }.totalsBySource, id: \.source) { s in
+                                    Label {
+                                        Text("\(String(localized: s.source.localizedLabel)) \(DurationFormat.string(s.seconds))")
+                                    } icon: {
+                                        RoundedRectangle(cornerRadius: 2).fill(s.source.color).frame(width: 10, height: 10)
+                                    }
+                                }
+                                let none = state.worklogs.missingIssue.totalDuration
+                                if none > 0 {
+                                    Label {
+                                        Text("No ticket \(DurationFormat.string(none))")
+                                    } icon: {
+                                        RoundedRectangle(cornerRadius: 2).fill(.orange).frame(width: 10, height: 10)
+                                    }
+                                }
+                            }
+                            .font(.callout).foregroundStyle(.secondary)
                         }
-                    }
-                    .font(.callout).foregroundStyle(.secondary)
-                }
-                .padding(14).glassEffect(.regular, in: .rect(cornerRadius: 18))
+                        .padding(14).glassEffect(.regular, in: .rect(cornerRadius: 18))
 
-                Chart(groups) { g in
-                    ForEach(g.bySource) { s in
-                        BarMark(x: .value("Period", g.label), y: .value("Hours", s.hours))
-                            .foregroundStyle(by: .value("Source", Self.sourceName(s.source)))
-                    }
-                }
-                .chartYAxisLabel("hours")
-                .chartForegroundStyleScale(domain: WorklogSource.allCases.map { String(localized: $0.localizedLabel) }, range: WorklogSource.allCases.map(\.color))
-                .frame(height: 220)
-                .padding(.vertical, 8)
-
-                ForEach(groups) { g in
-                    DisclosureGroup {
-                        ForEach(g.byIssue) { b in
-                            HStack {
-                                Text(b.issue).foregroundStyle(b.issue == "No issue" ? Color.orange : Color.primary)
-                                Spacer()
-                                Text(DurationFormat.string(b.seconds)).monospacedDigit()
-                                Text(DurationFormat.hours(b.seconds)).monospacedDigit()
-                                    .foregroundStyle(.secondary).frame(width: 70, alignment: .trailing)
+                        Chart(groups) { g in
+                            ForEach(g.bySource) { s in
+                                BarMark(x: .value("Period", g.label), y: .value("Hours", s.hours))
+                                    .foregroundStyle(by: .value("Source", Self.sourceName(s.source)))
                             }
                         }
-                    } label: {
-                        HStack {
-                            Text(g.label).font(.headline)
-                            Spacer()
-                            Text(DurationFormat.string(g.total)).monospacedDigit()
-                            Text(DurationFormat.hours(g.total)).monospacedDigit()
-                                .foregroundStyle(.secondary).frame(width: 70, alignment: .trailing)
+                        .chartYAxisLabel("hours")
+                        .chartForegroundStyleScale(
+                            domain: WorklogSource.allCases.map { String(localized: $0.localizedLabel) },
+                            range: WorklogSource.allCases.map(\.color)
+                        )
+                        .frame(height: 220)
+                        .padding(.vertical, 8)
+
+                        ForEach(groups) { g in
+                            DisclosureGroup {
+                                ForEach(g.byIssue) { b in
+                                    HStack {
+                                        Text(b.issue).foregroundStyle(b.issue == "No issue" ? Color.orange : Color.primary)
+                                        Spacer()
+                                        Text(DurationFormat.string(b.seconds)).monospacedDigit()
+                                        Text(DurationFormat.hours(b.seconds)).monospacedDigit()
+                                            .foregroundStyle(.secondary).frame(width: 70, alignment: .trailing)
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(g.label).font(.headline)
+                                    Spacer()
+                                    Text(DurationFormat.string(g.total)).monospacedDigit()
+                                    Text(DurationFormat.hours(g.total)).monospacedDigit()
+                                        .foregroundStyle(.secondary).frame(width: 70, alignment: .trailing)
+                                }
+                            }
                         }
                     }
-                }
-                }
-                .padding(16)
+                    .padding(16)
                 }
             }
         }
@@ -128,9 +138,21 @@ struct TicketTotals: View {
                 }
             }
             HStack(spacing: 14) {
-                Label { Text("In Tempo") } icon: { RoundedRectangle(cornerRadius: 2).fill(.green).frame(width: 10, height: 10) }
-                Label { Text("Still to enter") } icon: { RoundedRectangle(cornerRadius: 2).fill(Color.accentColor).frame(width: 10, height: 10) }
-                Label { Text("Needs a ticket") } icon: { RoundedRectangle(cornerRadius: 2).fill(.orange).frame(width: 10, height: 10) }
+                Label {
+                    Text("In Tempo")
+                } icon: {
+                    RoundedRectangle(cornerRadius: 2).fill(.green).frame(width: 10, height: 10)
+                }
+                Label {
+                    Text("Still to enter")
+                } icon: {
+                    RoundedRectangle(cornerRadius: 2).fill(Color.accentColor).frame(width: 10, height: 10)
+                }
+                Label {
+                    Text("Needs a ticket")
+                } icon: {
+                    RoundedRectangle(cornerRadius: 2).fill(.orange).frame(width: 10, height: 10)
+                }
             }
             .font(.caption).foregroundStyle(.secondary)
         }

@@ -20,36 +20,48 @@ public enum Fixture {
         Interval(start: at(day, from), end: at(day, to))
     }
 
-    public static func commit(_ hash: String = UUID().uuidString, day: String, _ hm: String, subject: String = "Work",
-                       body: String = "", ref: String = "", repoId: Int64 = 1,
-                       files: Int = 1, insertions: Int = 10, deletions: Int = 0) -> StoredCommit {
-        StoredCommit(repoId: repoId, hash: hash, date: at(day, hm), author: "Me", email: "me@example.com",
-                     subject: subject, body: body, ref: ref, filesChanged: files,
-                     insertions: insertions, deletions: deletions)
+    public static func commit(
+        _ hash: String = UUID().uuidString, day: String, _ hm: String, subject: String = "Work",
+        body: String = "", ref: String = "", repoId: Int64 = 1,
+        files: Int = 1, insertions: Int = 10, deletions: Int = 0
+    ) -> StoredCommit {
+        StoredCommit(
+            repoId: repoId, hash: hash, date: at(day, hm), author: "Me", email: "me@example.com",
+            subject: subject, body: body, ref: ref, filesChanged: files,
+            insertions: insertions, deletions: deletions)
     }
 
-    public static func meeting(_ id: String = UUID().uuidString, day: String, _ from: String, _ to: String,
-                        title: String = "Meeting", calendarId: String = "cal", skipped: Bool = false) -> Meeting {
-        Meeting(id: id, calendarId: calendarId, title: title, details: "", start: at(day, from), end: at(day, to),
-                skipped: skipped)
+    public static func meeting(
+        _ id: String = UUID().uuidString, day: String, _ from: String, _ to: String,
+        title: String = "Meeting", calendarId: String = "cal", skipped: Bool = false
+    ) -> Meeting {
+        Meeting(
+            id: id, calendarId: calendarId, title: title, details: "", start: at(day, from), end: at(day, to),
+            skipped: skipped)
     }
 
     public static func session(day: String, _ from: String, _ to: String, kind: SessionKind = .work) -> WorkSession {
         WorkSession(id: nil, day: day, start: at(day, from), end: at(day, to), kind: kind, label: "")
     }
 
-    public static func worklog(day: String, _ hm: String, duration: Int, issue: String? = "TAO-1", source: WorklogSource = .git,
-                        ref: String = "", status: WorklogStatus = .draft, locked: Bool = false) -> Worklog {
-        Worklog(id: 0, day: day, start: at(day, hm), duration: duration, issueKey: issue, description: "Entry",
-                source: source, sourceRef: ref, repoId: nil, estimated: duration, status: status, locked: locked,
-                tempoId: nil)
+    public static func worklog(
+        day: String, _ hm: String, duration: Int, issue: String? = "TAO-1", source: WorklogSource = .git,
+        ref: String = "", status: WorklogStatus = .draft, locked: Bool = false
+    ) -> Worklog {
+        Worklog(
+            id: 0, day: day, start: at(day, hm), duration: duration, issueKey: issue, description: "Entry",
+            source: source, sourceRef: ref, repoId: nil, estimated: duration, status: status, locked: locked,
+            tempoId: nil)
     }
 
-    public static func builder(_ settings: AppSettings = AppSettings(), repos: [Repo] = [],
-                        projects: [ProjectMapping] = []) -> WorklogBuilder {
-        WorklogBuilder(settings: settings,
-                       repos: Dictionary(uniqueKeysWithValues: repos.map { ($0.id, $0) }),
-                       projects: Dictionary(uniqueKeysWithValues: projects.map { ($0.key, $0) }))
+    public static func builder(
+        _ settings: AppSettings = AppSettings(), repos: [Repo] = [],
+        projects: [ProjectMapping] = []
+    ) -> WorklogBuilder {
+        WorklogBuilder(
+            settings: settings,
+            repos: Dictionary(uniqueKeysWithValues: repos.map { ($0.id, $0) }),
+            projects: Dictionary(uniqueKeysWithValues: projects.map { ($0.key, $0) }))
     }
 
     public static func repo(id: Int64 = 1, name: String = "billing", issueKey: String? = nil, projectKey: String? = nil) -> Repo {

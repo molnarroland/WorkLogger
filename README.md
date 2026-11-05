@@ -120,6 +120,9 @@ Google Calendar API with your own “Desktop app” OAuth client.
   Google Chat, ⌘[ / ⌘] previous / next month, ⌘T this month.
 * **Menu bar:** a clock item shows today's logged time; it opens today's bar, what still needs a ticket, Collect,
   Fetch Google Chat, Open Timesheet and Log in Tempo. Settings → General hides it.
+* **Formatting:** swift-format with the repository's `.swift-format` (4 spaces, 130 columns, existing line breaks
+  kept). Format everything with `swift format format --in-place --recursive --parallel Sources Tests Packages`;
+  Xcode shows style warnings on every build (the "swift-format lint" build phase) and CI fails on them.
 * **Language:** English and Hungarian. WorkLogger follows the macOS language; to choose it for WorkLogger only, use
   System Settings → General → Language & Region → Applications. Texts live in String Catalogs
   (`Sources/WorkLogger/Localizable.xcstrings`, and one per WorkLoggerKit module that shows messages: Core, Web, Tempo);

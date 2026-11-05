@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -22,7 +22,9 @@ struct PeriodsView: View {
             PaneHeader(title: "Periods", subtitle: "Book stretches of days to a larger project") {
                 Button {
                     state.settings.periods.append(ProjectPeriod(title: "", issueKey: "", from: state.fromDay, to: state.toDay))
-                } label: { Label("Add period", systemImage: "plus") }
+                } label: {
+                    Label("Add period", systemImage: "plus")
+                }
                 .buttonStyle(.glass)
                 Button("Rebuild drafts") { state.rebuild() }
                     .buttonStyle(.glassProminent)
@@ -45,7 +47,9 @@ struct PeriodsView: View {
                                 .listRowBackground(Self.color(for: period, in: state.settings.periods).opacity(0.10))
                             }
                         } footer: {
-                            Text("On every workday inside a period, commit time goes to the period's issue and the rest of the day is filled with it. Meetings keep their own issues; leave days are never filled. Later periods win where they overlap. Rebuild drafts after changing periods.")
+                            Text(
+                                "On every workday inside a period, commit time goes to the period's issue and the rest of the day is filled with it. Meetings keep their own issues; leave days are never filled. Later periods win where they overlap. Rebuild drafts after changing periods."
+                            )
                         }
                     }
                     .formStyle(.grouped)
@@ -77,8 +81,10 @@ private struct PeriodMonth: View {
                     Text(DayKey.date(day).formatted(.dateTime.day()))
                         .font(.callout).monospacedDigit()
                         .frame(maxWidth: .infinity, minHeight: 30)
-                        .background((p.map { PeriodsView.color(for: $0, in: periods) } ?? .clear).opacity(0.3),
-                                    in: .rect(cornerRadius: 7))
+                        .background(
+                            (p.map { PeriodsView.color(for: $0, in: periods) } ?? .clear).opacity(0.3),
+                            in: .rect(cornerRadius: 7)
+                        )
                         .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(.quaternary))
                         .help(p.map { "\($0.title.isEmpty ? $0.issueKey : $0.title) · \($0.issueKey)" } ?? "")
                 }
@@ -117,7 +123,9 @@ private struct PeriodRow: View {
 
 #Preview {
     let state = AppState.preview
-    state.settings.periods = [ProjectPeriod(title: "Billing migration", issueKey: "TAO-200", from: state.fromDay, to: state.toDay)]
+    state.settings.periods = [
+        ProjectPeriod(title: "Billing migration", issueKey: "TAO-200", from: state.fromDay, to: state.toDay)
+    ]
     return PeriodsView()
         .environment(state)
         .frame(width: 900, height: 500)

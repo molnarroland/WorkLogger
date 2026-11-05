@@ -5,8 +5,10 @@ public enum JiraKey: Sendable {
         pattern: #"(?<![A-Za-z0-9])([A-Z][A-Z0-9_]{1,9})-(\d+)(?![A-Za-z0-9])"#)
 
     /// Prefixes that look like issue keys but never are.
-    private static let deny: Set<String> = ["UTF", "ISO", "SHA", "RFC", "HTTP", "TLS", "SSL", "PSR", "CVE",
-                                            "ES", "RS", "HS", "GPT", "MP", "PHP", "IPV", "X11", "COVID"]
+    private static let deny: Set<String> = [
+        "UTF", "ISO", "SHA", "RFC", "HTTP", "TLS", "SSL", "PSR", "CVE",
+        "ES", "RS", "HS", "GPT", "MP", "PHP", "IPV", "X11", "COVID",
+    ]
 
     /// Finds the first issue key. Keys whose project prefix is known win over unknown ones.
     public static func find(in text: String, known: Set<String>) -> String? {
@@ -32,7 +34,8 @@ public enum JiraKey: Sendable {
 
     /// "ABC-12: Fix login" → "Fix login"
     public static func stripLeadingKey(_ subject: String) -> String {
-        subject.replacingOccurrences(of: #"^\s*\[?[A-Z][A-Z0-9_]{1,9}-\d+\]?\s*[:\-–]?\s*"#,
-                                     with: "", options: .regularExpression)
+        subject.replacingOccurrences(
+            of: #"^\s*\[?[A-Z][A-Z0-9_]{1,9}-\d+\]?\s*[:\-–]?\s*"#,
+            with: "", options: .regularExpression)
     }
 }

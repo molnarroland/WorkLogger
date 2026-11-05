@@ -1,18 +1,18 @@
 import Foundation
 
-public extension Worklog {
+extension Worklog {
     /// Has time but no issue: Tempo can't take it, so exports skip it.
-    var needsIssue: Bool { issueKey == nil && duration > 0 }
+    public var needsIssue: Bool { issueKey == nil && duration > 0 }
 }
 
-public extension Sequence where Element == Worklog {
+extension Sequence where Element == Worklog {
     /// Logged time in seconds.
-    var totalDuration: Int { reduce(0) { $0 + $1.duration } }
+    public var totalDuration: Int { reduce(0) { $0 + $1.duration } }
 
-    var missingIssue: [Worklog] { filter(\.needsIssue) }
+    public var missingIssue: [Worklog] { filter(\.needsIssue) }
 
     /// Logged time per source, largest first; sources without time are left out.
-    var totalsBySource: [(source: WorklogSource, seconds: Int)] {
+    public var totalsBySource: [(source: WorklogSource, seconds: Int)] {
         Dictionary(grouping: self, by: \.source)
             .map { (source: $0.key, seconds: $0.value.totalDuration) }
             .filter { $0.seconds > 0 }
@@ -20,11 +20,11 @@ public extension Sequence where Element == Worklog {
     }
 }
 
-public extension Sequence where Element == WorkSession {
-    var workIntervals: [Interval] { filter { $0.kind == .work }.map { Interval(start: $0.start, end: $0.end) } }
-    var pauseIntervals: [Interval] { filter { $0.kind == .pause }.map { Interval(start: $0.start, end: $0.end) } }
+extension Sequence where Element == WorkSession {
+    public var workIntervals: [Interval] { filter { $0.kind == .work }.map { Interval(start: $0.start, end: $0.end) } }
+    public var pauseIntervals: [Interval] { filter { $0.kind == .pause }.map { Interval(start: $0.start, end: $0.end) } }
     /// Work sessions with the breaks taken out.
-    var netWork: [Interval] { Intervals.subtract(workIntervals, pauseIntervals) }
+    public var netWork: [Interval] { Intervals.subtract(workIntervals, pauseIntervals) }
 }
 
 /// How a timesheet day compares to what it should add up to; the day cell shows it as a colour.
@@ -42,11 +42,17 @@ public enum DayProgress: Equatable, Sendable {
     case partial
 
     public init(logged: Int, expected: Int, absence: Bool, future: Bool) {
-        if absence { self = .absence }
-        else if expected == 0 { self = logged > 0 ? .extra : .free }
-        else if logged >= expected { self = .complete }
-        else if future { self = .upcoming }
-        else { self = logged == 0 ? .empty : .partial }
+        if absence {
+            self = .absence
+        } else if expected == 0 {
+            self = logged > 0 ? .extra : .free
+        } else if logged >= expected {
+            self = .complete
+        } else if future {
+            self = .upcoming
+        } else {
+            self = logged == 0 ? .empty : .partial
+        }
     }
 }
 

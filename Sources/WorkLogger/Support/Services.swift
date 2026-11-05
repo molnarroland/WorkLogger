@@ -1,10 +1,10 @@
-import Foundation
 import AppKit
+import Foundation
 import UniformTypeIdentifiers
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -16,10 +16,6 @@ struct KeychainStore: SecretStore {
     func get(_ account: String) -> String? { Keychain.get(account) }
     func set(_ value: String?, for account: String) { Keychain.set(value, for: account) }
 }
-
-
-
-
 
 /// Open and save panels and the pasteboard.
 @MainActor

@@ -2,67 +2,79 @@ import Foundation
 import WorkLoggerCore
 
 /// Worklogs and the Jira issue id cache.
-public extension Database {
+extension Database {
 
     // MARK: Worklogs
 
     private func worklog(from r: Row) -> Worklog {
-        Worklog(id: r.int("id") ?? 0, day: r.string("day") ?? "", start: r.date("start_ts"),
-                duration: r.intValue("duration"), issueKey: r.string("issue_key"),
-                description: r.string("description") ?? "",
-                source: WorklogSource(rawValue: r.string("source") ?? "") ?? .manual,
-                sourceRef: r.string("source_ref") ?? "", repoId: r.int("repo_id"),
-                estimated: r.intValue("estimated"),
-                status: WorklogStatus(rawValue: r.string("status") ?? "") ?? .draft,
-                locked: r.bool("locked"), tempoId: r.int("tempo_id"))
+        Worklog(
+            id: r.int("id") ?? 0, day: r.string("day") ?? "", start: r.date("start_ts"),
+            duration: r.intValue("duration"), issueKey: r.string("issue_key"),
+            description: r.string("description") ?? "",
+            source: WorklogSource(rawValue: r.string("source") ?? "") ?? .manual,
+            sourceRef: r.string("source_ref") ?? "", repoId: r.int("repo_id"),
+            estimated: r.intValue("estimated"),
+            status: WorklogStatus(rawValue: r.string("status") ?? "") ?? .draft,
+            locked: r.bool("locked"), tempoId: r.int("tempo_id"))
     }
 
-    func worklogs(fromDay: String, toDay: String) throws -> [Worklog] {
-        try query("SELECT * FROM worklogs WHERE day >= ? AND day <= ? ORDER BY day, start_ts",
-                  [.text(fromDay), .text(toDay)]).map(worklog)
+    public func worklogs(fromDay: String, toDay: String) throws -> [Worklog] {
+        try query(
+            "SELECT * FROM worklogs WHERE day >= ? AND day <= ? ORDER BY day, start_ts",
+            [.text(fromDay), .text(toDay)]
+        ).map(worklog)
     }
 
-    func worklogs(day: String) throws -> [Worklog] {
+    public func worklogs(day: String) throws -> [Worklog] {
         try worklogs(fromDay: day, toDay: day)
     }
 
     @discardableResult
-    func insertWorklog(_ w: Worklog) throws -> Int64 {
-        try run("""
-        INSERT INTO worklogs(day, start_ts, duration, issue_key, description, source, source_ref, repo_id, estimated, status, locked, tempo_id)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, [.text(w.day), .of(w.start), .of(w.duration), .of(w.issueKey), .text(w.description),
-              .text(w.source.rawValue), .text(w.sourceRef), .of(w.repoId), .of(w.estimated),
-              .text(w.status.rawValue), .of(w.locked), .of(w.tempoId)])
+    public func insertWorklog(_ w: Worklog) throws -> Int64 {
+        try run(
+            """
+            INSERT INTO worklogs(day, start_ts, duration, issue_key, description, source, source_ref, repo_id, estimated, status, locked, tempo_id)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                .text(w.day), .of(w.start), .of(w.duration), .of(w.issueKey), .text(w.description),
+                .text(w.source.rawValue), .text(w.sourceRef), .of(w.repoId), .of(w.estimated),
+                .text(w.status.rawValue), .of(w.locked), .of(w.tempoId),
+            ])
     }
 
-    func updateWorklog(_ w: Worklog) throws {
-        try run("""
-        UPDATE worklogs SET day = ?, start_ts = ?, duration = ?, issue_key = ?, description = ?,
-            status = ?, locked = ?, tempo_id = ? WHERE id = ?
-        """, [.text(w.day), .of(w.start), .of(w.duration), .of(w.issueKey), .text(w.description),
-              .text(w.status.rawValue), .of(w.locked), .of(w.tempoId), .int(w.id)])
+    public func updateWorklog(_ w: Worklog) throws {
+        try run(
+            """
+            UPDATE worklogs SET day = ?, start_ts = ?, duration = ?, issue_key = ?, description = ?,
+                status = ?, locked = ?, tempo_id = ? WHERE id = ?
+            """,
+            [
+                .text(w.day), .of(w.start), .of(w.duration), .of(w.issueKey), .text(w.description),
+                .text(w.status.rawValue), .of(w.locked), .of(w.tempoId), .int(w.id),
+            ])
     }
 
-    func deleteWorklog(_ id: Int64) throws {
+    public func deleteWorklog(_ id: Int64) throws {
         try run("DELETE FROM worklogs WHERE id = ?", [.int(id)])
     }
 
     /// Removes generated drafts so they can be rebuilt. Locked, reviewed, exported and manual entries stay.
-    func deleteRegeneratable(fromDay: String, toDay: String) throws {
-        try run("""
-        DELETE FROM worklogs WHERE day >= ? AND day <= ? AND locked = 0 AND status = 'draft'
-            AND source IN ('git', 'meeting', 'absence', 'period')
-        """, [.text(fromDay), .text(toDay)])
+    public func deleteRegeneratable(fromDay: String, toDay: String) throws {
+        try run(
+            """
+            DELETE FROM worklogs WHERE day >= ? AND day <= ? AND locked = 0 AND status = 'draft'
+                AND source IN ('git', 'meeting', 'absence', 'period')
+            """, [.text(fromDay), .text(toDay)])
     }
 
     // MARK: Jira issue id cache (Tempo API v4 needs numeric issue ids)
 
-    func cachedIssueId(_ key: String) -> Int64? {
+    public func cachedIssueId(_ key: String) -> Int64? {
         (try? query("SELECT issue_id FROM issue_cache WHERE key = ?", [.text(key)]))?.first?.int("issue_id")
     }
 
-    func cacheIssueId(_ key: String, _ id: Int64) throws {
+    public func cacheIssueId(_ key: String, _ id: Int64) throws {
         try run("INSERT OR REPLACE INTO issue_cache(key, issue_id) VALUES(?, ?)", [.text(key), .int(id)])
     }
 }

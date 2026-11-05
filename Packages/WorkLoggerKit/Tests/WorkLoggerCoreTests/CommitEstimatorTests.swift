@@ -1,12 +1,13 @@
 import Foundation
 import Testing
-@testable import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerCore
 
 @Suite struct CommitEstimatorTests {
     init() { Fixture.pinTimeZone() }
 
-    let estimator = CommitEstimator(settings: AppSettings())   // min 10, max 240, gap ≤ 180 minutes
+    let estimator = CommitEstimator(settings: AppSettings())  // min 10, max 240, gap ≤ 180 minutes
 
     /// 10 lines in 1 file: 10 + 12·log2(2) + 4 = 26 minutes before keyword weighting.
     func commit(_ subject: String, files: Int = 1, insertions: Int = 10) -> StoredCommit {
@@ -17,8 +18,10 @@ import WorkLoggerTestSupport
         #expect(estimator.complexityMinutes(commit("Add feature", files: 0, insertions: 0)) == 10)
     }
 
-    @Test(arguments: [("Add feature", 26.0), ("Fix typo", 13.0), ("Refactor billing", 33.8),
-                      ("Fix bug in invoices", 29.9), ("Add tests", 28.6)])
+    @Test(arguments: [
+        ("Add feature", 26.0), ("Fix typo", 13.0), ("Refactor billing", 33.8),
+        ("Fix bug in invoices", 29.9), ("Add tests", 28.6),
+    ])
     func keywordsWeightTheSize(subject: String, expected: Double) {
         #expect(abs(estimator.complexityMinutes(commit(subject)) - expected) < 0.001)
     }

@@ -1,17 +1,20 @@
 import Foundation
 import Testing
-@testable import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerCore
 
 @Suite struct WorklogSummaryTests {
     init() { Fixture.pinTimeZone() }
     let day = "2026-03-03"
 
     var logs: [Worklog] {
-        [Fixture.worklog(day: day, "09:00", duration: 900, source: .meeting),
-         Fixture.worklog(day: day, "09:15", duration: 7200, source: .git),
-         Fixture.worklog(day: day, "11:15", duration: 1800, issue: nil, source: .git),
-         Fixture.worklog(day: day, "11:45", duration: 0, issue: nil, source: .manual)]
+        [
+            Fixture.worklog(day: day, "09:00", duration: 900, source: .meeting),
+            Fixture.worklog(day: day, "09:15", duration: 7200, source: .git),
+            Fixture.worklog(day: day, "11:15", duration: 1800, issue: nil, source: .git),
+            Fixture.worklog(day: day, "11:45", duration: 0, issue: nil, source: .manual),
+        ]
     }
 
     @Test func totals() {
@@ -75,17 +78,19 @@ import WorkLoggerTestSupport
     init() { Fixture.pinTimeZone() }
 
     var logs: [Worklog] {
-        [Fixture.worklog(day: "2026-03-02", "09:00", duration: 3600, issue: "TAO-1"),           // week 10
-         Fixture.worklog(day: "2026-03-06", "09:00", duration: 7200, issue: "TAO-2", source: .meeting),
-         Fixture.worklog(day: "2026-03-09", "09:00", duration: 1800, issue: nil),               // week 11
-         Fixture.worklog(day: "2026-04-01", "09:00", duration: 900, issue: "TAO-1")]
+        [
+            Fixture.worklog(day: "2026-03-02", "09:00", duration: 3600, issue: "TAO-1"),  // week 10
+            Fixture.worklog(day: "2026-03-06", "09:00", duration: 7200, issue: "TAO-2", source: .meeting),
+            Fixture.worklog(day: "2026-03-09", "09:00", duration: 1800, issue: nil),  // week 11
+            Fixture.worklog(day: "2026-04-01", "09:00", duration: 900, issue: "TAO-1"),
+        ]
     }
 
     @Test func groupsByIsoWeek() {
         let groups = Report.group(logs, by: .week)
         #expect(groups.map(\.id) == ["2026-W10", "2026-W11", "2026-W14"])
         #expect(groups.map(\.total) == [10800, 1800, 900])
-        #expect(groups[0].byIssue.map(\.issue) == ["TAO-2", "TAO-1"])   // largest first
+        #expect(groups[0].byIssue.map(\.issue) == ["TAO-2", "TAO-1"])  // largest first
         #expect(groups[0].bySource.map(\.source) == ["Coding", "Meetings"])
         #expect(groups[1].byIssue.map(\.issue) == ["No issue"])
     }

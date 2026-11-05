@@ -1,7 +1,8 @@
 import Foundation
 import Testing
-@testable import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerCore
 
 @Suite struct AppSettingsTests {
     @Test func missingFieldsFallBackToDefaults() throws {

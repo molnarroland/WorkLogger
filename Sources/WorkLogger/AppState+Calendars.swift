@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -65,8 +65,13 @@ extension AppState {
         do {
             let granted = try await services.calendars.requestAccess()
             refreshCalendars()
-            status = granted ? String(localized: "Calendar access allowed. Tick the calendars to read.")
-                             : String(localized: "Calendar access was not allowed. You can change this in System Settings → Privacy & Security → Calendars.")
+            status =
+                granted
+                ? String(localized: "Calendar access allowed. Tick the calendars to read.")
+                : String(
+                    localized:
+                        "Calendar access was not allowed. You can change this in System Settings → Privacy & Security → Calendars."
+                )
         } catch {
             status = String(localized: "Calendar access failed: \(error.localizedDescription)")
         }
@@ -96,8 +101,9 @@ extension AppState {
 
         if googleConnected {
             let events = try await google().meetings(calendarId: googleApiCalendarId, from: rangeStart, to: rangeEnd)
-            try db.syncMeetings(from: rangeStart, to: rangeEnd, calendarIds: [googleApiCalendarId],
-                                activeCalendarIds: active, events: events)
+            try db.syncMeetings(
+                from: rangeStart, to: rangeEnd, calendarIds: [googleApiCalendarId],
+                activeCalendarIds: active, events: events)
             count += events.count
         }
         meetings = try db.meetings(from: rangeStart, to: rangeEnd)

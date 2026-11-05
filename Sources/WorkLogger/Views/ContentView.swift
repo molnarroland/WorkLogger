@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -83,11 +83,19 @@ struct ContentView: View {
             List(selection: $pane) {
                 ForEach(Step.allCases) { step in
                     let panes = step.panes(state.settings.modules)
-                    if !panes.isEmpty { Section { 
-                        ForEach(panes) { p in
-                            Label { Text(p.title) } icon: { Image(systemName: p.icon) }.tag(p)
+                    if !panes.isEmpty {
+                        Section {
+                            ForEach(panes) { p in
+                                Label {
+                                    Text(p.title)
+                                } icon: {
+                                    Image(systemName: p.icon)
+                                }.tag(p)
+                            }
+                        } header: {
+                            Text(step.title)
                         }
-                    } header: { Text(step.title) } }
+                    }
                 }
             }
             // The sidebar gets no toolbar inset and opens scrolled under the traffic lights, so reserve the
@@ -116,7 +124,10 @@ struct ContentView: View {
         .sheet(isPresented: $showWelcome) { WelcomeView() }
         .focusedSceneValue(\.selectPane) { pane = $0 }
         .onChange(of: state.requestedPane) { _, requested in
-            if let requested { pane = requested; state.requestedPane = nil }
+            if let requested {
+                pane = requested
+                state.requestedPane = nil
+            }
         }
         // A background fetch found a source signed out: show its sign-in window and bounce the Dock icon.
         .onChange(of: state.signInNeeded) { _, source in
@@ -127,14 +138,20 @@ struct ContentView: View {
         .onAppear {
             showWelcome = !state.settings.welcomed
             #if DEBUG
-            if WebDebugProbe.isActive { showWelcome = false; openWindow(id: WebSession.Source.hrmaster.windowID) }
-            if WebDebugProbe.fetch != nil { showWelcome = false; Task { await WebDebugProbe.runFetch(state) } }
+                if WebDebugProbe.isActive {
+                    showWelcome = false
+                    openWindow(id: WebSession.Source.hrmaster.windowID)
+                }
+                if WebDebugProbe.fetch != nil {
+                    showWelcome = false
+                    Task { await WebDebugProbe.runFetch(state) }
+                }
             #endif
         }
         .onChange(of: state.settings.modules) {
             if let m = pane?.module, !state.settings.modules.contains(m) { pane = .timesheet }
         }
-        .toolbar(removing: .title)   // the title is drawn centered as the principal item instead
+        .toolbar(removing: .title)  // the title is drawn centered as the principal item instead
         .toolbar {
             // One item laid out by hand: separate .navigation items ignore spacers and share a pill.
             ToolbarItem(placement: .navigation) {
@@ -166,19 +183,31 @@ struct ContentView: View {
                 }
                 .disabled(state.isBusy)
                 .help("Read git history and calendar meetings for the range, then build drafts. The arrow has more.")
-                Button { showWelcome = true } label: { Label("Modules", systemImage: "square.grid.2x2") }
-                    .help("Choose which data sources WorkLogger uses")
+                Button {
+                    showWelcome = true
+                } label: {
+                    Label("Modules", systemImage: "square.grid.2x2")
+                }
+                .help("Choose which data sources WorkLogger uses")
             }
             ToolbarSpacer(.fixed, placement: .primaryAction)
             ToolbarItem(placement: .primaryAction) {
-                Button { pane = .byTicket } label: { Label("Log in Tempo", systemImage: "checklist.checked").labelStyle(.titleAndIcon) }
-                    .buttonStyle(.glassProminent)
-                    .help("Each ticket's days and durations, ready to copy into Tempo")
+                Button {
+                    pane = .byTicket
+                } label: {
+                    Label("Log in Tempo", systemImage: "checklist.checked").labelStyle(.titleAndIcon)
+                }
+                .buttonStyle(.glassProminent)
+                .help("Each ticket's days and durations, ready to copy into Tempo")
             }
             ToolbarItemGroup(placement: .primaryAction) {
-                Button { showExport.toggle() } label: { Label("Export", systemImage: "square.and.arrow.up") }
-                    .help("Export to Tempo, Markdown for Claude, CSV or JSON")
-                    .popover(isPresented: $showExport, arrowEdge: .bottom) { ExportView() }
+                Button {
+                    showExport.toggle()
+                } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                .help("Export to Tempo, Markdown for Claude, CSV or JSON")
+                .popover(isPresented: $showExport, arrowEdge: .bottom) { ExportView() }
                 SettingsLink { Label("Settings", systemImage: "gearshape") }
                     .help("Settings (⌘,)")
             }
@@ -255,7 +284,7 @@ struct RangeField: View {
             }
         }
         .help(isTo ? "To" : "From")
-        .datePickerStyle(.field)   // no stepper: it can't fit a toolbar pill
+        .datePickerStyle(.field)  // no stepper: it can't fit a toolbar pill
         .labelsHidden()
         .fixedSize()
         .onChange(of: isTo ? state.to : state.from) { state.reloadRange() }
@@ -278,9 +307,11 @@ struct RangePresets: View {
             ForEach(QuickRange.allCases, id: \.self) { r in
                 Button(String(localized: r.localizedName)) { state.setRange(r) }
             }
-        } label: { Label("Quick ranges", systemImage: "calendar.badge.clock") }
+        } label: {
+            Label("Quick ranges", systemImage: "calendar.badge.clock")
+        }
         .menuIndicator(.hidden)
-        .buttonStyle(.borderless)   // the pill supplies the glass
+        .buttonStyle(.borderless)  // the pill supplies the glass
         .help("Quick ranges")
     }
 }

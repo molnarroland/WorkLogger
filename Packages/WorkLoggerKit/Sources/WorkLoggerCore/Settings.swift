@@ -38,7 +38,7 @@ public struct ProjectPeriod: Codable, Hashable, Identifiable, Sendable {
     public var id = UUID()
     public var title: String
     public var issueKey: String
-    public var from: String   // day keys, inclusive
+    public var from: String  // day keys, inclusive
     public var to: String
 
     public func contains(_ day: String) -> Bool { from <= day && day <= to }
@@ -78,10 +78,10 @@ public struct AppSettings: Codable, Equatable, Sendable {
     // Git
     public var workspaceRoot: String = ""
     public var authorEmails: [String] = []
-    public var excludedFolders: [String] = []   // folder names or paths skipped when scanning
+    public var excludedFolders: [String] = []  // folder names or paths skipped when scanning
     public var ignoredPathPatterns: [String] = [
         "package-lock.json", "composer.lock", "yarn.lock", "pnpm-lock.yaml", "Podfile.lock",
-        ".min.js", ".min.css", "/dist/", "/vendor/", "node_modules/", ".snap", ".svg"
+        ".min.js", ".min.css", "/dist/", "/vendor/", "node_modules/", ".snap", ".svg",
     ]
 
     // Estimation
@@ -93,7 +93,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var roundingMode: RoundingMode = .fixedHours
     public var fixedDailyHours: Double = 8
     public var granularityMinutes: Int = 15
-    public var dayRoundUpMinutes: Int = 15        // worked time is rounded up: 7h 22m → 7h 30m
+    public var dayRoundUpMinutes: Int = 15  // worked time is rounded up: 7h 22m → 7h 30m
     public var defaultDayStart: String = "09:00"
     public var defaultDayEnd: String = "17:30"
     public var includeWeekends: Bool = false
@@ -102,16 +102,16 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var showMenuBarItem = true
 
     // Chats
-    public var chatGapMinutes: Int = 10      // messages further apart start a new stretch of chatting
+    public var chatGapMinutes: Int = 10  // messages further apart start a new stretch of chatting
     public var chatRules: [ChatRule] = []
 
     // In-app sign-in sources
-    public var chatEmail: String = ""        // your Google Chat address; the first commit email when empty
+    public var chatEmail: String = ""  // your Google Chat address; the first commit email when empty
     public var hrmasterURL: String = ""
 
     // Absences (leave, public holidays from the HR system)
     public var absenceIssueKey: String = ""
-    public var absenceRules: [MeetingRule] = []   // day label contains → issue, e.g. "Betegszabadság" → HR-3
+    public var absenceRules: [MeetingRule] = []  // day label contains → issue, e.g. "Betegszabadság" → HR-3
 
     // Project periods: workdays inside are logged to the period's issue
     public var periods: [ProjectPeriod] = []
@@ -135,8 +135,8 @@ public struct AppSettings: Codable, Equatable, Sendable {
     /// Decodes stored settings on top of the defaults so new fields never break old databases.
     public static func decodeMerging(_ data: Data) -> AppSettings? {
         guard let defaultsData = try? JSONEncoder().encode(AppSettings()),
-              var base = (try? JSONSerialization.jsonObject(with: defaultsData)) as? [String: Any],
-              let stored = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+            var base = (try? JSONSerialization.jsonObject(with: defaultsData)) as? [String: Any],
+            let stored = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
         else { return nil }
         base.merge(stored) { _, new in new }
         guard let merged = try? JSONSerialization.data(withJSONObject: base) else { return nil }

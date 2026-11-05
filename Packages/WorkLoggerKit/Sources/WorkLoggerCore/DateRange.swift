@@ -1,7 +1,11 @@
 import Foundation
 
 public enum QuickRange: String, CaseIterable, Sendable {
-    case today = "Today", thisWeek = "This week", lastWeek = "Last week", thisMonth = "This month", lastMonth = "Last month"
+    case today = "Today"
+    case thisWeek = "This week"
+    case lastWeek = "Last week"
+    case thisMonth = "This month"
+    case lastMonth = "Last month"
 }
 
 /// The selected days, inclusive. `from` and `to` may be in either order (the date pickers allow it).

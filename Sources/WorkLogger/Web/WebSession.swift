@@ -1,9 +1,9 @@
 import SwiftUI
 import WebKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -12,7 +12,8 @@ import WorkLoggerWeb
 @MainActor @Observable
 final class WebSession: PageDriver {
     enum Source: String, CaseIterable, Identifiable, Codable {
-        case googleChat = "google-chat", hrmaster
+        case googleChat = "google-chat"
+        case hrmaster
         var id: String { rawValue }
         var title: String { self == .googleChat ? "Google Chat" : "HRmaster" }
         var windowID: String { "web-" + rawValue }
@@ -26,7 +27,8 @@ final class WebSession: PageDriver {
     }
 
     /// Google refuses sign-in in browsers it doesn't recognise; Safari's user agent is accepted.
-    static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
+    static let safariUserAgent =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15"
 
     static let googleChat = WebSession(.googleChat)
     static let hrmaster = WebSession(.hrmaster)
@@ -66,10 +68,16 @@ final class WebSession: PageDriver {
         case .hrmaster:
             let host = host?.lowercased() ?? ""
             // HRmaster's sign-in cookie (ASP.NET); other cookies of the site exist while signed out too.
-            ok = !host.isEmpty && cookies.contains { $0.name == ".AspNet.ApplicationCookie"
-                && host.hasSuffix($0.domain.trimmingCharacters(in: CharacterSet(charactersIn: ".")).lowercased()) }
+            ok =
+                !host.isEmpty
+                && cookies.contains {
+                    $0.name == ".AspNet.ApplicationCookie"
+                        && host.hasSuffix($0.domain.trimmingCharacters(in: CharacterSet(charactersIn: ".")).lowercased())
+                }
         }
-        if signedIn != ok { Log.web.notice("\(self.source.title, privacy: .public) signed \(ok ? "in" : "out", privacy: .public)") }
+        if signedIn != ok {
+            Log.web.notice("\(self.source.title, privacy: .public) signed \(ok ? "in" : "out", privacy: .public)")
+        }
         signedIn = ok
         return ok
     }
@@ -80,8 +88,10 @@ final class WebSession: PageDriver {
     func keepSessionCookies(host: String?) async {
         guard let host = host?.lowercased(), !host.isEmpty else { return }
         let cookies = store.httpCookieStore
-        for c in await cookies.allCookies() where c.isSessionOnly
-            && host.hasSuffix(c.domain.trimmingCharacters(in: CharacterSet(charactersIn: ".")).lowercased()) {
+        for c in await cookies.allCookies()
+        where c.isSessionOnly
+            && host.hasSuffix(c.domain.trimmingCharacters(in: CharacterSet(charactersIn: ".")).lowercased())
+        {
             var props = c.properties ?? [:]
             props[.discard] = nil
             props[.expires] = Date().addingTimeInterval(14 * 86_400)
@@ -96,11 +106,13 @@ final class WebSession: PageDriver {
 
     /// Runs a script (async function body); retried when a redirect replaces the page while it runs, which WebKit
     /// reports as "completion handler … no longer reachable".
-    func run(_ script: String, arguments: [String: Any]) async throws -> Any? { try await run(script, arguments: arguments, attempts: 4) }
+    func run(_ script: String, arguments: [String: Any]) async throws -> Any? {
+        try await run(script, arguments: arguments, attempts: 4)
+    }
 
     func run(_ script: String, arguments: [String: Any], attempts: Int) async throws -> Any? {
         for attempt in 1... {
-            do { return try await page.callJavaScript(script, arguments: arguments) } catch where attempt < attempts {
+            do { return try await page.callJavaScript(script, arguments: arguments) } catch  where attempt < attempts {
                 try await Task.sleep(for: .seconds(3))
                 try await waitUntilLoaded()
             }
@@ -122,7 +134,8 @@ final class WebSession: PageDriver {
 
     /// Waits for the current navigation to finish (the page may redirect a few times).
     func waitUntilLoaded(timeout: Duration) async throws {
-        let clock = ContinuousClock(), end = clock.now + timeout
+        let clock = ContinuousClock()
+        let end = clock.now + timeout
         try await Task.sleep(for: .milliseconds(500))
         while page.isLoading {
             guard clock.now < end else { throw WebSessionError.timeout(source.title) }
@@ -150,7 +163,12 @@ struct WebSessionWindow: View {
                 case nil: EmptyView()
                 }
                 Button("Check sign-in") { Task { await session.checkSignedIn(host: hrmasterHost) } }
-                Button("Sign out", role: .destructive) { Task { await session.signOut(); start() } }
+                Button("Sign out", role: .destructive) {
+                    Task {
+                        await session.signOut()
+                        start()
+                    }
+                }
             }
             .padding(10)
             Divider()
@@ -172,7 +190,7 @@ struct WebSessionWindow: View {
             if session.page.url == nil { start() }
             Task { await session.checkSignedIn(host: hrmasterHost) }
             #if DEBUG
-            if source == .hrmaster && WebDebugProbe.isActive { Task { await WebDebugProbe.run(session) } }
+                if source == .hrmaster && WebDebugProbe.isActive { Task { await WebDebugProbe.run(session) } }
             #endif
         }
     }
@@ -194,7 +212,10 @@ struct WebSessionWindow: View {
         let session = WebSession.of(source)
         switch source {
         case .googleChat: session.open(URL(string: "https://chat.google.com/")!)
-        case .hrmaster: if let base = HRmasterCollector.normalize(state.settings.hrmasterURL) { session.open(HRmasterCollector.workingTimeURL(base)) }
+        case .hrmaster:
+            if let base = HRmasterCollector.normalize(state.settings.hrmasterURL) {
+                session.open(HRmasterCollector.workingTimeURL(base))
+            }
         }
     }
 }

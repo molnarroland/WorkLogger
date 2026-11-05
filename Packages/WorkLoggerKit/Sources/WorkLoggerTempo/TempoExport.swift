@@ -12,7 +12,10 @@ public struct TempoWorklogPayload: Codable, Sendable {
     public var timeSpentSeconds: Int
     public var description: String
 
-    public init(issueKey: String, issueId: Int64?, authorAccountId: String?, startDate: String, startTime: String, timeSpentSeconds: Int, description: String) {
+    public init(
+        issueKey: String, issueId: Int64?, authorAccountId: String?, startDate: String, startTime: String, timeSpentSeconds: Int,
+        description: String
+    ) {
         self.issueKey = issueKey
         self.issueId = issueId
         self.authorAccountId = authorAccountId
@@ -36,8 +39,9 @@ public enum TempoExport {
         f.dateFormat = "yyyy-MM-dd HH:mm:ss'Z'"
         var lines = ["Issue Key,Date Started,Time Spent,Comment"]
         for w in exportable(logs) {
-            lines.append([w.issueKey!, f.string(from: w.start), DurationFormat.string(w.duration), quote(w.description)]
-                .joined(separator: ","))
+            lines.append(
+                [w.issueKey!, f.string(from: w.start), DurationFormat.string(w.duration), quote(w.description)]
+                    .joined(separator: ","))
         }
         return lines.joined(separator: "\n") + "\n"
     }
@@ -52,10 +56,11 @@ public enum TempoExport {
         time.timeZone = DayKey.timeZone
         time.dateFormat = "HH:mm:ss"
         return exportable(logs).map {
-            TempoWorklogPayload(issueKey: $0.issueKey!, issueId: nil,
-                                authorAccountId: (accountId?.isEmpty ?? true) ? nil : accountId,
-                                startDate: date.string(from: $0.start), startTime: time.string(from: $0.start),
-                                timeSpentSeconds: $0.duration, description: $0.description)
+            TempoWorklogPayload(
+                issueKey: $0.issueKey!, issueId: nil,
+                authorAccountId: (accountId?.isEmpty ?? true) ? nil : accountId,
+                startDate: date.string(from: $0.start), startTime: time.string(from: $0.start),
+                timeSpentSeconds: $0.duration, description: $0.description)
         }
     }
 
@@ -71,39 +76,41 @@ public enum TempoExport {
         let days = Dictionary(grouping: ready, by: \.day)
         let total = ready.totalDuration
         let site = jiraBaseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/ "))
-        let myWork = site.isEmpty ? "Jira → Apps → Tempo → My Work"
+        let myWork =
+            site.isEmpty
+            ? "Jira → Apps → Tempo → My Work"
             : "\(site)/plugins/servlet/ac/io.tempo.jira/tempo-app#!/my-work/week?type=TIME&date=\(from)"
 
         var md = """
-        # Tempo timesheet \(from) – \(to)
+            # Tempo timesheet \(from) – \(to)
 
-        \(ready.count) worklogs · \(DurationFormat.string(total)) in total · \(days.count) days
+            \(ready.count) worklogs · \(DurationFormat.string(total)) in total · \(days.count) days
 
-        ## Instructions for Claude
+            ## Instructions for Claude
 
-        You are filling in my Tempo timesheet in Jira Cloud with Claude in Chrome. I am already signed in.
+            You are filling in my Tempo timesheet in Jira Cloud with Claude in Chrome. I am already signed in.
 
-        1. Open Tempo **My Work** in a new tab: \(myWork)
-        2. Go through the days below in order. Before logging a day, look at the worklogs already shown for it in Tempo.
-           Skip an entry that already exists there (same issue, same duration), so nothing is logged twice.
-        3. For each remaining entry, click the day (or **Log Time**) and fill in the dialog:
-           - **Issue**: type the issue key, then pick the matching issue from the list
-           - **Date**: the day of the section
-           - **Start time** and **Duration** exactly as in the table (duration format like `1h 30m`)
-           - **Description**: the text from the table
-           - Leave every other field (account, attributes, billable time) at its default, then click **Log**.
-        4. When a day is done, check that its total in Tempo matches the **Day total** below.
-        5. Never edit or delete worklogs that were already in Tempo, and do not submit the timesheet for approval.
-        6. If an issue can't be found, you lack permission, or anything looks unexpected, skip that entry and keep going.
-           Do not guess a different issue.
-        7. At the end, reply with a table of every entry: logged, skipped (already there) or failed (with the reason).
+            1. Open Tempo **My Work** in a new tab: \(myWork)
+            2. Go through the days below in order. Before logging a day, look at the worklogs already shown for it in Tempo.
+               Skip an entry that already exists there (same issue, same duration), so nothing is logged twice.
+            3. For each remaining entry, click the day (or **Log Time**) and fill in the dialog:
+               - **Issue**: type the issue key, then pick the matching issue from the list
+               - **Date**: the day of the section
+               - **Start time** and **Duration** exactly as in the table (duration format like `1h 30m`)
+               - **Description**: the text from the table
+               - Leave every other field (account, attributes, billable time) at its default, then click **Log**.
+            4. When a day is done, check that its total in Tempo matches the **Day total** below.
+            5. Never edit or delete worklogs that were already in Tempo, and do not submit the timesheet for approval.
+            6. If an issue can't be found, you lack permission, or anything looks unexpected, skip that entry and keep going.
+               Do not guess a different issue.
+            7. At the end, reply with a table of every entry: logged, skipped (already there) or failed (with the reason).
 
-        ## Overview
+            ## Overview
 
-        | Day | Day total | Entries |
-        | --- | --- | --- |
+            | Day | Day total | Entries |
+            | --- | --- | --- |
 
-        """
+            """
         for day in days.keys.sorted() {
             let list = days[day]!
             md += "| \(day) | \(DurationFormat.string(list.totalDuration)) | \(list.count) |\n"
@@ -112,14 +119,14 @@ public enum TempoExport {
             let list = days[day]!
             md += """
 
-            ## \(DayKey.title(day)) — \(day)
+                ## \(DayKey.title(day)) — \(day)
 
-            Day total: **\(DurationFormat.string(list.totalDuration))**
+                Day total: **\(DurationFormat.string(list.totalDuration))**
 
-            | # | Issue | Start | Duration | Description |
-            | --- | --- | --- | --- | --- |
+                | # | Issue | Start | Duration | Description |
+                | --- | --- | --- | --- | --- |
 
-            """
+                """
             for (i, w) in list.enumerated() {
                 let text = w.description.replacingOccurrences(of: "|", with: "\\|").replacingOccurrences(of: "\n", with: " ")
                 md += "| \(i + 1) | \(w.issueKey!) | \(DayKey.hm(w.start)) | \(DurationFormat.string(w.duration)) | \(text) |\n"

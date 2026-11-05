@@ -1,8 +1,9 @@
 import Foundation
 import Testing
-@testable import WorkLoggerWeb
 import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerWeb
 
 /// The collectors' loops against a fake page: what they open, what they keep, how they report and fail.
 @MainActor
@@ -12,7 +13,8 @@ import WorkLoggerTestSupport
     func msg(_ id: String, _ gid: String?, _ day: String, _ hm: String, me: Bool = true) -> String {
         let ts = Fixture.at(day, hm).timeIntervalSince1970 * 1000
         let g = gid.map { "\"\($0)\"" } ?? "null"
-        return #"{"id":"\#(id)","gid":\#(g),"conv":"TAO","ts":\#(ts),"oneOnOne":false,"sender":"Bea","me":\#(me),"text":"t\#(id)"}"#
+        return
+            #"{"id":"\#(id)","gid":\#(g),"conv":"TAO","ts":\#(ts),"oneOnOne":false,"sender":"Bea","me":\#(me),"text":"t\#(id)"}"#
     }
 
     @Test func chatSearchesEachDayTwiceAndKeepsOnlyThatDaysMessages() async throws {
@@ -21,13 +23,14 @@ import WorkLoggerTestSupport
         page.redirect[home] = URL(string: "https://chat.google.com/u/1/app/home")!
         page.answer = { url, _ in
             let q = url?.query() ?? ""
-            if q.contains("cdatestart=2026-3-3") && q.contains("cfrom") {   // my messages on day 1, one from day 2
+            if q.contains("cdatestart=2026-3-3") && q.contains("cfrom") {  // my messages on day 1, one from day 2
                 return "[\(self.msg("1", "space/A", "2026-03-03", "09:00")),\(self.msg("x", "space/A", "2026-03-04", "09:00"))]"
             }
-            if q.contains("cdatestart=2026-3-3") {                          // mentions on day 1: a duplicate and one more
-                return "[\(self.msg("1", "space/A", "2026-03-03", "09:00")),\(self.msg("2", "dm/B", "2026-03-03", "10:00", me: false))]"
+            if q.contains("cdatestart=2026-3-3") {  // mentions on day 1: a duplicate and one more
+                return
+                    "[\(self.msg("1", "space/A", "2026-03-03", "09:00")),\(self.msg("2", "dm/B", "2026-03-03", "10:00", me: false))]"
             }
-            return "[\(self.msg("3", nil, "2026-03-04", "11:00"))]"         // no conversation id: dropped
+            return "[\(self.msg("3", nil, "2026-03-04", "11:00"))]"  // no conversation id: dropped
         }
         let export = try await GoogleChatCollector(session: page, email: "me@x.hu")
             .collect(from: Fixture.at("2026-03-03", "00:00"), to: Fixture.at("2026-03-04", "00:00")) { _ in }
@@ -47,7 +50,8 @@ import WorkLoggerTestSupport
         _ = try await GoogleChatCollector(session: page, email: "me@x.hu")
             .collect(from: Fixture.at("2026-03-03", "00:00"), to: Fixture.at("2026-03-03", "00:00")) { lines.append($0) }
         let line = try #require(lines.first { $0.contains("at 14:32") })
-        #expect(line.contains("(1 of 1)") && line.contains("my messages") && line.contains("3 today") && line.contains("3 in range"))
+        #expect(
+            line.contains("(1 of 1)") && line.contains("my messages") && line.contains("3 today") && line.contains("3 in range"))
     }
 
     @Test func chatNeedsSignInAndReportsAChangedPage() async {
@@ -84,13 +88,19 @@ import WorkLoggerTestSupport
         let october = [HRmasterCollector.Month(year: 2026, month: 10)]
 
         page.answer = { _, _ in #"{"error":"no-panel"}"# }
-        do { _ = try await collector.collect(october) { _ in }; Issue.record("expected an error") }
-        catch WebSessionError.notSignedIn(let site) { #expect(site == "HRmaster") }
-        catch { Issue.record("unexpected \(error)") }
+        do {
+            _ = try await collector.collect(october) { _ in }
+            Issue.record("expected an error")
+        } catch WebSessionError.notSignedIn(let site) { #expect(site == "HRmaster") } catch {
+            Issue.record("unexpected \(error)")
+        }
 
         page.answer = { _, _ in #"{"error":"could not reach 2026-10."}"# }
-        do { _ = try await collector.collect(october) { _ in }; Issue.record("expected an error") }
-        catch WebSessionError.script(let message) { #expect(message == "HRmaster: could not reach 2026-10.") }
-        catch { Issue.record("unexpected \(error)") }
+        do {
+            _ = try await collector.collect(october) { _ in }
+            Issue.record("expected an error")
+        } catch WebSessionError.script(let message) { #expect(message == "HRmaster: could not reach 2026-10.") } catch {
+            Issue.record("unexpected \(error)")
+        }
     }
 }

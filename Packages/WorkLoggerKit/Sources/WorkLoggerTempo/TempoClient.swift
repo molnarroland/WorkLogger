@@ -7,8 +7,10 @@ public enum TempoError: LocalizedError {
     case http(String, Int, String)
     public var errorDescription: String? {
         switch self {
-        case .missing(let what): return String(localized: "Missing \(what). Add it in Settings → Tempo API (optional).", bundle: .module)
-        case .http(let what, let code, let body): return String(localized: "\(what) failed (HTTP \(code)): \(String(body.prefix(300)))", bundle: .module)
+        case .missing(let what):
+            return String(localized: "Missing \(what). Add it in Settings → Tempo API (optional).", bundle: .module)
+        case .http(let what, let code, let body):
+            return String(localized: "\(what) failed (HTTP \(code)): \(String(body.prefix(300)))", bundle: .module)
         }
     }
 }
@@ -30,12 +32,16 @@ public struct TempoClient: TempoService {
         jiraToken = secrets.get(SecretKey.jiraToken) ?? ""
         tempoToken = secrets.get(SecretKey.tempoToken) ?? ""
         if jiraBaseURL.isEmpty { throw TempoError.missing(String(localized: "the Jira site URL", bundle: .module)) }
-        if jiraEmail.isEmpty || jiraToken.isEmpty { throw TempoError.missing(String(localized: "the Jira email or API token", bundle: .module)) }
+        if jiraEmail.isEmpty || jiraToken.isEmpty {
+            throw TempoError.missing(String(localized: "the Jira email or API token", bundle: .module))
+        }
         if tempoToken.isEmpty { throw TempoError.missing(String(localized: "the Tempo API token", bundle: .module)) }
     }
 
     private func jiraRequest(_ path: String) throws -> URLRequest {
-        guard let url = URL(string: jiraBaseURL + path) else { throw TempoError.missing(String(localized: "a valid Jira site URL", bundle: .module)) }
+        guard let url = URL(string: jiraBaseURL + path) else {
+            throw TempoError.missing(String(localized: "a valid Jira site URL", bundle: .module))
+        }
         var r = URLRequest(url: url)
         r.setValue("Basic " + Data("\(jiraEmail):\(jiraToken)".utf8).base64EncodedString(), forHTTPHeaderField: "Authorization")
         r.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -51,14 +57,17 @@ public struct TempoClient: TempoService {
 
     public func accountId() async throws -> String {
         struct Me: Decodable { let accountId: String }
-        let data = try await send(try jiraRequest("/rest/api/3/myself"), String(localized: "Reading your Jira account", bundle: .module))
+        let data = try await send(
+            try jiraRequest("/rest/api/3/myself"), String(localized: "Reading your Jira account", bundle: .module))
         return try JSONDecoder().decode(Me.self, from: data).accountId
     }
 
     public func issueId(for key: String) async throws -> Int64 {
         struct Issue: Decodable { let id: String }
         let encoded = key.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? key
-        let data = try await send(try jiraRequest("/rest/api/3/issue/\(encoded)?fields=summary"), String(localized: "Looking up \(key)", bundle: .module))
+        let data = try await send(
+            try jiraRequest("/rest/api/3/issue/\(encoded)?fields=summary"),
+            String(localized: "Looking up \(key)", bundle: .module))
         guard let id = Int64(try JSONDecoder().decode(Issue.self, from: data).id) else {
             throw TempoError.http(String(localized: "Looking up \(key)", bundle: .module), 200, "non-numeric id")
         }
@@ -75,15 +84,19 @@ public struct TempoClient: TempoService {
         guard let issueId = payload.issueId, let author = payload.authorAccountId else {
             throw TempoError.missing(String(localized: "the issue id or account id", bundle: .module))
         }
-        guard let url = URL(string: tempoBaseURL + "/worklogs") else { throw TempoError.missing(String(localized: "a valid Tempo API URL", bundle: .module)) }
+        guard let url = URL(string: tempoBaseURL + "/worklogs") else {
+            throw TempoError.missing(String(localized: "a valid Tempo API URL", bundle: .module))
+        }
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.setValue("Bearer \(tempoToken)", forHTTPHeaderField: "Authorization")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = try JSONEncoder().encode(Body(issueId: issueId, authorAccountId: author,
-                                                     startDate: payload.startDate, startTime: payload.startTime,
-                                                     timeSpentSeconds: payload.timeSpentSeconds,
-                                                     description: payload.description))
+        req.httpBody = try JSONEncoder().encode(
+            Body(
+                issueId: issueId, authorAccountId: author,
+                startDate: payload.startDate, startTime: payload.startTime,
+                timeSpentSeconds: payload.timeSpentSeconds,
+                description: payload.description))
         let data = try await send(req, String(localized: "Creating the \(payload.issueKey) worklog", bundle: .module))
         return try JSONDecoder().decode(Created.self, from: data).tempoWorklogId
     }

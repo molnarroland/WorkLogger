@@ -1,20 +1,22 @@
 import Foundation
 import SwiftUI
 import Testing
-@testable import WorkLogger
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
+
+@testable import WorkLogger
 
 /// AppState on an in-memory database with fake services; "now" is Wed 2026-03-04 12:00 in Budapest.
 @MainActor
 @Suite struct AppStateTests {
     func gitCommit(_ hash: String, _ day: String, _ hm: String, subject: String = "TAO-1 Fix") -> GitCommit {
-        GitCommit(hash: hash, date: Fixture.at(day, hm), author: "Me", email: "me@example.com", subject: subject,
-                  body: "", ref: "", files: [FileStat(added: 10, deleted: 0, path: "a.swift")])
+        GitCommit(
+            hash: hash, date: Fixture.at(day, hm), author: "Me", email: "me@example.com", subject: subject,
+            body: "", ref: "", files: [FileStat(added: 10, deleted: 0, path: "a.swift")])
     }
 
     // MARK: Range
@@ -123,7 +125,7 @@ import WorkLoggerWeb
         app.calendars.events = [Fixture.meeting("m1", day: "2026-03-03", "09:00", "10:00", calendarId: "work")]
         app.state.refreshCalendars()
 
-        await app.state.collect()   // no author email needed without git
+        await app.state.collect()  // no author email needed without git
         #expect(app.git.logCalls.isEmpty)
         #expect(app.state.worklogs.map(\.source) == [.meeting])
         #expect(app.state.status == "Collected 1 meetings for 2026-03-01 – 2026-03-31.")
@@ -137,10 +139,10 @@ import WorkLoggerWeb
     @Test func chatsAreLoggedToAnIssueOnceAndSurviveRebuilds() throws {
         let app = try AppHarness()
         let json = """
-        {"source":"google-chat","conversations":[{"id":"dm/B","type":"dm","name":"Bea","messages":[
-          {"time":"2026-03-03T09:00:00Z","sender":"me@x","me":true,"text":"second"},
-          {"time":"2026-03-03T08:58:00Z","sender":null,"me":false,"text":"first"}]}]}
-        """
+            {"source":"google-chat","conversations":[{"id":"dm/B","type":"dm","name":"Bea","messages":[
+              {"time":"2026-03-03T09:00:00Z","sender":"me@x","me":true,"text":"second"},
+              {"time":"2026-03-03T08:58:00Z","sender":null,"me":false,"text":"first"}]}]}
+            """
         #expect(app.state.importChats(json))
         let chat = try #require(app.state.chats.first)
         #expect(app.state.chatLines(chat).map(\.text) == ["first", "second"])
@@ -156,21 +158,21 @@ import WorkLoggerWeb
     @Test func chatGapSettingAndAlwaysRules() throws {
         let app = try AppHarness()
         let json = """
-        {"source":"google-chat","conversations":[{"id":"space/T","type":"space","name":"TAO","messages":[
-          {"time":"2026-03-03T08:00:00Z","sender":"me@x","me":true,"text":"a"},
-          {"time":"2026-03-03T08:14:00Z","sender":"me@x","me":true,"text":"b"},
-          {"time":"2026-03-04T08:00:00Z","sender":"me@x","me":true,"text":"c"}]}]}
-        """
+            {"source":"google-chat","conversations":[{"id":"space/T","type":"space","name":"TAO","messages":[
+              {"time":"2026-03-03T08:00:00Z","sender":"me@x","me":true,"text":"a"},
+              {"time":"2026-03-03T08:14:00Z","sender":"me@x","me":true,"text":"b"},
+              {"time":"2026-03-04T08:00:00Z","sender":"me@x","me":true,"text":"c"}]}]}
+            """
         #expect(app.state.importChats(json))
         let tuesday = try #require(app.state.chats.first { $0.day == "2026-03-03" })
-        #expect(tuesday.activeSeconds == 120)            // 14 min apart: two one-minute stretches
+        #expect(tuesday.activeSeconds == 120)  // 14 min apart: two one-minute stretches
         app.state.settings.chatGapMinutes = 15
-        #expect(app.state.chats.first { $0.day == "2026-03-03" }?.activeSeconds == 14 * 60)   // now one stretch
+        #expect(app.state.chats.first { $0.day == "2026-03-03" }?.activeSeconds == 14 * 60)  // now one stretch
 
         app.state.setChatRule(tuesday, issue: "tao-9")
         #expect(app.state.settings.chatRules.map(\.issueKey) == ["TAO-9"])
         #expect(app.state.worklogs.filter { $0.source == .chat }.map(\.day) == ["2026-03-03", "2026-03-04"])
-        app.state.rebuild()                              // rules don't log a day twice
+        app.state.rebuild()  // rules don't log a day twice
         #expect(app.state.worklogs.filter { $0.source == .chat }.count == 2)
 
         app.state.setChatRule(tuesday, issue: nil)
@@ -208,7 +210,8 @@ import WorkLoggerWeb
         #expect(DayKey.hm(moved.start) == "10:30")
         #expect(moved.locked)
         #expect(app.state.worklogs.first { $0.id == exported.id }?.day == "2026-03-03")
-        #expect(app.state.status == String(localized: "Moved \(1) entries to \(DayKey.title("2026-03-04")).")) // "Moved 1 entry …" in English
+        // "Moved 1 entry …" in English: the catalog's singular form.
+        #expect(app.state.status == String(localized: "Moved \(1) entries to \(DayKey.title("2026-03-04"))."))
     }
 
     @Test func editsAreSavedWhenMarkedDirty() throws {
@@ -286,8 +289,10 @@ import WorkLoggerWeb
         let app = try AppHarness()
         app.secrets.set("refresh", for: SecretKey.googleRefresh)
         app.calendars.access = .granted
-        app.calendars.events = [Fixture.meeting("mac", day: "2026-03-03", "09:00", "10:00", calendarId: "work"),
-                                Fixture.meeting("private", day: "2026-03-03", "11:00", "12:00", calendarId: "home")]
+        app.calendars.events = [
+            Fixture.meeting("mac", day: "2026-03-03", "09:00", "10:00", calendarId: "work"),
+            Fixture.meeting("private", day: "2026-03-03", "11:00", "12:00", calendarId: "home"),
+        ]
         app.googleEvents = [Fixture.meeting("google", day: "2026-03-05", "14:00", "15:00", calendarId: "primary")]
         app.state.refreshCalendars()
         app.state.setCalendar("work", selected: true)
@@ -311,7 +316,7 @@ import WorkLoggerWeb
 
         app.state.disconnectGoogle()
         #expect(!app.state.googleConnected)
-        #expect(app.googleAccounts.count == 1)            // the same account is reused
+        #expect(app.googleAccounts.count == 1)  // the same account is reused
         #expect(app.googleAccounts.first?.signedOut == true)
     }
 
@@ -365,7 +370,7 @@ import WorkLoggerWeb
         #expect(app.tempo.created.map(\.authorAccountId) == ["acc-1"])
         #expect(app.state.worklogs.map(\.status) == [.exported, .draft])
         #expect(app.state.worklogs.first?.tempoId == 100)
-        #expect(app.state.status == String(localized: "Sent \(1) worklogs to Tempo."))   // "Sent 1 worklog …" in English
+        #expect(app.state.status == String(localized: "Sent \(1) worklogs to Tempo."))  // "Sent 1 worklog …" in English
         #expect(!app.state.isBusy)
     }
 

@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -17,10 +17,13 @@ struct RepositoriesView: View {
             // One compact setup card: folder, your commit emails and skipped folders as chips.
             VStack(alignment: .leading, spacing: 10) {
                 SetupRow("Workspace") {
-                    Text(state.settings.workspaceRoot.isEmpty ? String(localized: "No folder chosen") : state.settings.workspaceRoot)
-                        .font(.body.monospaced())
-                        .foregroundStyle(state.settings.workspaceRoot.isEmpty ? Color.secondary : Color.primary)
-                        .lineLimit(1).truncationMode(.middle)
+                    Text(
+                        state.settings.workspaceRoot.isEmpty
+                            ? String(localized: "No folder chosen") : state.settings.workspaceRoot
+                    )
+                    .font(.body.monospaced())
+                    .foregroundStyle(state.settings.workspaceRoot.isEmpty ? Color.secondary : Color.primary)
+                    .lineLimit(1).truncationMode(.middle)
                     Spacer()
                     Button("Choose folder…") { state.chooseWorkspace() }.buttonStyle(.glass)
                     Button("Scan again") { state.scanWorkspace() }.buttonStyle(.glassProminent)
@@ -31,7 +34,9 @@ struct RepositoriesView: View {
                 }
                 SetupRow("Skipped folders") {
                     ChipList(values: $state.settings.excludedFolders, placeholder: "name or ~/path")
-                        .help("Never scanned. A name like \"archive\" matches any folder with that name; a path like ~/Work/old matches that folder. Repositories already listed inside them are removed.")
+                        .help(
+                            "Never scanned. A name like \"archive\" matches any folder with that name; a path like ~/Work/old matches that folder. Repositories already listed inside them are removed."
+                        )
                 }
                 DisclosureGroup("Jira projects (\(state.projects.count))") {
                     VStack(alignment: .leading, spacing: 6) {
@@ -41,8 +46,12 @@ struct RepositoriesView: View {
                                 Text(p.defaultIssue ?? String(localized: "No catch-all issue"))
                                     .foregroundStyle(p.defaultIssue == nil ? Color.orange : Color.primary)
                                 Spacer()
-                                Button(role: .destructive) { state.removeProject(p) } label: { Image(systemName: "trash") }
-                                    .buttonStyle(.borderless)
+                                Button(role: .destructive) {
+                                    state.removeProject(p)
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
+                                .buttonStyle(.borderless)
                             }
                         }
                         HStack {
@@ -56,8 +65,10 @@ struct RepositoriesView: View {
                             .disabled(newProjectKey.isEmpty)
                         }
                         .textFieldStyle(.roundedBorder)
-                        Text("Tempo logs time to issues, so a repository assigned only to a project uses that project's catch-all issue.")
-                            .font(.caption).foregroundStyle(.secondary)
+                        Text(
+                            "Tempo logs time to issues, so a repository assigned only to a project uses that project's catch-all issue."
+                        )
+                        .font(.caption).foregroundStyle(.secondary)
                     }
                     .padding(.top, 6)
                 }
@@ -75,8 +86,9 @@ struct RepositoriesView: View {
             .padding(.horizontal, 16).padding(.top, 10)
 
             if state.repos.isEmpty {
-                ContentUnavailableView("No repositories yet", systemImage: "folder.badge.questionmark",
-                                       description: Text("Choose your workspace folder to find its git repositories."))
+                ContentUnavailableView(
+                    "No repositories yet", systemImage: "folder.badge.questionmark",
+                    description: Text("Choose your workspace folder to find its git repositories."))
             } else {
                 List {
                     ForEach($state.repos) { $repo in
@@ -93,7 +105,10 @@ struct RepositoriesView: View {
 private struct SetupRow<Content: View>: View {
     let title: LocalizedStringKey
     @ViewBuilder var content: Content
-    init(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) { self.title = title; self.content = content() }
+    init(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -116,9 +131,13 @@ struct ChipList: View {
                 ForEach(values, id: \.self) { v in
                     HStack(spacing: 4) {
                         Text(v).lineLimit(1)
-                        Button { values.removeAll { $0 == v } } label: { Image(systemName: "xmark").font(.caption2.weight(.bold)) }
-                            .buttonStyle(.plain).foregroundStyle(.secondary)
-                            .help("Remove \(v)")
+                        Button {
+                            values.removeAll { $0 == v }
+                        } label: {
+                            Image(systemName: "xmark").font(.caption2.weight(.bold))
+                        }
+                        .buttonStyle(.plain).foregroundStyle(.secondary)
+                        .help("Remove \(v)")
                     }
                     .font(.callout)
                     .padding(.horizontal, 10).padding(.vertical, 4)
@@ -133,7 +152,9 @@ struct ChipList: View {
     }
 
     private func add() {
-        let new = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty && !values.contains($0) }
+        let new = text.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter {
+            !$0.isEmpty && !values.contains($0)
+        }
         values += new
         text = ""
     }
@@ -160,9 +181,13 @@ struct RepoRow: View {
             // What each repository brings this month; a switch can stay off for the quiet ones.
             Text(repo.enabled ? "\(state.commitCounts[repo.id] ?? 0) commits" : "—")
                 .monospacedDigit().foregroundStyle(.secondary).frame(width: 90, alignment: .trailing)
-            Button(role: .destructive) { state.removeRepo(repo) } label: { Image(systemName: "trash") }
-                .buttonStyle(.borderless)
-                .help("Remove from the list (the repository on disk is not touched)")
+            Button(role: .destructive) {
+                state.removeRepo(repo)
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+            .help("Remove from the list (the repository on disk is not touched)")
         }
         .opacity(repo.enabled ? 1 : 0.55)
         .onChange(of: repo) { state.update(repo) }

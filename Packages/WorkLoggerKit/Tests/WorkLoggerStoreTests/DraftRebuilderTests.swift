@@ -1,8 +1,9 @@
 import Foundation
 import Testing
-@testable import WorkLoggerStore
 import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerStore
 
 /// Rebuilds against an in-memory database. The range is Mon 2026-03-02 … Fri 2026-03-06.
 @Suite struct DraftRebuilderTests {
@@ -68,8 +69,10 @@ import WorkLoggerTestSupport
     @Test func leaveDayGetsAbsenceAndItsCommitsMoveToTheDayBefore() throws {
         var settings = AppSettings()
         settings.absenceIssueKey = "HR-1"
-        try db.importTimesheet(ParsedTimesheet(days: [
-            DayRecord(day: "2026-03-04", status: .leave, label: "Szabadság", reportedWorked: nil, reportedBreaks: nil)]))
+        try db.importTimesheet(
+            ParsedTimesheet(days: [
+                DayRecord(day: "2026-03-04", status: .leave, label: "Szabadság", reportedWorked: nil, reportedBreaks: nil)
+            ]))
         try commit("a", "2026-03-04")
 
         let logs = try rebuild(settings)

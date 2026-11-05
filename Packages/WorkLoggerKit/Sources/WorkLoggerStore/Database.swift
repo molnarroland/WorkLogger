@@ -1,11 +1,13 @@
 import Foundation
-import WorkLoggerCore
 import SQLite3
+import WorkLoggerCore
 
 private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
 public enum DBError: LocalizedError {
-    case open(String), prepare(String), step(String)
+    case open(String)
+    case prepare(String)
+    case step(String)
     public var errorDescription: String? {
         switch self {
         case .open(let m), .prepare(let m), .step(let m): return m
@@ -14,7 +16,10 @@ public enum DBError: LocalizedError {
 }
 
 public enum SQLValue {
-    case int(Int64), double(Double), text(String), null
+    case int(Int64)
+    case double(Double)
+    case text(String)
+    case null
 
     public static func of(_ s: String?) -> SQLValue { s.map { .text($0) } ?? .null }
     public static func of(_ i: Int64?) -> SQLValue { i.map { .int($0) } ?? .null }
@@ -131,7 +136,11 @@ public final class Database {
                 case SQLITE_INTEGER: dict[name] = .int(sqlite3_column_int64(stmt, i))
                 case SQLITE_FLOAT: dict[name] = .double(sqlite3_column_double(stmt, i))
                 case SQLITE_TEXT:
-                    if let text = sqlite3_column_text(stmt, i) { dict[name] = .text(String(cString: text)) } else { dict[name] = .text("") }
+                    if let text = sqlite3_column_text(stmt, i) {
+                        dict[name] = .text(String(cString: text))
+                    } else {
+                        dict[name] = .text("")
+                    }
                 default: dict[name] = .null
                 }
             }

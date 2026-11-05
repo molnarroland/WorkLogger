@@ -4,8 +4,10 @@ import Foundation
 public struct CommitEstimator: Sendable {
     public var settings: AppSettings
 
-    private static let trivial = ["typo", "bump", "version", "merge", "format", "lint", "cs fix", "cs-fix",
-                                  "style:", "chore", "rename", "wip"]
+    private static let trivial = [
+        "typo", "bump", "version", "merge", "format", "lint", "cs fix", "cs-fix",
+        "style:", "chore", "rename", "wip",
+    ]
     private static let heavy = ["refactor", "migrat", "rewrite", "redesign", "architecture"]
     private static let debugging = ["fix", "bug", "hotfix", "debug", "investigat"]
     private static let testing = ["test", "spec"]
@@ -20,7 +22,7 @@ public struct CommitEstimator: Sendable {
         } else if Self.heavy.contains(where: { subject.contains($0) }) {
             minutes *= 1.3
         } else if Self.debugging.contains(where: { subject.contains($0) }) {
-            minutes *= 1.15   // small diffs often hide long investigations
+            minutes *= 1.15  // small diffs often hide long investigations
         } else if Self.testing.contains(where: { subject.contains($0) }) {
             minutes *= 1.1
         }

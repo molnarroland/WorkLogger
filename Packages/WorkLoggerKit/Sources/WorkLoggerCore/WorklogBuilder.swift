@@ -10,7 +10,10 @@ public struct DayInput: Sendable {
     /// Day status and totals from the HR system, when imported.
     public var info: DayRecord? = nil
 
-    public init(day: String, sessions: [WorkSession], commits: [StoredCommit], meetings: [Meeting], kept: [Worklog], info: DayRecord? = nil) {
+    public init(
+        day: String, sessions: [WorkSession], commits: [StoredCommit], meetings: [Meeting], kept: [Worklog],
+        info: DayRecord? = nil
+    ) {
         self.day = day
         self.sessions = sessions
         self.commits = commits
@@ -128,9 +131,10 @@ public struct WorklogBuilder: Sendable {
         let seconds = info.reportedWorked ?? (info.status == .leave ? Int(settings.fixedDailyHours * 3600) : 0)
         guard seconds > 0 else { return nil }
         let start = DayKey.at(input.day, hm: settings.defaultDayStart) ?? DayKey.date(input.day)
-        return Worklog(id: 0, day: input.day, start: start, duration: seconds, issueKey: issue,
-                       description: info.label.isEmpty ? "Absence" : info.label, source: .absence, sourceRef: ref,
-                       repoId: nil, estimated: seconds, status: .draft, locked: false, tempoId: nil)
+        return Worklog(
+            id: 0, day: input.day, start: start, duration: seconds, issueKey: issue,
+            description: info.label.isEmpty ? "Absence" : info.label, source: .absence, sourceRef: ref,
+            repoId: nil, estimated: seconds, status: .draft, locked: false, tempoId: nil)
     }
 
     // MARK: Work windows
@@ -140,7 +144,7 @@ public struct WorklogBuilder: Sendable {
         let pauses = input.sessions.pauseIntervals
         if !input.sessions.workIntervals.isEmpty { return (input.sessions.netWork, true) }
         guard let s = DayKey.at(input.day, hm: settings.defaultDayStart),
-              let e = DayKey.at(input.day, hm: settings.defaultDayEnd), e > s
+            let e = DayKey.at(input.day, hm: settings.defaultDayEnd), e > s
         else { return ([], false) }
         return (Intervals.subtract([Interval(start: s, end: e)], pauses), false)
     }
@@ -165,7 +169,9 @@ public struct WorklogBuilder: Sendable {
         if input.info?.status == .leave { return absence.map { [$0] } ?? [] }
         let period = period(for: input.day)
         let fillsPeriod = period != nil && (hasWorkSessions || isWorkday(input.day, info: input.info))
-        guard !input.commits.isEmpty || !input.meetings.isEmpty || hasWorkSessions || absence != nil || fillsPeriod else { return [] }
+        guard !input.commits.isEmpty || !input.meetings.isEmpty || hasWorkSessions || absence != nil || fillsPeriod else {
+            return []
+        }
 
         let (windows, fromSessions) = workWindows(input)
         let gran = max(1, settings.granularityMinutes) * 60
@@ -178,11 +184,14 @@ public struct WorklogBuilder: Sendable {
             .sorted { $0.start < $1.start }
         for m in meetings {
             let seconds = roundTo(m.duration, gran, minimum: gran)
-            out.append(Worklog(id: 0, day: input.day, start: m.start, duration: seconds, issueKey: self.issue(for: m),
-                               description: m.title, source: .meeting, sourceRef: m.id, repoId: nil,
-                               estimated: m.duration, status: .draft, locked: false, tempoId: nil))
+            out.append(
+                Worklog(
+                    id: 0, day: input.day, start: m.start, duration: seconds, issueKey: self.issue(for: m),
+                    description: m.title, source: .meeting, sourceRef: m.id, repoId: nil,
+                    estimated: m.duration, status: .draft, locked: false, tempoId: nil))
         }
-        let meetingIntervals = meetings.map { Interval(start: $0.start, end: $0.end) }
+        let meetingIntervals =
+            meetings.map { Interval(start: $0.start, end: $0.end) }
             + (absence.map { [Interval(start: $0.start, end: $0.end)] } ?? [])
         let keptIntervals = input.kept.map { Interval(start: $0.start, end: $0.end) }
         let free = Intervals.subtract(windows, meetingIntervals + keptIntervals)
@@ -209,8 +218,10 @@ public struct WorklogBuilder: Sendable {
                 if !blocks[i].subjects.contains(subject) { blocks[i].subjects.append(subject) }
                 blocks[i].hashes.append(c.hash)
             } else {
-                blocks.append(Block(key: key, issue: resolved, repoId: c.repoId, seconds: seconds,
-                                    subjects: [subject], hashes: [c.hash]))
+                blocks.append(
+                    Block(
+                        key: key, issue: resolved, repoId: c.repoId, seconds: seconds,
+                        subjects: [subject], hashes: [c.hash]))
             }
         }
 
@@ -225,23 +236,33 @@ public struct WorklogBuilder: Sendable {
             if hashes.isEmpty && (!fillsPeriod || usedRefs.contains(fillRef)) {
                 blocks = []
             } else {
-                let seconds = hashes.isEmpty ? max(0, Int(settings.fixedDailyHours * 3600) - fixedTotal)
-                                             : blocks.reduce(0) { $0 + $1.seconds }
-                blocks = [Block(key: issue, issue: issue, repoId: blocks.first?.repoId, seconds: seconds,
-                                subjects: blocks.flatMap(\.subjects), hashes: hashes + [fillRef], period: period)]
+                let seconds =
+                    hashes.isEmpty
+                    ? max(0, Int(settings.fixedDailyHours * 3600) - fixedTotal)
+                    : blocks.reduce(0) { $0 + $1.seconds }
+                blocks = [
+                    Block(
+                        key: issue, issue: issue, repoId: blocks.first?.repoId, seconds: seconds,
+                        subjects: blocks.flatMap(\.subjects), hashes: hashes + [fillRef], period: period)
+                ]
             }
         }
         let gitTarget = target.map { max(0, roundTo($0, gran) - fixedTotal) }
         let allocations = Self.allocate(blocks.map(\.seconds), target: gitTarget, granularity: gran)
 
         // 4. Place commit blocks into the free time, in the order the work happened.
-        var cursor = free.first?.start ?? commits.first?.date ?? DayKey.at(input.day, hm: settings.defaultDayStart) ?? DayKey.date(input.day)
+        var cursor =
+            free.first?.start ?? commits.first?.date ?? DayKey.at(input.day, hm: settings.defaultDayStart)
+            ?? DayKey.date(input.day)
         for (i, b) in blocks.enumerated() where b.period == nil || allocations[i] > 0 {
             let (start, next) = Self.place(duration: allocations[i], from: cursor, in: free)
             cursor = next
-            out.append(Worklog(id: 0, day: input.day, start: start, duration: allocations[i], issueKey: b.issue,
-                               description: describe(b), source: b.period == nil ? .git : .period, sourceRef: b.hashes.joined(separator: ","),
-                               repoId: b.repoId, estimated: b.seconds, status: .draft, locked: false, tempoId: nil))
+            out.append(
+                Worklog(
+                    id: 0, day: input.day, start: start, duration: allocations[i], issueKey: b.issue,
+                    description: describe(b), source: b.period == nil ? .git : .period,
+                    sourceRef: b.hashes.joined(separator: ","),
+                    repoId: b.repoId, estimated: b.seconds, status: .draft, locked: false, tempoId: nil))
         }
         return out.sorted { $0.start < $1.start }
     }
@@ -306,7 +327,7 @@ public struct WorklogBuilder: Sendable {
             t = slot.end
         }
         let s = start ?? t
-        return (s, t.addingTimeInterval(remaining))   // overflows past the last window
+        return (s, t.addingTimeInterval(remaining))  // overflows past the last window
     }
 
     public init(settings: AppSettings, repos: [Int64: Repo], projects: [String: ProjectMapping]) {

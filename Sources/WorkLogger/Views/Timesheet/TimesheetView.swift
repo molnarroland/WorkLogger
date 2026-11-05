@@ -1,9 +1,9 @@
-import SwiftUI
 import AppKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
+import SwiftUI
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -18,7 +18,7 @@ struct TimesheetView: View {
     private var weeks: [[String]] {
         let cal = DayKey.calendar
         guard let first = cal.dateInterval(of: .weekOfYear, for: state.rangeStart)?.start,
-              let last = cal.dateInterval(of: .weekOfYear, for: state.rangeEnd.addingTimeInterval(-1))?.end
+            let last = cal.dateInterval(of: .weekOfYear, for: state.rangeEnd.addingTimeInterval(-1))?.end
         else { return [] }
         let days = DayKey.days(from: first, to: last.addingTimeInterval(-1))
         return stride(from: 0, to: days.count, by: 7).map { Array(days[$0..<min($0 + 7, days.count)]) }
@@ -62,13 +62,21 @@ struct TimesheetView: View {
 
     private func header(logged: Int, expected: Int) -> some View {
         HStack(spacing: 10) {
-            Button { state.shiftMonth(-1) } label: { Image(systemName: "chevron.left") }
-                .buttonStyle(.glass)
+            Button {
+                state.shiftMonth(-1)
+            } label: {
+                Image(systemName: "chevron.left")
+            }
+            .buttonStyle(.glass)
             Text(state.rangeStart.formatted(.dateTime.month(.wide).year()))
                 .font(.title2.weight(.semibold))
                 .frame(minWidth: 170)
-            Button { state.shiftMonth(1) } label: { Image(systemName: "chevron.right") }
-                .buttonStyle(.glass)
+            Button {
+                state.shiftMonth(1)
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .buttonStyle(.glass)
             Button("This month") { state.setRange(.thisMonth) }
                 .buttonStyle(.glass)
             Spacer()
@@ -77,7 +85,9 @@ struct TimesheetView: View {
                     .font(.headline).monospacedDigit()
                 let gap = expected - logged
                 let missing = state.worklogs.missingIssue.count
-                let left = gap > 0 ? String(localized: "\(DurationFormat.string(gap)) still to log") : String(localized: "Everything logged")
+                let left =
+                    gap > 0
+                    ? String(localized: "\(DurationFormat.string(gap)) still to log") : String(localized: "Everything logged")
                 Text(missing > 0 ? String(localized: "\(left) · \(missing) need a ticket") : left)
                     .font(.callout)
                     .foregroundStyle(gap > 0 || missing > 0 ? Color.orange : Color.green)

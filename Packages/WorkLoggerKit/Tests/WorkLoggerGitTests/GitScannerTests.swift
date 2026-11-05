@@ -1,7 +1,8 @@
-import XCTest
-@testable import WorkLoggerGit
-import WorkLoggerTestSupport
 import WorkLoggerCore
+import WorkLoggerTestSupport
+import XCTest
+
+@testable import WorkLoggerGit
 
 final class GitScannerTests: XCTestCase {
     func testExcludedFolders() {

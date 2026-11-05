@@ -25,7 +25,9 @@ struct MenuBarView: View {
             if progress.missing > 0 || progress.total > 0 {
                 VStack(alignment: .leading, spacing: 2) {
                     if progress.missing > 0 { Text("\(progress.missing) entries need a ticket").foregroundStyle(.orange) }
-                    if progress.total > 0 { Text("\(progress.entered) of \(progress.total) ticket-days in Tempo").monospacedDigit() }
+                    if progress.total > 0 {
+                        Text("\(progress.entered) of \(progress.total) ticket-days in Tempo").monospacedDigit()
+                    }
                 }
                 .font(.callout)
             }

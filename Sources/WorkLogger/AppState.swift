@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -58,7 +58,7 @@ final class AppState {
         self.services = services
         var loaded = db.loadSettings()
         let added = Set(Module.allCases).subtracting(loaded.knownModules)
-        if !added.isEmpty {   // modules added in a later version start switched on
+        if !added.isEmpty {  // modules added in a later version start switched on
             loaded.modules.formUnion(added)
             loaded.knownModules = Set(Module.allCases)
         }
@@ -70,7 +70,8 @@ final class AppState {
         reloadAll()
         refreshCalendars()
         // New accounts and calendars sync in the background; refresh the list when macOS reports a change.
-        calendarObserver = NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: nil, queue: .main) { [weak self] _ in
+        calendarObserver = NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: nil, queue: .main) {
+            [weak self] _ in
             MainActor.assumeIsolated { self?.refreshCalendars() }
         }
     }
@@ -85,7 +86,9 @@ final class AppState {
         do {
             var url = databaseURL ?? dir.appendingPathComponent("worklogs.sqlite")
             #if DEBUG
-            if databaseURL == nil, let path = UserDefaults.standard.string(forKey: "WLDatabase") { url = URL(fileURLWithPath: path) }
+                if databaseURL == nil, let path = UserDefaults.standard.string(forKey: "WLDatabase") {
+                    url = URL(fileURLWithPath: path)
+                }
             #endif
             database = try Database(url: url)
         } catch {
@@ -137,7 +140,8 @@ final class AppState {
             commitCounts = try db.commitCounts(from: rangeStart, to: rangeEnd)
             meetings = on.contains(.calendar) ? try db.meetings(from: rangeStart, to: rangeEnd) : []
             sessions = on.contains(.workTimes) ? try db.sessions(fromDay: fromDay, toDay: toDay) : []
-            dayRecords = on.contains(.workTimes)
+            dayRecords =
+                on.contains(.workTimes)
                 ? Dictionary(uniqueKeysWithValues: try db.dayRecords(fromDay: fromDay, toDay: toDay).map { ($0.day, $0) }) : [:]
         }
         dirty.removeAll()
@@ -150,16 +154,18 @@ final class AppState {
     }
 
     func makeBuilder() -> WorklogBuilder {
-        WorklogBuilder(settings: settings,
-                       repos: Dictionary(uniqueKeysWithValues: repos.map { ($0.id, $0) }),
-                       projects: Dictionary(uniqueKeysWithValues: projects.map { ($0.key, $0) }))
+        WorklogBuilder(
+            settings: settings,
+            repos: Dictionary(uniqueKeysWithValues: repos.map { ($0.id, $0) }),
+            projects: Dictionary(uniqueKeysWithValues: projects.map { ($0.key, $0) }))
     }
 
     /// The hours a day should add up to under the current rounding mode, if any.
     func target(day: String, builder: WorklogBuilder? = nil) -> Int? {
         let builder = builder ?? makeBuilder()
-        let input = DayInput(day: day, sessions: sessions.filter { $0.day == day }, commits: [], meetings: [],
-                             kept: [], info: dayRecords[day])
+        let input = DayInput(
+            day: day, sessions: sessions.filter { $0.day == day }, commits: [], meetings: [],
+            kept: [], info: dayRecords[day])
         let (windows, fromSessions) = builder.workWindows(input)
         return builder.dailyTarget(day: day, info: dayRecords[day], windows: windows, fromSessions: fromSessions)
     }

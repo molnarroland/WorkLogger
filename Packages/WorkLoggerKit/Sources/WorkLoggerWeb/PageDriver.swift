@@ -17,7 +17,9 @@ public protocol PageDriver: AnyObject {
 }
 
 public enum WebSessionError: LocalizedError {
-    case timeout(String), notSignedIn(String), script(String)
+    case timeout(String)
+    case notSignedIn(String)
+    case script(String)
     public var errorDescription: String? {
         switch self {
         case .timeout(let s): return String(localized: "\(s) did not finish loading.", bundle: .module)

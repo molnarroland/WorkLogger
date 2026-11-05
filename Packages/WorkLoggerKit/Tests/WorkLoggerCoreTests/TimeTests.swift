@@ -1,7 +1,8 @@
 import Foundation
 import Testing
-@testable import WorkLoggerCore
 import WorkLoggerTestSupport
+
+@testable import WorkLoggerCore
 
 @Suite struct DayKeyTests {
     init() { Fixture.pinTimeZone() }
@@ -25,7 +26,7 @@ import WorkLoggerTestSupport
     }
 
     @Test func boundsFollowDaylightSaving() {
-        let (start, end) = DayKey.bounds("2026-03-29")   // clocks go forward: a 23-hour day
+        let (start, end) = DayKey.bounds("2026-03-29")  // clocks go forward: a 23-hour day
         #expect(end.timeIntervalSince(start) == 23 * 3600)
         let (s2, e2) = DayKey.bounds("2026-03-30")
         #expect(e2.timeIntervalSince(s2) == 24 * 3600)
@@ -44,9 +45,9 @@ import WorkLoggerTestSupport
     }
 
     @Test func weekends() {
-        #expect(DayKey.isWeekend("2026-03-07"))    // Saturday
-        #expect(DayKey.isWeekend("2026-03-08"))    // Sunday
-        #expect(!DayKey.isWeekend("2026-03-06"))   // Friday
+        #expect(DayKey.isWeekend("2026-03-07"))  // Saturday
+        #expect(DayKey.isWeekend("2026-03-08"))  // Sunday
+        #expect(!DayKey.isWeekend("2026-03-06"))  // Friday
     }
 
     @Test func weeksStartOnMonday() {
@@ -59,8 +60,10 @@ import WorkLoggerTestSupport
     let day = "2026-03-03"
 
     @Test func normalizeMergesOverlappingAndTouchingAndDropsEmpty() {
-        let list = [Fixture.interval(day, "11:00", "12:00"), Fixture.interval(day, "09:00", "10:00"),
-                    Fixture.interval(day, "09:30", "11:00"), Fixture.interval(day, "13:00", "13:00")]
+        let list = [
+            Fixture.interval(day, "11:00", "12:00"), Fixture.interval(day, "09:00", "10:00"),
+            Fixture.interval(day, "09:30", "11:00"), Fixture.interval(day, "13:00", "13:00"),
+        ]
         #expect(Intervals.normalize(list) == [Fixture.interval(day, "09:00", "12:00")])
     }
 

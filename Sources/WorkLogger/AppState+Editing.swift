@@ -1,11 +1,11 @@
+import EventKit
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
-import EventKit
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -36,8 +36,9 @@ extension AppState {
         saveDirty()
         let lastEnd = worklogs.filter { $0.day == day }.map(\.end).max()
         let start = lastEnd ?? DayKey.at(day, hm: settings.defaultDayStart) ?? DayKey.date(day)
-        let w = Worklog(id: 0, day: day, start: start, duration: 30 * 60, issueKey: nil, description: "",
-                        source: .manual, sourceRef: "", repoId: nil, estimated: 0, status: .draft, locked: true, tempoId: nil)
+        let w = Worklog(
+            id: 0, day: day, start: start, duration: 30 * 60, issueKey: nil, description: "",
+            source: .manual, sourceRef: "", repoId: nil, estimated: 0, status: .draft, locked: true, tempoId: nil)
         attempt("Adding") { try db.insertWorklog(w) }
         reloadRange()
     }
@@ -45,7 +46,8 @@ extension AppState {
     /// Drag & drop on the timesheet: moves entries to another day, after its last entry, and locks them so a rebuild keeps them.
     func move(_ ids: Set<Int64>, to day: String) {
         saveDirty()
-        var cursor = worklogs.filter { $0.day == day }.map(\.end).max()
+        var cursor =
+            worklogs.filter { $0.day == day }.map(\.end).max()
             ?? DayKey.at(day, hm: settings.defaultDayStart) ?? DayKey.date(day)
         var moved = 0
         attempt("Moving") {

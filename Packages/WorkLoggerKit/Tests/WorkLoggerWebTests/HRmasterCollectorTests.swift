@@ -1,21 +1,26 @@
 import Foundation
 import Testing
-@testable import WorkLoggerWeb
-import WorkLoggerTestSupport
 import WorkLoggerCore
+import WorkLoggerTestSupport
+
+@testable import WorkLoggerWeb
 
 @MainActor
 @Suite struct HRmasterCollectorTests {
     @Test func addressIsReducedToTheCompanySite() {
         #expect(HRmasterCollector.normalize("flexinform.hrmaster.hu")?.absoluteString == "https://flexinform.hrmaster.hu")
-        #expect(HRmasterCollector.normalize(" https://flexinform.hrmaster.hu/Datacenter/#/x ")?.absoluteString == "https://flexinform.hrmaster.hu")
+        #expect(
+            HRmasterCollector.normalize(" https://flexinform.hrmaster.hu/Datacenter/#/x ")?.absoluteString
+                == "https://flexinform.hrmaster.hu")
         #expect(HRmasterCollector.normalize("") == nil)
         #expect(HRmasterCollector.normalize("nonsense") == nil)
     }
 
     @Test func workingTimePage() {
         let base = HRmasterCollector.normalize("flexinform.hrmaster.hu")!
-        #expect(HRmasterCollector.workingTimeURL(base).absoluteString == "https://flexinform.hrmaster.hu/Datacenter/#/employeeWorkingTime/own")
+        #expect(
+            HRmasterCollector.workingTimeURL(base).absoluteString
+                == "https://flexinform.hrmaster.hu/Datacenter/#/employeeWorkingTime/own")
     }
 
     @Test func rangeIsReadMonthByMonth() {

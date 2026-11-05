@@ -10,6 +10,8 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+      - name: Style (swift-format, .swift-format)
+        run: swift format lint --strict --recursive --parallel Sources Tests Packages/WorkLoggerKit/Sources Packages/WorkLoggerKit/Tests
       - name: Package tests (Core, Store, Git, Calendar, Tempo, Web)
         run: swift test --package-path Packages/WorkLoggerKit
       - name: App and package tests through the workspace

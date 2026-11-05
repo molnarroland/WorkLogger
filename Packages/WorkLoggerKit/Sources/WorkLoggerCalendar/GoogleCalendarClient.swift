@@ -67,10 +67,14 @@ public struct GoogleCalendarClient {
 
             for e in page.items ?? [] {
                 guard e.status != "cancelled", let start = e.start?.dateTime, let end = e.end?.dateTime else { continue }
-                if let type = e.eventType, ["workingLocation", "outOfOffice", "focusTime", "birthday"].contains(type) { continue }
+                if let type = e.eventType, ["workingLocation", "outOfOffice", "focusTime", "birthday"].contains(type) {
+                    continue
+                }
                 if e.attendees?.first(where: { $0.isSelf == true })?.responseStatus == "declined" { continue }
-                result.append(Meeting(id: e.id, calendarId: calendarId, title: e.summary ?? "(no title)",
-                                      details: e.description ?? "", start: start, end: end, skipped: false))
+                result.append(
+                    Meeting(
+                        id: e.id, calendarId: calendarId, title: e.summary ?? "(no title)",
+                        details: e.description ?? "", start: start, end: end, skipped: false))
             }
             pageToken = page.nextPageToken
         } while pageToken != nil

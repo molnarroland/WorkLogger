@@ -2,8 +2,10 @@ import Foundation
 import WorkLoggerCore
 
 public enum GitScanner {
-    private static let skipped: Set<String> = ["node_modules", "vendor", "build", "dist", ".build",
-                                               "Pods", "DerivedData", "storage", "target"]
+    private static let skipped: Set<String> = [
+        "node_modules", "vendor", "build", "dist", ".build",
+        "Pods", "DerivedData", "storage", "target",
+    ]
 
     /// Finds git repositories (and worktrees) below a workspace folder.
     public static func findRepos(root: URL, excluded: [String] = [], maxDepth: Int = 4) -> [URL] {
@@ -14,11 +16,12 @@ public enum GitScanner {
             if isExcluded(url.path, by: excluded) { return }
             if fm.fileExists(atPath: url.appendingPathComponent(".git").path) {
                 result.append(url)
-                return   // don't descend into a repo (skips submodules and vendored repos)
+                return  // don't descend into a repo (skips submodules and vendored repos)
             }
             guard depth < maxDepth,
-                  let items = try? fm.contentsOfDirectory(at: url, includingPropertiesForKeys: [.isDirectoryKey],
-                                                          options: [.skipsHiddenFiles, .skipsPackageDescendants])
+                let items = try? fm.contentsOfDirectory(
+                    at: url, includingPropertiesForKeys: [.isDirectoryKey],
+                    options: [.skipsHiddenFiles, .skipsPackageDescendants])
             else { return }
             for item in items where !skipped.contains(item.lastPathComponent) {
                 if (try? item.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true {

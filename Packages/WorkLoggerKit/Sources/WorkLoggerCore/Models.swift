@@ -54,7 +54,9 @@ public struct GitCommit: Hashable, Sendable {
     public var ref: String
     public var files: [FileStat]
 
-    public init(hash: String, date: Date, author: String, email: String, subject: String, body: String, ref: String, files: [FileStat]) {
+    public init(
+        hash: String, date: Date, author: String, email: String, subject: String, body: String, ref: String, files: [FileStat]
+    ) {
         self.hash = hash
         self.date = date
         self.author = author
@@ -80,20 +82,31 @@ public struct StoredCommit: Hashable, Sendable {
     public var insertions: Int
     public var deletions: Int
 
-    public init(repoId: Int64, hash: String, date: Date, author: String, email: String, subject: String,
-         body: String, ref: String, filesChanged: Int, insertions: Int, deletions: Int) {
-        self.repoId = repoId; self.hash = hash; self.date = date; self.author = author; self.email = email
-        self.subject = subject; self.body = body; self.ref = ref
-        self.filesChanged = filesChanged; self.insertions = insertions; self.deletions = deletions
+    public init(
+        repoId: Int64, hash: String, date: Date, author: String, email: String, subject: String,
+        body: String, ref: String, filesChanged: Int, insertions: Int, deletions: Int
+    ) {
+        self.repoId = repoId
+        self.hash = hash
+        self.date = date
+        self.author = author
+        self.email = email
+        self.subject = subject
+        self.body = body
+        self.ref = ref
+        self.filesChanged = filesChanged
+        self.insertions = insertions
+        self.deletions = deletions
     }
 
     public init(_ c: GitCommit, repoId: Int64, ignoredPaths: [String]) {
         let files = c.files.filter { f in !ignoredPaths.contains { !$0.isEmpty && f.path.contains($0) } }
-        self.init(repoId: repoId, hash: c.hash, date: c.date, author: c.author, email: c.email,
-                  subject: c.subject, body: c.body, ref: c.ref,
-                  filesChanged: files.count,
-                  insertions: files.reduce(0) { $0 + $1.added },
-                  deletions: files.reduce(0) { $0 + $1.deleted })
+        self.init(
+            repoId: repoId, hash: c.hash, date: c.date, author: c.author, email: c.email,
+            subject: c.subject, body: c.body, ref: c.ref,
+            filesChanged: files.count,
+            insertions: files.reduce(0) { $0 + $1.added },
+            deletions: files.reduce(0) { $0 + $1.deleted })
     }
 }
 
@@ -176,15 +189,15 @@ public struct Worklog: Identifiable, Hashable, Sendable {
     public var id: Int64
     public var day: String
     public var start: Date
-    public var duration: Int          // seconds
+    public var duration: Int  // seconds
     public var issueKey: String?
     public var description: String
     public var source: WorklogSource
-    public var sourceRef: String      // commit hashes or calendar event id, comma separated
+    public var sourceRef: String  // commit hashes or calendar event id, comma separated
     public var repoId: Int64?
-    public var estimated: Int         // raw estimate before daily rounding, seconds
+    public var estimated: Int  // raw estimate before daily rounding, seconds
     public var status: WorklogStatus
-    public var locked: Bool           // kept when drafts are rebuilt
+    public var locked: Bool  // kept when drafts are rebuilt
     public var tempoId: Int64?
 
     public var refs: [String] { sourceRef.split(separator: ",").map(String.init) }
@@ -195,7 +208,10 @@ public struct Worklog: Identifiable, Hashable, Sendable {
             && description == other.description && status == other.status
     }
 
-    public init(id: Int64, day: String, start: Date, duration: Int, issueKey: String?, description: String, source: WorklogSource, sourceRef: String, repoId: Int64?, estimated: Int, status: WorklogStatus, locked: Bool, tempoId: Int64?) {
+    public init(
+        id: Int64, day: String, start: Date, duration: Int, issueKey: String?, description: String, source: WorklogSource,
+        sourceRef: String, repoId: Int64?, estimated: Int, status: WorklogStatus, locked: Bool, tempoId: Int64?
+    ) {
         self.id = id
         self.day = day
         self.start = start

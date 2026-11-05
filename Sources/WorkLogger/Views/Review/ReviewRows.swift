@@ -1,8 +1,8 @@
 import SwiftUI
-import WorkLoggerCore
-import WorkLoggerStore
-import WorkLoggerGit
 import WorkLoggerCalendar
+import WorkLoggerCore
+import WorkLoggerGit
+import WorkLoggerStore
 import WorkLoggerTempo
 import WorkLoggerWeb
 
@@ -138,13 +138,19 @@ struct WorklogRow: View {
             .buttonStyle(.borderless)
         }
         .onAppear(perform: syncTexts)
-        .onDisappear { applyStart(); applyDuration() }   // keep typed text when another row is selected
+        .onDisappear {
+            applyStart()
+            applyDuration()
+        }  // keep typed text when another row is selected
         .onChange(of: focus) { old, _ in
             if old == .start { applyStart() }
             if old == .duration { applyDuration() }
         }
         .onChange(of: log) { old, new in
-            guard old.id == new.id else { syncTexts(); return }
+            guard old.id == new.id else {
+                syncTexts()
+                return
+            }
             // Editing an entry locks it so a rebuild won't overwrite the correction.
             if !old.sameContent(as: new) && !new.locked { log.locked = true }
             state.markDirty(new.id)
