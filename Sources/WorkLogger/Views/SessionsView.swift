@@ -72,8 +72,12 @@ struct SessionList: View {
                     // One strip across the working hours: a missing afternoon or a long lunch stands out at a glance.
                     DayStrip(sessions: items)
                         .help(
-                            items.map { "\($0.kind == .work ? "Work" : "Break") \(DayKey.hm($0.start))–\(DayKey.hm($0.end))" }
-                                .joined(separator: "\n"))
+                            items.map {
+                                let (from, to) = (DayKey.hm($0.start), DayKey.hm($0.end))
+                                return $0.kind == .work
+                                    ? String(localized: "Work \(from)–\(to)") : String(localized: "Break \(from)–\(to)")
+                            }
+                            .joined(separator: "\n"))
                 } header: {
                     HStack(spacing: 10) {
                         Text(DayKey.title(day))

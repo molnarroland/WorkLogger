@@ -1,0 +1,76 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Add the Google OAuth client ID and secret first.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Előbb add meg a Google OAuth-kliensazonosítót és -titkot."
+          }
+        }
+      }
+    },
+    "Google Calendar is not connected.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Google Naptár nincs csatlakoztatva."
+          }
+        }
+      }
+    },
+    "Google returned an unexpected response: %@": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Google váratlan választ adott: %@"
+          }
+        }
+      }
+    },
+    "Google sign-in timed out. Try connecting again.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Google-bejelentkezés időtúllépés miatt megszakadt. Próbáld újra."
+          }
+        }
+      }
+    },
+    "Google sign-in was cancelled (%@).": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Google-bejelentkezés megszakadt (%@)."
+          }
+        }
+      }
+    },
+    "WorkLogger received the Google response.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A WorkLogger megkapta a Google válaszát."
+          }
+        }
+      }
+    },
+    "You can close this tab and return to the app.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezárhatod ezt a lapot, és visszatérhetsz az alkalmazásba."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

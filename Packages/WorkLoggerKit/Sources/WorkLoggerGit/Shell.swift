@@ -6,7 +6,8 @@ public enum ShellError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .failed(let cmd, let code, let err):
-            return "\(cmd) exited with \(code): \(err.trimmingCharacters(in: .whitespacesAndNewlines))"
+            let message = err.trimmingCharacters(in: .whitespacesAndNewlines)
+            return String(localized: "\(cmd) exited with \(Int(code)): \(message)", bundle: .module)
         }
     }
 }

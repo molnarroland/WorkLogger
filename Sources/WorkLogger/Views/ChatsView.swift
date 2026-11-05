@@ -70,6 +70,8 @@ private struct ChatPasteSheet: View {
     @Environment(AppState.self) private var state
     @Environment(\.dismiss) private var dismiss
     @State private var text = ""
+    /// The last import failed; the reason is in the status (in any language).
+    @State private var failed = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -83,12 +85,15 @@ private struct ChatPasteSheet: View {
                 Spacer()
                 Button("Cancel") { dismiss() }.buttonStyle(.glass)
                     .keyboardShortcut(.cancelAction)
-                Button("Import") { if state.importChats(text) { dismiss() } }
-                    .buttonStyle(.glassProminent)
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(text.isEmpty)
+                Button("Import") {
+                    failed = !state.importChats(text)
+                    if !failed { dismiss() }
+                }
+                .buttonStyle(.glassProminent)
+                .keyboardShortcut(.defaultAction)
+                .disabled(text.isEmpty)
             }
-            if state.status.hasPrefix("Chat import failed") {
+            if failed {
                 Text(state.status).foregroundStyle(.red).font(.callout)
             }
         }

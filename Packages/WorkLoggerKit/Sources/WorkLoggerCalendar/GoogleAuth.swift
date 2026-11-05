@@ -11,11 +11,11 @@ public enum GoogleAuthError: LocalizedError {
     case timedOut
     public var errorDescription: String? {
         switch self {
-        case .notConfigured: return "Add the Google OAuth client ID and secret first."
-        case .notSignedIn: return "Google Calendar is not connected."
-        case .denied(let e): return "Google sign-in was cancelled (\(e))."
-        case .badResponse(let e): return "Google returned an unexpected response: \(e)"
-        case .timedOut: return "Google sign-in timed out. Try connecting again."
+        case .notConfigured: return String(localized: "Add the Google OAuth client ID and secret first.", bundle: .module)
+        case .notSignedIn: return String(localized: "Google Calendar is not connected.", bundle: .module)
+        case .denied(let e): return String(localized: "Google sign-in was cancelled (\(e)).", bundle: .module)
+        case .badResponse(let e): return String(localized: "Google returned an unexpected response: \(e)", bundle: .module)
+        case .timedOut: return String(localized: "Google sign-in timed out. Try connecting again.", bundle: .module)
         }
     }
 }
@@ -106,7 +106,8 @@ public final class LoopbackReceiver: @unchecked Sendable {
                 conn, status: "200 OK",
                 body: """
                     <html><body style="font-family:-apple-system,sans-serif;padding:48px">
-                    <h2>WorkLogger received the Google response.</h2><p>You can close this tab and return to the app.</p>
+                    <h2>\(String(localized: "WorkLogger received the Google response.", bundle: .module))</h2>
+                    <p>\(String(localized: "You can close this tab and return to the app.", bundle: .module))</p>
                     </body></html>
                     """)
             self.deliver(.success(comps))

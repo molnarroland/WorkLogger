@@ -51,12 +51,45 @@
         }
       }
     },
+    "HRmaster: %@": {
+      "shouldTranslate": false
+    },
+    "HRmaster: could not reach %@-%@.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRmaster: nem sikerült eljutni ide: %@-%@."
+          }
+        }
+      }
+    },
     "HRmaster: reading %@ (%lld of %lld)…": {
       "localizations": {
         "hu": {
           "stringUnit": {
             "state": "translated",
             "value": "HRmaster: %@ olvasása (%lld/%lld)…"
+          }
+        }
+      }
+    },
+    "HRmaster: the month arrow next to “%@” did not change the month.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRmaster: a(z) „%@” melletti hónapnyíl nem váltott hónapot."
+          }
+        }
+      }
+    },
+    "HRmaster: the month arrows next to “%@” were not found.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRmaster: a(z) „%@” melletti hónapnyilak nem találhatók."
           }
         }
       }

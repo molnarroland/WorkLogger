@@ -27,10 +27,10 @@ let package = Package(
         .target(
             name: "WorkLoggerStore", dependencies: ["WorkLoggerCore"],
             linkerSettings: [.linkedLibrary("sqlite3")]),
-        .target(name: "WorkLoggerGit", dependencies: ["WorkLoggerCore"]),
+        .target(name: "WorkLoggerGit", dependencies: ["WorkLoggerCore"], resources: [.process("Localizable.xcstrings")]),
         .target(
             name: "WorkLoggerCalendar", dependencies: ["WorkLoggerCore"],
-            linkerSettings: [.linkedFramework("EventKit")]),
+            resources: [.process("Localizable.xcstrings")], linkerSettings: [.linkedFramework("EventKit")]),
         .target(
             name: "WorkLoggerTempo", dependencies: ["WorkLoggerCore", "WorkLoggerStore"],
             resources: [.process("Localizable.xcstrings")]),

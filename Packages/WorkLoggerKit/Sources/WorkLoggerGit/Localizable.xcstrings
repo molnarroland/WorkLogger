@@ -1,0 +1,16 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ exited with %lld: %@": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kilépési kód: %lld: %@"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

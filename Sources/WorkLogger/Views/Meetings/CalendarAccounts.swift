@@ -36,7 +36,7 @@ struct ConnectSection: View {
                         Label("WorkLogger can read your calendars", systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
                         if !accounts.isEmpty {
-                            Text("Accounts: " + accounts.joined(separator: ", "))
+                            Text("Accounts: \(accounts.joined(separator: ", "))")
                                 .font(.callout).foregroundStyle(.secondary)
                         }
                     case .notDetermined:

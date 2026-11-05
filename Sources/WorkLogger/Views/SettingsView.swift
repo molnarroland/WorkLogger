@@ -72,7 +72,8 @@ struct SettingsView: View {
 
             Section {
                 Stepper(value: $state.settings.chatGapMinutes, in: 1...60) {
-                    LabeledContent("New stretch after a pause of", value: "\(state.settings.chatGapMinutes) min")
+                    LabeledContent(
+                        "New stretch after a pause of", value: String(localized: "\(state.settings.chatGapMinutes) min"))
                 }
                 ForEach(state.settings.chatRules) { rule in
                     HStack {
@@ -105,11 +106,12 @@ struct SettingsView: View {
                 SecretField(title: "Tempo API token", account: SecretKey.tempoToken)
                 TextField("Tempo API base URL", text: $state.settings.tempoBaseURL)
                 TextField("Jira account ID (filled in automatically)", text: $state.settings.jiraAccountId)
+                ConnectionChecks()
             } header: {
                 Text("Tempo API (optional)")
             } footer: {
                 Text(
-                    "Only needed for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain; create the Jira token at id.atlassian.com and the Tempo token in Tempo → Settings → API Integration."
+                    "Used to show what is already in Tempo and for Export → Send to Tempo. Log in Tempo by ticket works without any key. Tokens are stored in your Keychain."
                 )
             }
 
@@ -121,6 +123,68 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+/// Check Jira / Check Tempo: harmless calls that show, line by line, what works and which permission is missing,
+/// plus what each token needs.
+struct ConnectionChecks: View {
+    @Environment(AppState.self) private var state
+    @State private var jira: [ConnectionCheck.Line] = []
+    @State private var tempo: [ConnectionCheck.Line] = []
+    @State private var checking = false
+    @State private var showNeeds = false
+
+    var body: some View {
+        HStack {
+            Button("Check Jira") { Task { await run(tempo: false) } }
+            Button("Check Tempo") { Task { await run(tempo: true) } }
+            if checking { ProgressView().controlSize(.small) }
+            Spacer()
+        }
+        .disabled(checking)
+        ForEach(jira + tempo) { line in
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(
+                    systemName: line.ok == true
+                        ? "checkmark.circle.fill" : line.ok == false ? "xmark.circle.fill" : "minus.circle"
+                )
+                .foregroundStyle(line.ok == true ? Color.green : line.ok == false ? Color.red : Color.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(line.title).fontWeight(.medium)
+                    if !line.detail.isEmpty {
+                        Text(line.detail).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+        }
+        DisclosureGroup("What the tokens need", isExpanded: $showNeeds) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(
+                    "**Jira API token** (id.atlassian.com → Security → API tokens): a classic token works with your own permissions. A token with scopes needs **read:jira-user** (your account) and **read:jira-work** (issue keys and ids). Use the email of the same Atlassian account."
+                )
+                Text(
+                    "**Tempo API token** (Tempo → Settings → API Integration → New token): **View worklogs** to show what is already in Tempo, and **Manage worklogs** for Send to Tempo. Give it enough days before it expires."
+                )
+                Text(
+                    "**Tempo address:** https://api.tempo.io/4, or your region's (e.g. https://api.eu.tempo.io/4) if your Tempo data is hosted there."
+                )
+            }
+            .font(.callout)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func run(tempo checkTempo: Bool) async {
+        checking = true
+        defer { checking = false }
+        let check = ConnectionCheck(settings: state.settings, secrets: state.services.secrets, http: URLSession.shared)
+        let result = await check.checkJira()
+        jira = result.lines
+        if let id = result.accountId { state.settings.jiraAccountId = id }
+        tempo = checkTempo ? await check.checkTempo(accountId: result.accountId ?? state.settings.jiraAccountId) : []
+        if (jira + tempo).contains(where: { $0.ok == false }) { showNeeds = true }
+        await state.refreshTempo()
     }
 }
 

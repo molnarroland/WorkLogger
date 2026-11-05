@@ -23,6 +23,20 @@ public struct HRmasterCollector {
         var error: String?
     }
 
+    /// The page script's error codes as messages for the status bar.
+    static func message(_ code: String, label: String?, month m: Month) -> String {
+        let shown = label ?? ""
+        switch code {
+        case "no-arrows":
+            return String(localized: "HRmaster: the month arrows next to “\(shown)” were not found.", bundle: .module)
+        case "stuck":
+            return String(localized: "HRmaster: the month arrow next to “\(shown)” did not change the month.", bundle: .module)
+        case "unreachable":
+            return String(localized: "HRmaster: could not reach \(String(m.year))-\(String(m.month)).", bundle: .module)
+        default: return String(localized: "HRmaster: \(code)", bundle: .module)
+        }
+    }
+
     /// The work-time page of a company's HRmaster.
     public static func workingTimeURL(_ base: URL) -> URL {
         URL(
@@ -66,7 +80,7 @@ public struct HRmasterCollector {
             if let error = r.error {
                 Log.web.error("HRmaster \(m.year)-\(m.month): \(error, privacy: .public)")
                 if error == "no-panel" { throw WebSessionError.notSignedIn("HRmaster") }
-                throw WebSessionError.script("HRmaster: \(error)")
+                throw WebSessionError.script(Self.message(error, label: r.label, month: m))
             }
             Log.web.info("HRmaster \(m.year)-\(m.month): \(r.label ?? "-", privacy: .public), \(r.html?.count ?? 0) characters")
             out.append((m, r.html ?? ""))
@@ -109,13 +123,13 @@ public struct HRmasterCollector {
           const diff = (year * 12 + month) - (label.year * 12 + label.month);
           if (diff === 0) break;
           const arrow = e2e(diff > 0 ? NEXT : PREV);
-          if (!arrow) return JSON.stringify({ error: `the month arrows next to "${label.text}" were not found.` });
+          if (!arrow) return JSON.stringify({ error: 'no-arrows', label: label.text });
           const before = label.text;
           arrow.click();
           label = await waitFor(() => { const l = readLabel(); return l && l.text !== before ? l : null; }, 10000);
-          if (!label) return JSON.stringify({ error: `the month arrow next to "${before}" did not change the month.` });
+          if (!label) return JSON.stringify({ error: 'stuck', label: before });
         }
-        if (label.year !== year || label.month !== month) return JSON.stringify({ error: `could not reach ${year}-${month}.` });
+        if (label.year !== year || label.month !== month) return JSON.stringify({ error: 'unreachable' });
         await sleep(2000);   // the table reloads its rows after the month changes
         return JSON.stringify({ html: panel().outerHTML, label: label.text });
         """#

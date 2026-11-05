@@ -11,12 +11,122 @@
         }
       }
     },
+    "Can't reach Tempo: %@": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Tempo nem érhető el: %@"
+          }
+        }
+      }
+    },
+    "Can't reach the Jira site: %@": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Jira-oldal nem érhető el: %@"
+          }
+        }
+      }
+    },
+    "Check Jira first: Tempo needs your Jira account id.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Előbb ellenőrizd a Jirát: a Tempónak kell a Jira-fiókazonosítód."
+          }
+        }
+      }
+    },
+    "Couldn't tell from Tempo's answer.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Tempo válaszából nem állapítható meg."
+          }
+        }
+      }
+    },
+    "Create worklogs (for Send to Tempo)": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Munkanaplók létrehozása (a Küldés a Tempóba funkcióhoz)"
+          }
+        }
+      }
+    },
     "Creating the %@ worklog": {
       "localizations": {
         "hu": {
           "stringUnit": {
             "state": "translated",
             "value": "A(z) %@ munkanapló létrehozása"
+          }
+        }
+      }
+    },
+    "Enter your Jira email and API token.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add meg a Jira e-mail-címedet és API-tokenedet."
+          }
+        }
+      }
+    },
+    "Enter your Jira site, e.g. https://yourcompany.atlassian.net.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add meg a Jira-oldaladat, pl. https://ceged.atlassian.net."
+          }
+        }
+      }
+    },
+    "Enter your Tempo API token.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add meg a Tempo API-tokenedet."
+          }
+        }
+      }
+    },
+    "Issue keys can be looked up.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A jegykulcsok lekérdezhetők."
+          }
+        }
+      }
+    },
+    "Jira answered with HTTP %lld.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Jira HTTP %lld kóddal válaszolt."
+          }
+        }
+      }
+    },
+    "Jira rejected the email or API token. Check both, or create a new token.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Jira elutasította az e-mail-címet vagy az API-tokent. Ellenőrizd mindkettőt, vagy hozz létre új tokent."
           }
         }
       }
@@ -41,6 +151,46 @@
         }
       }
     },
+    "No Jira at this address. Use your site, e.g. https://yourcompany.atlassian.net.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ezen a címen nincs Jira. A saját oldaladat add meg, pl. https://ceged.atlassian.net."
+          }
+        }
+      }
+    },
+    "No Tempo API at this address. Use https://api.tempo.io/4 (or your region's, e.g. https://api.eu.tempo.io/4).": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ezen a címen nincs Tempo API. Használd a https://api.tempo.io/4 címet (vagy a régiódét, pl. https://api.eu.tempo.io/4)."
+          }
+        }
+      }
+    },
+    "Probably allowed (an empty test worklog was refused as invalid, nothing was saved).": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valószínűleg engedélyezett (egy üres próba-munkanaplót érvénytelenként elutasított, semmi nem mentődött)."
+          }
+        }
+      }
+    },
+    "Read issues (read:jira-work)": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jegyek olvasása (read:jira-work)"
+          }
+        }
+      }
+    },
     "Reading your Jira account": {
       "localizations": {
         "hu": {
@@ -57,6 +207,106 @@
           "stringUnit": {
             "state": "translated",
             "value": "A Tempo-munkanaplóid olvasása"
+          }
+        }
+      }
+    },
+    "Signed in as %@ (read:jira-user).": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bejelentkezve mint %@ (read:jira-user)."
+          }
+        }
+      }
+    },
+    "Site, email and API token": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oldal, e-mail és API-token"
+          }
+        }
+      }
+    },
+    "Tempo answered with HTTP %lld.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Tempo HTTP %lld kóddal válaszolt."
+          }
+        }
+      }
+    },
+    "Tempo rejected the token: it is wrong, expired or revoked.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Tempo elutasította a tokent: hibás, lejárt vagy visszavonták."
+          }
+        }
+      }
+    },
+    "The token can't create worklogs: give it the “Manage worklogs” permission (only needed for Send to Tempo).": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A token nem hozhat létre munkanaplót: add meg neki a „Manage worklogs” jogosultságot (csak a Küldés a Tempóba funkcióhoz kell)."
+          }
+        }
+      }
+    },
+    "The token can't read issues: it needs read:jira-work (needed to send to Tempo and to name Tempo's issues).": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A token nem olvashat jegyeket: read:jira-work kell neki (a Tempóba küldéshez és a Tempo-jegyek megnevezéséhez)."
+          }
+        }
+      }
+    },
+    "The token can't read your account: it needs read:jira-user.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A token nem olvashatja a fiókodat: read:jira-user kell neki."
+          }
+        }
+      }
+    },
+    "The token can't view worklogs: give it the “View worklogs” permission.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A token nem láthatja a munkanaplókat: add meg neki a „View worklogs” jogosultságot."
+          }
+        }
+      }
+    },
+    "View worklogs": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Munkanaplók megtekintése"
+          }
+        }
+      }
+    },
+    "Your worklogs can be read.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A munkanaplóid olvashatók."
           }
         }
       }

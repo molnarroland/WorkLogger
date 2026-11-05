@@ -95,7 +95,7 @@ import WorkLoggerTestSupport
             Issue.record("unexpected \(error)")
         }
 
-        page.answer = { _, _ in #"{"error":"could not reach 2026-10."}"# }
+        page.answer = { _, _ in #"{"error":"unreachable"}"# }
         do {
             _ = try await collector.collect(october) { _ in }
             Issue.record("expected an error")
