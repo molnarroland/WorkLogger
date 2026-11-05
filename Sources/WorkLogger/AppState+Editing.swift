@@ -88,8 +88,8 @@ extension AppState {
     }
 
     /// Counts behind `tempoProgress`: entries without a ticket, and ticket-days already in Tempo.
-    static func progress(of worklogs: [Worklog]) -> (missing: Int, entered: Int, total: Int) {
-        let groups = TicketPlan.groups(worklogs).filter { $0.key != nil }
+    static func progress(of worklogs: [Worklog], inTempo: Set<String> = []) -> (missing: Int, entered: Int, total: Int) {
+        let groups = TicketPlan.groups(worklogs, inTempo: inTempo).filter { $0.key != nil }
         return (worklogs.missingIssue.count, groups.reduce(0) { $0 + $1.enteredDays }, groups.reduce(0) { $0 + $1.days.count })
     }
 

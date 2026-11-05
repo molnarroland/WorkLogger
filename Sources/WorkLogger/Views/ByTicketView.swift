@@ -13,7 +13,7 @@ struct ByTicketView: View {
     @State private var selected: String?
 
     var body: some View {
-        let groups = TicketPlan.groups(state.worklogs)
+        let groups = TicketPlan.groups(state.worklogs, inTempo: state.tempoCovered)
         let current = groups.first { $0.id == selected } ?? groups.first { $0.key != nil } ?? groups.first
         let tickets = groups.filter { $0.key != nil }
         HStack(spacing: 0) {
@@ -98,8 +98,14 @@ private struct TicketDetail: View {
             }
             Table(group.days) {
                 TableColumn("In Tempo") { d in
-                    Toggle("Entered", isOn: Binding(get: { d.entered }, set: { state.setEntered(d, $0) }))
-                        .labelsHidden().toggleStyle(.checkbox)
+                    // Found in Tempo itself: nothing to tick; otherwise tick it off after typing it into Tempo.
+                    if let key = d.key, state.tempoCovered.contains("\(key)|\(d.day)") {
+                        Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
+                            .help("Found in Tempo")
+                    } else {
+                        Toggle("Entered", isOn: Binding(get: { d.entered }, set: { state.setEntered(d, $0) }))
+                            .labelsHidden().toggleStyle(.checkbox)
+                    }
                 }
                 .width(64)
                 TableColumn("Day") { d in Text(DayKey.title(d.day)).foregroundStyle(d.entered ? .secondary : .primary) }

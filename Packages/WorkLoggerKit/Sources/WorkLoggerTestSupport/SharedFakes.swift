@@ -61,6 +61,20 @@ public final class FakeTempo: TempoService, @unchecked Sendable {
         guard let id = issueIds[key] else { throw FakeError(message: "\(key) not found") }
         return id
     }
+    /// Worklogs "already in Tempo", and the issue keys Jira knows.
+    public var existing: [TempoWorklog] = []
+    public var keysById: [Int64: String] = [:]
+    public private(set) var keyLookups: [Int64] = []
+
+    public func worklogs(accountId: String, fromDay: String, toDay: String) async throws -> [TempoWorklog] {
+        existing.filter { $0.day >= fromDay && $0.day <= toDay }
+    }
+    public func issueKey(for id: Int64) async throws -> String {
+        keyLookups.append(id)
+        guard let key = keysById[id] else { throw FakeError(message: "issue \(id) not found") }
+        return key
+    }
+
     public func create(_ payload: TempoWorklogPayload) async throws -> Int64 {
         if failingKeys.contains(payload.issueKey) { throw FakeError(message: "rejected") }
         created.append(payload)

@@ -51,6 +51,16 @@
         }
       }
     },
+    "Reading your Tempo worklogs": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Tempo-munkanaplóid olvasása"
+          }
+        }
+      }
+    },
     "a valid Jira site URL": {
       "localizations": {
         "hu": {

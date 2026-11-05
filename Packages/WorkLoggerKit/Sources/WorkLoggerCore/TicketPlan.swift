@@ -39,8 +39,9 @@ public struct TicketGroup: Identifiable, Hashable, Sendable {
 }
 
 public enum TicketPlan: Sendable {
-    /// "No issue" first, then tickets by time, largest first.
-    public static func groups(_ logs: [Worklog]) -> [TicketGroup] {
+    /// "No issue" first, then tickets by time, largest first. `inTempo` holds the "KEY|day" ticket-days that
+    /// Tempo already has (read back from Tempo); those count as entered too.
+    public static func groups(_ logs: [Worklog], inTempo: Set<String> = []) -> [TicketGroup] {
         let timed = logs.filter { $0.duration > 0 }
         let byKey = Dictionary(grouping: timed, by: \.issueKey)
         return byKey.map { key, list in
@@ -50,7 +51,8 @@ public enum TicketPlan: Sendable {
                 let texts = sorted.map(\.description).filter { !$0.isEmpty && seen.insert($0).inserted }
                 return TicketDay(
                     key: key, day: day, seconds: items.totalDuration, description: texts.joined(separator: "; "),
-                    ids: sorted.map(\.id), entered: items.allSatisfy { $0.status == .exported })
+                    ids: sorted.map(\.id),
+                    entered: items.allSatisfy { $0.status == .exported } || key.map { inTempo.contains("\($0)|\(day)") } == true)
             }
             return TicketGroup(key: key, days: days.sorted { $0.day < $1.day })
         }

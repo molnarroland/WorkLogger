@@ -123,6 +123,8 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showWelcome) { WelcomeView() }
         .focusedSceneValue(\.selectPane) { pane = $0 }
+        // What is already in Tempo for the selected days: read when the window opens and whenever the range changes.
+        .task(id: state.range) { await state.refreshTempo() }
         .onChange(of: state.requestedPane) { _, requested in
             if let requested {
                 pane = requested

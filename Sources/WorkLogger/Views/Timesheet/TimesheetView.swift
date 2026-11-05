@@ -81,6 +81,15 @@ struct TimesheetView: View {
             .buttonStyle(.glass)
             Button("This month") { state.setRange(.thisMonth) }
                 .buttonStyle(.glass)
+            if state.tempoConnected {
+                Button {
+                    Task { await state.refreshTempo() }
+                } label: {
+                    Label("Read Tempo", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.glass)
+                .help("Read what is already logged in Tempo for these days")
+            }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
                 Text("\(DurationFormat.string(logged)) of \(DurationFormat.string(expected))")

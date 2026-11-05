@@ -25,11 +25,19 @@ final class AppState {
     var from: Date
     var to: Date
     var worklogs: [Worklog] = [] {
-        didSet { tempoProgress = Self.progress(of: worklogs) }
+        didSet { updateTempoMatch() }
     }
     /// For the status bar: entries without a ticket, and ticket-days already in Tempo. Kept up to date with
     /// `worklogs` instead of being recomputed on every redraw.
     private(set) var tempoProgress: (missing: Int, entered: Int, total: Int) = (0, 0, 0)
+    /// Your worklogs already in Tempo for the range (read when a Tempo token is set; empty otherwise).
+    var tempoLogs: [TempoWorklog] = [] {
+        didSet { updateTempoMatch() }
+    }
+    /// A Tempo token is set and the last read worked.
+    var tempoConnected = false
+    /// "KEY|day" ticket-days whose time Tempo already has.
+    private(set) var tempoCovered: Set<String> = []
     var repos: [Repo] = []
     var projects: [ProjectMapping] = []
     var meetings: [Meeting] = []
@@ -212,6 +220,12 @@ final class AppState {
     // MARK: Helpers
 
     var databasePath: String { db.path }
+
+    /// Which ticket-days Tempo already has, and the status-bar counts that depend on it.
+    private func updateTempoMatch() {
+        tempoCovered = TempoWorklog.coverage(of: worklogs, in: tempoLogs)
+        tempoProgress = Self.progress(of: worklogs, inTempo: tempoCovered)
+    }
 
     /// Runs a database step; a failure ends up in the status bar.
     func attempt(_ label: String.LocalizationValue, _ body: () throws -> Void) {

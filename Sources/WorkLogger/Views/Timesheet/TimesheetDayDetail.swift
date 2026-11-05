@@ -105,6 +105,10 @@ struct DayDetail: View {
                                     HStack {
                                         Text(w.issueKey ?? "No issue").bold()
                                             .foregroundStyle(w.issueKey == nil ? Color.orange : Color.primary)
+                                        if state.isInTempo(w) {
+                                            Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
+                                                .help("This ticket's time for the day is in Tempo")
+                                        }
                                         Spacer()
                                         Text("\(DayKey.hm(w.start)) · \(DurationFormat.string(w.duration))")
                                             .monospacedDigit().foregroundStyle(.secondary)
@@ -125,6 +129,7 @@ struct DayDetail: View {
                     }
                 }
             }
+            TempoDaySection(day: day)
             HStack {
                 Button {
                     state.addManual(day: day)
@@ -164,5 +169,38 @@ struct DayDetail: View {
             }
         }
         .textFieldStyle(.roundedBorder)
+    }
+}
+
+/// The day's worklogs as they are in Tempo (read back from Tempo), under the day's own entries.
+struct TempoDaySection: View {
+    @Environment(AppState.self) private var state
+    let day: String
+
+    var body: some View {
+        if state.tempoConnected {
+            let logs = state.tempoLogs.filter { $0.day == day }.sorted { $0.startTime < $1.startTime }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Label("In Tempo", systemImage: "checkmark.seal").font(.subheadline.weight(.semibold))
+                    Spacer()
+                    Text(DurationFormat.string(logs.reduce(0) { $0 + $1.seconds })).monospacedDigit().foregroundStyle(.secondary)
+                }
+                if logs.isEmpty {
+                    Text("Nothing in Tempo for this day yet.").font(.callout).foregroundStyle(.secondary)
+                }
+                ForEach(logs) { t in
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(t.issueKey ?? "#\(t.issueId)").font(.callout.monospaced().weight(.medium))
+                        Text(t.description).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                        Spacer()
+                        Text("\(String(t.startTime.prefix(5))) · \(DurationFormat.string(t.seconds))")
+                            .font(.callout).monospacedDigit().foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(10)
+            .glassEffect(.regular.tint(.green.opacity(0.08)), in: .rect(cornerRadius: 14))
+        }
     }
 }

@@ -46,6 +46,8 @@ struct DayHeader: View {
 /// Read-only entry, laid out in the same columns as the editable `WorklogRow`. Click it to edit.
 struct WorklogLine: View, Equatable {
     let log: Worklog
+    /// The ticket's time for the day is already in Tempo (sent, ticked off, or found when reading Tempo).
+    var inTempo = false
 
     var body: some View {
         HStack(spacing: 10) {
@@ -65,9 +67,12 @@ struct WorklogLine: View, Equatable {
             if log.source == .git, log.estimated != log.duration {
                 Text("est. \(DurationFormat.string(log.estimated))").font(.caption).foregroundStyle(.secondary)
             }
-            Text(log.status.localizedLabel)
+            Text(inTempo ? WorklogStatus.exported.localizedLabel : log.status.localizedLabel)
                 .font(.caption)
-                .foregroundStyle(log.status == .draft ? Color.secondary : log.status == .reviewed ? Color.green : Color.blue)
+                .foregroundStyle(
+                    inTempo
+                        ? Color.blue : log.status == .draft ? Color.secondary : log.status == .reviewed ? Color.green : Color.blue
+                )
                 .frame(width: 100, alignment: .leading)
             Image(systemName: log.locked ? "lock.fill" : "lock.open")
                 .foregroundStyle(.secondary)

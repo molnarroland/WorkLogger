@@ -81,6 +81,21 @@ struct DayCell: View {
                     .padding(6).glassEffect(.regular, in: .capsule)
                 }
             }
+            // What Tempo already has for the day: green once it covers what WorkLogger logged.
+            if state.tempoConnected {
+                let tempo = state.tempoSeconds(day: day)
+                if tempo > 0 || logged > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.seal").frame(width: 14)
+                        Spacer(minLength: 2)
+                        Text("Tempo \(DurationFormat.string(tempo))").monospacedDigit()
+                    }
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .foregroundStyle(tempo > 0 && tempo >= logged - 60 ? Color.green : Color.secondary)
+                    .help("Already logged in Tempo for this day")
+                }
+            }
             Spacer(minLength: 0)
             if expected > 0 || logged > 0 {
                 SourceStack(logs: logs, scale: expected)

@@ -74,6 +74,11 @@ extension Database {
         (try? query("SELECT issue_id FROM issue_cache WHERE key = ?", [.text(key)]))?.first?.int("issue_id")
     }
 
+    /// The issue key for a Jira issue id seen before (pushing or reading Tempo).
+    public func cachedIssueKey(_ id: Int64) -> String? {
+        (try? query("SELECT key FROM issue_cache WHERE issue_id = ?", [.int(id)]))?.first?.string("key")
+    }
+
     public func cacheIssueId(_ key: String, _ id: Int64) throws {
         try run("INSERT OR REPLACE INTO issue_cache(key, issue_id) VALUES(?, ?)", [.text(key), .int(id)])
     }

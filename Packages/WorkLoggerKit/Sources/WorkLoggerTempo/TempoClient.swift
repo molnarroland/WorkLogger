@@ -74,6 +74,53 @@ public struct TempoClient: TempoService {
         return id
     }
 
+    public func issueKey(for id: Int64) async throws -> String {
+        struct Issue: Decodable { let key: String }
+        let data = try await send(
+            try jiraRequest("/rest/api/3/issue/\(id)?fields=summary"),
+            String(localized: "Looking up \(String(id))", bundle: .module))
+        return try JSONDecoder().decode(Issue.self, from: data).key
+    }
+
+    /// GET /4/worklogs/user/{accountId}?from&to, following `metadata.next` through the pages.
+    public func worklogs(accountId: String, fromDay: String, toDay: String) async throws -> [TempoWorklog] {
+        struct Page: Decodable {
+            struct Metadata: Decodable { let next: String? }
+            struct Result: Decodable {
+                struct Issue: Decodable { let id: Int64 }
+                let tempoWorklogId: Int64
+                let issue: Issue
+                let timeSpentSeconds: Int
+                let startDate: String
+                let startTime: String?
+                let description: String?
+            }
+            let metadata: Metadata?
+            let results: [Result]
+        }
+        var c = URLComponents(string: tempoBaseURL + "/worklogs/user/\(accountId)")
+        c?.queryItems = [
+            .init(name: "from", value: fromDay), .init(name: "to", value: toDay), .init(name: "limit", value: "1000"),
+        ]
+        var next = c?.url
+        guard next != nil else { throw TempoError.missing(String(localized: "a valid Tempo API URL", bundle: .module)) }
+        var out: [TempoWorklog] = []
+        while let url = next {
+            var req = URLRequest(url: url)
+            req.setValue("Bearer \(tempoToken)", forHTTPHeaderField: "Authorization")
+            req.setValue("application/json", forHTTPHeaderField: "Accept")
+            let data = try await send(req, String(localized: "Reading your Tempo worklogs", bundle: .module))
+            let page = try JSONDecoder().decode(Page.self, from: data)
+            out += page.results.map {
+                TempoWorklog(
+                    id: $0.tempoWorklogId, issueId: $0.issue.id, day: $0.startDate, startTime: $0.startTime ?? "00:00:00",
+                    seconds: $0.timeSpentSeconds, description: $0.description ?? "")
+            }
+            next = page.metadata?.next.flatMap(URL.init(string:))
+        }
+        return out
+    }
+
     /// Creates a worklog and returns its Tempo id.
     public func create(_ payload: TempoWorklogPayload) async throws -> Int64 {
         struct Body: Encodable {

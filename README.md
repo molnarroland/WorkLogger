@@ -120,6 +120,10 @@ Google Calendar API with your own “Desktop app” OAuth client.
   Google Chat, ⌘[ / ⌘] previous / next month, ⌘T this month.
 * **Menu bar:** a clock item shows today's logged time; it opens today's bar, what still needs a ticket, Collect,
   Fetch Google Chat, Open Timesheet and Log in Tempo. Settings → General hides it.
+* **Tempo read-back:** with a Tempo token in Settings, WorkLogger reads your existing Tempo worklogs for the selected
+  days (when the window opens, when the range changes, after sending, and with Read Tempo on the Timesheet). Day cards
+  show "Tempo 6h", the day panel lists them under "In Tempo", and entries whose ticket already has its time in Tempo
+  that day show "In Tempo" in Review and count as entered in By ticket.
 * **Formatting:** swift-format with the repository's `.swift-format` (4 spaces, 130 columns, existing line breaks
   kept). Format everything with `swift format format --in-place --recursive --parallel Sources Tests Packages`;
   Xcode shows style warnings on every build (the "swift-format lint" build phase) and CI fails on them.

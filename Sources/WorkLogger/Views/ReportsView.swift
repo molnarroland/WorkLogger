@@ -44,7 +44,7 @@ struct ReportsView: View {
                             Text(DurationFormat.string(total)).font(.title2).monospacedDigit()
                             Text("in \(state.fromDay) – \(state.toDay)").foregroundStyle(.secondary)
                         }
-                        TicketTotals(groups: TicketPlan.groups(state.worklogs))
+                        TicketTotals(groups: TicketPlan.groups(state.worklogs, inTempo: state.tempoCovered))
                         VStack(alignment: .leading, spacing: 8) {
                             Text("By source").font(.headline)
                             SourceStack(logs: state.worklogs, height: 18)

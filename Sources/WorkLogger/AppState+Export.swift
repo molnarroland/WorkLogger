@@ -76,6 +76,7 @@ extension AppState {
                 self.status = String(localized: "Sending \($0) of \($1) to Tempo…")
             }
             reloadRange()
+            await refreshTempo()
             status =
                 String(localized: "Sent \(outcome.sent) worklogs to Tempo.")
                 + (outcome.failures.isEmpty

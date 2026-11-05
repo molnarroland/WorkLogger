@@ -103,7 +103,7 @@ struct ReviewView: View {
                                     if selected == row.log.id {
                                         WorklogRow(log: binding(row.index, row.log))
                                     } else {
-                                        WorklogLine(log: row.log)
+                                        WorklogLine(log: row.log, inTempo: state.isInTempo(row.log))
                                     }
                                 }
                                 .tag(row.log.id)

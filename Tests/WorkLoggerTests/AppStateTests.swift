@@ -198,6 +198,33 @@ import WorkLoggerWeb
         #expect([app.state.fromDay, app.state.toDay] == ["2026-04-03", "2026-04-05"])
     }
 
+    @Test func tempoWorklogsAreReadAndMatched() async throws {
+        let app = try AppHarness()
+        _ = try app.db.insertWorklog(Fixture.worklog(day: "2026-03-03", "09:00", duration: 3600, issue: "TAO-1"))
+        _ = try app.db.insertWorklog(Fixture.worklog(day: "2026-03-03", "10:00", duration: 1800, issue: "INT-12"))
+        app.state.reloadRange()
+        app.tempo.keysById = [10001: "TAO-1"]
+        app.tempo.existing = [
+            TempoWorklog(id: 1, issueId: 10001, day: "2026-03-03", startTime: "09:00:00", seconds: 3600, description: "Fix")
+        ]
+
+        await app.state.refreshTempo()
+
+        #expect(app.state.tempoConnected)
+        #expect(app.state.tempoLogs.map(\.issueKey) == ["TAO-1"])
+        #expect(app.state.tempoSeconds(day: "2026-03-03") == 3600)
+        let tao = try #require(app.state.worklogs.first { $0.issueKey == "TAO-1" })
+        let int = try #require(app.state.worklogs.first { $0.issueKey == "INT-12" })
+        #expect(app.state.isInTempo(tao))
+        #expect(!app.state.isInTempo(int))
+        #expect(app.state.tempoProgress.entered == 1 && app.state.tempoProgress.total == 2)
+
+        app.tempoError = TempoError.missing("the Tempo API token")  // no token: nothing shown, no error
+        await app.state.refreshTempo()
+        #expect(!app.state.tempoConnected)
+        #expect(app.state.tempoLogs.isEmpty)
+    }
+
     // MARK: Editing
 
     @Test func addManualStartsAfterTheLastEntry() throws {
