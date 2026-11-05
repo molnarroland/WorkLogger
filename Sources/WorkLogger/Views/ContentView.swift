@@ -156,8 +156,7 @@ struct ContentView: View {
             // One item laid out by hand: separate .navigation items ignore spacers and share a pill.
             ToolbarItem(placement: .navigation) {
                 HStack(spacing: 10) {
-                    RangeField(isTo: false).toolbarPill()
-                    RangeField(isTo: true).toolbarPill()
+                    RangeBar().toolbarPill()
                     RangePresets().toolbarPill()
                 }
             }
@@ -226,6 +225,17 @@ struct StatusBar: View {
                 Text(state.status).lineLimit(1).truncationMode(.tail).textSelection(.enabled)
                     .help(state.status)
                 Spacer()
+                if state.onlyMissingDays {
+                    Button {
+                        state.onlyMissingDays = false
+                    } label: {
+                        Label("Only days with missing reports: \(state.missingDays.count)", systemImage: "xmark.circle.fill")
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.orange)
+                    .help("Show all days again")
+                    Text("·")
+                }
                 // The month's next step at a glance.
                 let progress = state.tempoProgress
                 if progress.missing > 0 {
@@ -269,25 +279,67 @@ struct PaneHeader<Trailing: View>: View {
     }
 }
 
-/// From or To date field with a calendar dropdown (no stepper arrows); each sits in its own toolbar pill.
-struct RangeField: View {
+/// ‹ range › : one field for the selected days (click for a calendar to pick a range), with arrows that move it.
+struct RangeBar: View {
     @Environment(AppState.self) private var state
-    let isTo: Bool
+    @State private var picking = false
 
     var body: some View {
-        @Bindable var state = state
-        Group {
-            if isTo {
-                DatePicker("To", selection: $state.to, in: state.from..., displayedComponents: .date)
-            } else {
-                DatePicker("From", selection: $state.from, displayedComponents: .date)
+        HStack(spacing: 6) {
+            Button {
+                state.shiftRange(-1)
+            } label: {
+                Image(systemName: "chevron.left")
             }
+            .help(state.range.isWholeMonth ? "Previous month" : "Previous period")
+            Button {
+                picking = true
+            } label: {
+                Text(Self.title(state.range)).monospacedDigit().lineLimit(1)
+            }
+            .help("Pick the days on a calendar")
+            .popover(isPresented: $picking, arrowEdge: .bottom) { RangePopover() }
+            Button {
+                state.shiftRange(1)
+            } label: {
+                Image(systemName: "chevron.right")
+            }
+            .help(state.range.isWholeMonth ? "Next month" : "Next period")
         }
-        .help(isTo ? "To" : "From")
-        .datePickerStyle(.field)  // no stepper: it can't fit a toolbar pill
-        .labelsHidden()
+        .buttonStyle(.borderless)
         .fixedSize()
-        .onChange(of: isTo ? state.to : state.from) { state.reloadRange() }
+    }
+
+    /// "2026. nov. 1–30." or "2026. okt. 27. – nov. 2.", in the current language.
+    static func title(_ r: DateRange) -> String {
+        let style = Date.IntervalFormatStyle(date: .abbreviated, time: .omitted, timeZone: DayKey.timeZone)
+        return (r.start..<DayKey.startOfDay(max(r.from, r.to)).addingTimeInterval(1)).formatted(style)
+    }
+}
+
+/// Two calendars behind the range field: the first day on the left, the last day on the right.
+private struct RangePopover: View {
+    @Environment(AppState.self) private var state
+
+    var body: some View {
+        let first = state.range.start
+        let last = DayKey.startOfDay(max(state.from, state.to))
+        HStack(alignment: .top, spacing: 16) {
+            calendar("From", selection: Binding(get: { first }, set: { state.setRange(from: $0, to: max($0, last)) }))
+            Divider()
+            calendar("To", selection: Binding(get: { last }, set: { state.setRange(from: min(first, $0), to: $0) }))
+        }
+        .padding(14)
+    }
+
+    private func calendar(_ title: LocalizedStringKey, selection: Binding<Date>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.headline)
+            DatePicker(title, selection: selection, displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .environment(\.timeZone, DayKey.timeZone)
+        }
     }
 }
 
@@ -303,12 +355,16 @@ struct RangePresets: View {
     @Environment(AppState.self) private var state
 
     var body: some View {
+        @Bindable var state = state
         Menu {
             ForEach(QuickRange.allCases, id: \.self) { r in
                 Button(String(localized: r.localizedName)) { state.setRange(r) }
             }
+            Divider()
+            Toggle("Only days with missing reports", isOn: $state.onlyMissingDays)
         } label: {
-            Label("Quick ranges", systemImage: "calendar.badge.clock")
+            Label("Quick ranges", systemImage: state.onlyMissingDays ? "calendar.badge.exclamationmark" : "calendar.badge.clock")
+                .foregroundStyle(state.onlyMissingDays ? Color.orange : Color.primary)
         }
         .menuIndicator(.hidden)
         .buttonStyle(.borderless)  // the pill supplies the glass

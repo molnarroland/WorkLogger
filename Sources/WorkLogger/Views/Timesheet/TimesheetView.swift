@@ -34,12 +34,14 @@ struct TimesheetView: View {
             VStack(spacing: 0) {
                 header(logged: logged, expected: expected)
                 weekdayRow(weeks.first ?? [])
+                let missingDays = state.onlyMissingDays ? state.missingDays : nil
                 GlassEffectContainer(spacing: 6) {
                     VStack(spacing: 6) {
                         ForEach(weeks, id: \.self) { week in
                             HStack(spacing: 6) {
                                 ForEach(week, id: \.self) { day in
                                     DayCell(day: day, inRange: inRange.contains(day), selected: selection.contains(day))
+                                        .opacity(missingDays.map { $0.contains(day) || !inRange.contains(day) ? 1 : 0.3 } ?? 1)
                                         .onTapGesture { select(day, in: inRange) }
                                 }
                             }

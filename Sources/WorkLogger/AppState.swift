@@ -44,6 +44,8 @@ final class AppState {
     var signInNeeded: WebSession.Source?
     /// A page the menu bar item asked the main window to show.
     var requestedPane: Pane?
+    /// Show only days with missing reports (Review lists them, the Timesheet dims the rest).
+    var onlyMissingDays = false
     var isBusy = false
     var googleConnected: Bool
     var calendarAccess: MacCalendarStore.Access = .notDetermined
@@ -108,6 +110,35 @@ final class AppState {
     func setRange(_ r: QuickRange) {
         guard let new = DateRange.quick(r, now: services.now()) else { return }
         apply(new)
+    }
+
+    /// The toolbar arrows: by months for a whole month, otherwise by the range's length.
+    func shiftRange(_ delta: Int) {
+        guard let new = range.shifted(by: delta) else { return }
+        apply(new)
+    }
+
+    /// Sets the range picked in the toolbar calendar.
+    func setRange(from: Date, to: Date) {
+        apply(DateRange(from: min(from, to), to: max(from, to)))
+    }
+
+    /// Workdays up to today that are short of their expected hours or have entries without a ticket
+    /// (the "Only days with missing reports" preset).
+    var missingDays: Set<String> {
+        let today = DayKey.key(services.now())
+        let builder = makeBuilder()
+        let byDay = Dictionary(grouping: worklogs, by: \.day)
+        return Set(
+            range.days.filter { day in
+                guard day <= today else { return false }
+                let logs = byDay[day] ?? []
+                if logs.contains(where: \.needsIssue) { return true }
+                let expected =
+                    target(day: day, builder: builder)
+                    ?? (builder.isWorkday(day, info: dayRecords[day]) ? Int(settings.fixedDailyHours * 3600) : 0)
+                return expected > 0 && logs.totalDuration < expected
+            })
     }
 
     /// Moves the range by whole months (the timesheet's ‹ › buttons).

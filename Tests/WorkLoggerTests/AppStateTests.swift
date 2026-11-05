@@ -179,6 +179,25 @@ import WorkLoggerWeb
         #expect(app.state.settings.chatRules.isEmpty)
     }
 
+    @Test func missingDaysAndRangeArrows() throws {
+        let app = try AppHarness()  // "now" is Wed 2026-03-04, the range is March
+        for (day, hours, issue) in [("2026-03-02", 8, "TAO-1"), ("2026-03-03", 4, "TAO-1"), ("2026-03-04", 8, nil)]
+            as [(String, Int, String?)]
+        {
+            _ = try app.db.insertWorklog(Fixture.worklog(day: day, "09:00", duration: hours * 3600, issue: issue))
+        }
+        app.state.reloadRange()
+        // Short (Tue) and without a ticket (Wed); complete Monday, the weekend and days after today are left out.
+        #expect(app.state.missingDays == ["2026-03-03", "2026-03-04"])
+
+        app.state.shiftRange(1)
+        #expect([app.state.fromDay, app.state.toDay] == ["2026-04-01", "2026-04-30"])
+        app.state.setRange(from: Fixture.at("2026-04-08", "00:00"), to: Fixture.at("2026-04-06", "00:00"))
+        #expect([app.state.fromDay, app.state.toDay] == ["2026-04-06", "2026-04-08"])
+        app.state.shiftRange(-1)
+        #expect([app.state.fromDay, app.state.toDay] == ["2026-04-03", "2026-04-05"])
+    }
+
     // MARK: Editing
 
     @Test func addManualStartsAfterTheLastEntry() throws {

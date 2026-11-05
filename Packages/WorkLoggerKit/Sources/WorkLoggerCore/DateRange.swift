@@ -50,6 +50,23 @@ public struct DateRange: Equatable, Sendable {
         return interval.map(DateRange.init)
     }
 
+    /// The range is exactly one calendar month (first to last day).
+    public var isWholeMonth: Bool {
+        guard let month = DateRange.month(containing: start) else { return false }
+        return fromDay == month.fromDay && toDay == month.toDay
+    }
+
+    /// The toolbar's ‹ › arrows: a whole month moves by months, any other range by its own length in days.
+    public func shifted(by delta: Int) -> DateRange? {
+        if isWholeMonth { return shiftedByMonths(delta) }
+        let cal = DayKey.calendar
+        let length = days.count
+        guard let first = cal.date(byAdding: .day, value: delta * length, to: start),
+            let last = cal.date(byAdding: .day, value: length - 1, to: first)
+        else { return nil }
+        return DateRange(from: first, to: last)
+    }
+
     /// The whole month `delta` months away from the month the range starts in.
     public func shiftedByMonths(_ delta: Int) -> DateRange? {
         DayKey.calendar.date(byAdding: .month, value: delta, to: start).flatMap(DateRange.month(containing:))

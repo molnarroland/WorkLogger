@@ -51,4 +51,23 @@ import WorkLoggerTestSupport
         let week = DateRange.quick(.thisWeek, now: wednesday)
         #expect(days(week?.shiftedByMonths(1)) == "2026-04-01…2026-04-30")
     }
+
+    @Test func arrowsMoveAWholeMonthByMonths() throws {
+        let march = try #require(DateRange.month(containing: Fixture.at("2026-03-10", "12:00")))
+        #expect(march.isWholeMonth)
+        let april = try #require(march.shifted(by: 1))
+        #expect([april.fromDay, april.toDay] == ["2026-04-01", "2026-04-30"])
+        let february = try #require(march.shifted(by: -1))
+        #expect([february.fromDay, february.toDay] == ["2026-02-01", "2026-02-28"])
+    }
+
+    @Test func arrowsMoveOtherRangesByTheirLength() throws {
+        let week = DateRange(from: Fixture.at("2026-03-02", "00:00"), to: Fixture.at("2026-03-08", "00:00"))
+        #expect(!week.isWholeMonth)
+        let next = try #require(week.shifted(by: 1))
+        #expect([next.fromDay, next.toDay] == ["2026-03-09", "2026-03-15"])
+        let day = DateRange(from: Fixture.at("2026-03-29", "00:00"), to: Fixture.at("2026-03-29", "00:00"))  // across DST
+        let previous = try #require(day.shifted(by: -1))
+        #expect([previous.fromDay, previous.toDay] == ["2026-03-28", "2026-03-28"])
+    }
 }

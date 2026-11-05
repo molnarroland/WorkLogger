@@ -38,8 +38,11 @@ struct ReviewView: View {
 
     var body: some View {
         // Group once per render: each section then only builds its own rows (was days × all entries).
+        let missingDays = state.onlyMissingDays ? state.missingDays : nil
         let byDay = Dictionary(
-            grouping: state.worklogs.indices.filter { shown(state.worklogs[$0]) }, by: { state.worklogs[$0].day })
+            grouping: state.worklogs.indices.filter { i in
+                shown(state.worklogs[i]) && (missingDays?.contains(state.worklogs[i].day) ?? true)
+            }, by: { state.worklogs[$0].day })
         let builder = state.makeBuilder()
         let missing = state.worklogs.missingIssue.count
         VStack(spacing: 0) {
