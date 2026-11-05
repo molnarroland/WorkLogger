@@ -84,3 +84,15 @@ private struct ChatPasteSheet: View {
         .frame(width: 720, height: 520)
     }
 }
+
+#Preview("One conversation") {
+    ChatsView()
+        .environment(AppState.preview)
+        .frame(width: 1000, height: 640)
+}
+
+#Preview("No chats") {
+    ChatsView()
+        .environment(AppState.empty)
+        .frame(width: 1000, height: 640)
+}

@@ -20,6 +20,8 @@ public struct MacCalendarInfo: Identifiable, Hashable {
 
 /// Reads calendars through macOS (EventKit). Google accounts added in System Settings → Internet Accounts
 /// show up here, so no Google Cloud project or OAuth client ID is needed.
+/// Used from the main actor only (the app state and the calendar settings).
+@MainActor
 public final class MacCalendarStore {
     public init() {}
     public enum Access: Equatable { case notDetermined, granted, denied, writeOnly }

@@ -118,3 +118,9 @@ struct TimesheetView: View {
         .environment(AppState.preview)
         .frame(width: 1180, height: 760)
 }
+
+#Preview("Empty") {
+    TimesheetView()
+        .environment(AppState.empty)
+        .frame(width: 1180, height: 760)
+}

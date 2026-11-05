@@ -4,10 +4,11 @@ import Testing
 import WorkLoggerTestSupport
 import WorkLoggerCore
 
+@MainActor
 @Suite struct GoogleCalendarClientTests {
     init() { Fixture.pinTimeZone() }
 
-    static let page1 = """
+    nonisolated static let page1 = """
     {"nextPageToken": "p2", "items": [
       {"id": "standup", "summary": "Standup", "description": "TAO-1",
        "start": {"dateTime": "2026-03-03T09:00:00+01:00"}, "end": {"dateTime": "2026-03-03T09:15:00+01:00"}},
@@ -18,7 +19,7 @@ import WorkLoggerCore
        "start": {"dateTime": "2026-03-03T12:00:00+01:00"}, "end": {"dateTime": "2026-03-03T13:00:00+01:00"}}
     ]}
     """
-    static let page2 = """
+    nonisolated static let page2 = """
     {"items": [
       {"id": "declined", "attendees": [{"self": true, "responseStatus": "declined"}],
        "start": {"dateTime": "2026-03-03T14:00:00+01:00"}, "end": {"dateTime": "2026-03-03T15:00:00+01:00"}},

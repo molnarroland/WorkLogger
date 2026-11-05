@@ -191,3 +191,15 @@ struct Chip: View {
             .glassEffect(.regular.tint((tint ?? .clear).opacity(0.15)), in: .capsule)
     }
 }
+
+#Preview("With tickets") {
+    ByTicketView(pane: .constant(.byTicket))
+        .environment(AppState.preview)
+        .frame(width: 1000, height: 600)
+}
+
+#Preview("Empty month") {
+    ByTicketView(pane: .constant(.byTicket))
+        .environment(AppState.empty)
+        .frame(width: 1000, height: 600)
+}

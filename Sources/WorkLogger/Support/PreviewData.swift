@@ -37,7 +37,28 @@ extension AppState {
                                               description: text, source: source, sourceRef: "", repoId: nil,
                                               estimated: duration, status: status, locked: false, tempoId: nil))
         }
+        // One chat conversation, and one ticket already ticked off as entered in Tempo.
+        _ = state.importChats("""
+        {"source":"google-chat","conversations":[{"id":"space/TAO","type":"space","name":"TAO","messages":[
+          {"time":"\(ISO8601DateFormatter().string(from: at("10:02")))","sender":"me@x","me":true,"text":"Deploying the fix to test"},
+          {"time":"\(ISO8601DateFormatter().string(from: at("10:05")))","sender":"bea@x","me":false,"text":"Thanks!","extra":"TAO | , | log.txt"}]}]}
+        """)
+        if let standup = state.worklogs.first(where: { $0.issueKey == "INT-12" }) {
+            var w = standup
+            w.status = .exported
+            try? db.updateWorklog(w)
+        }
+        state.settings.welcomed = true
         state.reloadAll()
+        return state
+    }
+
+    /// A fresh install: no repositories, sessions or worklogs. Shows each screen's empty state.
+    @MainActor
+    static var empty: AppState {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("WorkLogger-empty-\(UUID().uuidString).sqlite")
+        let state = AppState(databaseURL: url)
+        state.settings.welcomed = true
         return state
     }
 }

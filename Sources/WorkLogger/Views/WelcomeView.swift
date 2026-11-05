@@ -66,3 +66,8 @@ struct WelcomeView: View {
         .onDisappear { state.settings.welcomed = true }
     }
 }
+
+#Preview {
+    WelcomeView()
+        .environment(AppState.empty)
+}

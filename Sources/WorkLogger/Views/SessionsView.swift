@@ -127,3 +127,9 @@ struct DayStrip: View {
         .environment(AppState.preview)
         .frame(width: 900, height: 600)
 }
+
+#Preview("Empty") {
+    SessionsView()
+        .environment(AppState.empty)
+        .frame(width: 900, height: 600)
+}

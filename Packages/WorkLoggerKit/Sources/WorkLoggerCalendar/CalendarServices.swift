@@ -2,6 +2,7 @@ import Foundation
 import WorkLoggerCore
 
 /// Calendars the system knows about. The app reads them through EventKit (`MacCalendarStore`).
+@MainActor
 public protocol CalendarSource: AnyObject {
     var access: MacCalendarStore.Access { get }
     func requestAccess() async throws -> Bool
@@ -12,6 +13,7 @@ public protocol CalendarSource: AnyObject {
 extension MacCalendarStore: CalendarSource {}
 
 /// A Google account read through the Calendar API (`GoogleAuth`).
+@MainActor
 public protocol GoogleCalendarAccount: AnyObject {
     var clientId: String { get }
     var clientSecret: String { get }

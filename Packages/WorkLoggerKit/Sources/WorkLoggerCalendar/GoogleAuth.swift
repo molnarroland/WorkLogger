@@ -110,6 +110,8 @@ public final class LoopbackReceiver: @unchecked Sendable {
 }
 
 /// OAuth 2.0 for installed apps: PKCE + loopback redirect. The refresh token is stored in the Keychain.
+/// Lives on the main actor with the app state; its network calls suspend rather than block.
+@MainActor
 public final class GoogleAuth {
     public static let scope = "https://www.googleapis.com/auth/calendar.events.readonly"
 

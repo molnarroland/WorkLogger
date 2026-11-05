@@ -33,5 +33,5 @@ let package = Package(
             path: "Tests/WorkLoggerTests"
         )
     ],
-    swiftLanguageModes: [.v5]
+    swiftLanguageModes: [.v6]
 )
