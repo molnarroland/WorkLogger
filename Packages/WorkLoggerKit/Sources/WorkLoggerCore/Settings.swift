@@ -120,6 +120,9 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var defaultDayEnd: String = "17:30"
     public var includeWeekends: Bool = false
 
+    // Menu bar item with today's time and quick actions
+    public var showMenuBarItem = true
+
     // Chats
     public var chatGapMinutes: Int = 10      // messages further apart start a new stretch of chatting
     public var chatRules: [ChatRule] = []

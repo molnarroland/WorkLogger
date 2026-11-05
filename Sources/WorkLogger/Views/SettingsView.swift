@@ -55,6 +55,10 @@ struct SettingsView: View {
 
             AbsenceSettings()
 
+            Section("General") {
+                Toggle("Show today's time in the menu bar", isOn: $state.settings.showMenuBarItem)
+            }
+
             Section {
                 Stepper(value: $state.settings.chatGapMinutes, in: 1...60) {
                     LabeledContent("New stretch after a pause of", value: "\(state.settings.chatGapMinutes) min")

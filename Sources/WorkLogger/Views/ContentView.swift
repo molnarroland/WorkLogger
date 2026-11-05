@@ -115,6 +115,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showWelcome) { WelcomeView() }
         .focusedSceneValue(\.selectPane) { pane = $0 }
+        .onChange(of: state.requestedPane) { _, requested in
+            if let requested { pane = requested; state.requestedPane = nil }
+        }
         // A background fetch found a source signed out: show its sign-in window and bounce the Dock icon.
         .onChange(of: state.signInNeeded) { _, source in
             guard let source else { return }

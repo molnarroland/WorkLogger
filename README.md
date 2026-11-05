@@ -118,6 +118,8 @@ Google Calendar API with your own “Desktop app” OAuth client.
 
 * **Shortcuts:** ⌘L Log in Tempo, ⌘1–⌘9 the sidebar pages, ⌘R Collect, ⇧⌘R Rebuild drafts, ⌥⌘H / ⌥⌘G fetch HRmaster /
   Google Chat, ⌘[ / ⌘] previous / next month, ⌘T this month.
+* **Menu bar:** a clock item shows today's logged time; it opens today's bar, what still needs a ticket, Collect,
+  Fetch Google Chat, Open Timesheet and Log in Tempo. Settings → General hides it.
 * **Logs:** Console.app, subsystem `dev.worklogger`, categories `app`, `store`, `git`, `calendar`, `tempo` and `web`
   (fetch steps, sign-in changes, failed sends and migrations; message contents are never logged).
 * **Chats:** a pause longer than Settings → Chats → “New stretch after a pause of” (10 minutes by default) starts a new

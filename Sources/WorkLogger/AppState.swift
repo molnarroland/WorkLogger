@@ -42,6 +42,8 @@ final class AppState {
     var commitCounts: [Int64: Int] = [:]
     /// Set when a background fetch found the site signed out: the window opens for sign-in and the fetch resumes.
     var signInNeeded: WebSession.Source?
+    /// A page the menu bar item asked the main window to show.
+    var requestedPane: Pane?
     var isBusy = false
     var googleConnected: Bool
     var calendarAccess: MacCalendarStore.Access = .notDetermined

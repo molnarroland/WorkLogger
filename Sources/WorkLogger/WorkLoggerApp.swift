@@ -21,51 +21,100 @@ struct WorkLoggerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var state = AppState()
 
+    // Each part is its own small Scene / Commands type: one big nested body made the Swift runtime overflow the
+    // stack while resolving its type on launch.
     var body: some Scene {
-        WindowGroup("WorkLogger") {
+        MainWindow(state: state)
+        MenuBarItem(state: state)
+        SignInWindows(state: state)
+        // App menu → Settings… (⌘,), also opened from the gear in the toolbar.
+        Settings {
+            SettingsView()
+                .environment(state)
+                .frame(width: 640, height: 720)
+        }
+    }
+}
+
+/// One main window; the menu bar item brings it back.
+struct MainWindow: Scene {
+    let state: AppState
+
+    var body: some Scene {
+        Window("WorkLogger", id: "main") {
             ContentView()
                 .environment(state)
                 .frame(minWidth: 1080, minHeight: 680)
         }
         .commands {
-            CommandGroup(after: .saveItem) {
-                Button("Save Changes") { state.saveDirty() }
-                    .keyboardShortcut("s")
-                Button("Collect Range") { Task { await state.collect() } }
-                    .keyboardShortcut("r")
-                Button("Rebuild Drafts") { state.rebuild() }
-                    .keyboardShortcut("r", modifiers: [.command, .shift])
-                Divider()
-                Button("Fetch Work Times from HRmaster") { Task { await state.fetchHRmaster() } }
-                    .keyboardShortcut("h", modifiers: [.command, .option])
-                    .disabled(!state.settings.modules.contains(.workTimes))
-                Button("Fetch Google Chat") { Task { await state.fetchGoogleChat() } }
-                    .keyboardShortcut("g", modifiers: [.command, .option])
-                    .disabled(!state.settings.modules.contains(.chats))
-            }
+            FileCommands(state: state)
             PaneCommands(modules: state.settings.modules)
-            // Go: move through months, like the Timesheet arrows.
-            CommandMenu("Go") {
-                Button("Previous Month") { state.shiftMonth(-1) }.keyboardShortcut("[")
-                Button("Next Month") { state.shiftMonth(1) }.keyboardShortcut("]")
-                Button("This Month") { state.setRange(.thisMonth) }.keyboardShortcut("t")
-            }
+            GoCommands(state: state)
         }
+    }
+}
 
-        // In-app browser windows for sources you sign in to. One window per source: a WebPage can only be shown
-        // in one WebView, and a WindowGroup could restore or open a second copy (that crashed on launch).
+/// Menu bar item: today's time and quick actions (Settings → General can hide it).
+struct MenuBarItem: Scene {
+    @Bindable var state: AppState
+
+    var body: some Scene {
+        MenuBarExtra(isInserted: $state.settings.showMenuBarItem) {
+            MenuBarView().environment(state)
+        } label: {
+            MenuBarLabel().environment(state)
+        }
+        .menuBarExtraStyle(.window)
+    }
+}
+
+/// In-app browser windows for sources you sign in to. One window per source: a WebPage can only be shown in one
+/// WebView, and a WindowGroup could restore or open a second copy (that crashed on launch).
+struct SignInWindows: Scene {
+    let state: AppState
+
+    var body: some Scene {
         Window("Google Chat", id: WebSession.Source.googleChat.windowID) {
             WebSessionWindow(source: .googleChat).environment(state)
         }
         Window("HRmaster", id: WebSession.Source.hrmaster.windowID) {
             WebSessionWindow(source: .hrmaster).environment(state)
         }
+    }
+}
 
-        // App menu → Settings… (⌘,), also opened from the gear in the toolbar.
-        Settings {
-            SettingsView()
-                .environment(state)
-                .frame(width: 640, height: 720)
+/// File menu: save, collect, rebuild and the site fetches.
+struct FileCommands: Commands {
+    let state: AppState
+
+    var body: some Commands {
+        CommandGroup(after: .saveItem) {
+            Button("Save Changes") { state.saveDirty() }
+                .keyboardShortcut("s")
+            Button("Collect Range") { Task { await state.collect() } }
+                .keyboardShortcut("r")
+            Button("Rebuild Drafts") { state.rebuild() }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+            Divider()
+            Button("Fetch Work Times from HRmaster") { Task { await state.fetchHRmaster() } }
+                .keyboardShortcut("h", modifiers: [.command, .option])
+                .disabled(!state.settings.modules.contains(.workTimes))
+            Button("Fetch Google Chat") { Task { await state.fetchGoogleChat() } }
+                .keyboardShortcut("g", modifiers: [.command, .option])
+                .disabled(!state.settings.modules.contains(.chats))
+        }
+    }
+}
+
+/// Go: move through months, like the Timesheet arrows.
+struct GoCommands: Commands {
+    let state: AppState
+
+    var body: some Commands {
+        CommandMenu("Go") {
+            Button("Previous Month") { state.shiftMonth(-1) }.keyboardShortcut("[")
+            Button("Next Month") { state.shiftMonth(1) }.keyboardShortcut("]")
+            Button("This Month") { state.setRange(.thisMonth) }.keyboardShortcut("t")
         }
     }
 }
