@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Creates worklogs in Tempo one request per entry and marks the successful ones as exported.
 /// Jira issue ids (Tempo v4 needs them) are cached in the database.

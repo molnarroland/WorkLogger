@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 enum GitLogReader {
     private static let recordSep: Character = "\u{1e}"

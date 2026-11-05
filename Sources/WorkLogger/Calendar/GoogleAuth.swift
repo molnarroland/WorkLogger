@@ -2,6 +2,8 @@ import Foundation
 import Network
 import CryptoKit
 import AppKit
+import WorkLoggerCore
+import WorkLoggerStore
 
 enum GoogleAuthError: LocalizedError {
     case notConfigured, notSignedIn, denied(String), badResponse(String), timedOut

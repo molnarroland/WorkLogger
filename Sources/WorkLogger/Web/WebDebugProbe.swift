@@ -1,5 +1,7 @@
 #if DEBUG
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Debug builds only: launch with `-WLProbeScript <file.js> -WLProbeOut <file>` to open the HRmaster window,
 /// run the script (an async function body) on its page and write the result to the out file. Used to inspect

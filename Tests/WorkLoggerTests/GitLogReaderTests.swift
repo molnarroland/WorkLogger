@@ -1,6 +1,8 @@
 import Foundation
 import Testing
 @testable import WorkLogger
+import WorkLoggerCore
+import WorkLoggerStore
 
 @Suite struct GitLogReaderTests {
     /// One record in the `--pretty` format `GitLogReader.log` asks git for, followed by `--numstat` lines.

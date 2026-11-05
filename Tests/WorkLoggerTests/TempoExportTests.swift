@@ -1,6 +1,8 @@
 import Foundation
 import Testing
 @testable import WorkLogger
+import WorkLoggerCore
+import WorkLoggerStore
 
 @Suite struct TempoExportTests {
     init() { Fixture.pinTimeZone() }
@@ -46,5 +48,18 @@ import Testing
         let decoded = try JSONDecoder().decode([TempoWorklogPayload].self, from: data)
         #expect(decoded.map(\.issueKey) == ["TAO-1"])
         #expect(decoded.first?.startTime == "09:00:00")
+    }
+
+    /// Moved from the HRmaster parser tests when the parser went to WorkLoggerCore (the export stays in the app).
+    @Test func markdownExportListsEntriesPerDay() {
+        let w = Worklog(id: 1, day: "2026-03-03", start: DayKey.at("2026-03-03", hm: "09:00")!, duration: 5400, issueKey: "TAO-1",
+                        description: "Fix | pipe", source: .git, sourceRef: "", repoId: nil, estimated: 5400,
+                        status: .draft, locked: false, tempoId: nil)
+        var noIssue = w
+        noIssue.issueKey = nil
+        let md = TempoExport.markdown([w, noIssue], from: "2026-03-01", to: "2026-03-31", jiraBaseURL: "https://acme.atlassian.net/")
+        #expect(md.contains("https://acme.atlassian.net/plugins/servlet/ac/io.tempo.jira/tempo-app"))
+        #expect(md.contains("| 1 | TAO-1 | 09:00 | 1h 30m | Fix \\| pipe |"))
+        #expect(md.contains("1 worklogs"))
     }
 }

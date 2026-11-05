@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Conversations grouped by day; the selected one's messages (oldest first) load underneath, with an issue field
 /// to log its time. Used on the Chats page and in the Timesheet / Review inspector.

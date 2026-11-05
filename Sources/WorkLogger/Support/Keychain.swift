@@ -1,5 +1,7 @@
 import Foundation
 import Security
+import WorkLoggerCore
+import WorkLoggerStore
 
 enum SecretKey {
     static let jiraToken = "jira.apiToken"

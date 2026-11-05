@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 struct CalendarView: View {
     @Environment(AppState.self) private var state

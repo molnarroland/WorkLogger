@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A10000000000000000000060 /* WorkLoggerCore in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000070 /* WorkLoggerCore */; };
+		A10000000000000000000061 /* WorkLoggerStore in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000071 /* WorkLoggerStore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A10000000000000000000020 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -43,6 +48,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000000000000000000060 /* WorkLoggerCore in Frameworks */,
+				A10000000000000000000061 /* WorkLoggerStore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,6 +110,10 @@
 				A10000000000000000000012 /* WorkLogger */,
 			);
 			name = WorkLogger;
+			packageProductDependencies = (
+				A10000000000000000000070 /* WorkLoggerCore */,
+				A10000000000000000000071 /* WorkLoggerStore */,
+			);
 			productName = WorkLogger;
 			productReference = A10000000000000000000011 /* WorkLogger.app */;
 			productType = "com.apple.product-type.application";
@@ -156,6 +167,9 @@
 			);
 			mainGroup = A10000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A10000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -416,6 +430,26 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/WorkLoggerKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A10000000000000000000070 /* WorkLoggerCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */;
+			productName = WorkLoggerCore;
+		};
+		A10000000000000000000071 /* WorkLoggerStore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */;
+			productName = WorkLoggerStore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A10000000000000000000001 /* Project object */;
 }

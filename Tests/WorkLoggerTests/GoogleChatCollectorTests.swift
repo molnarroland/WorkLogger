@@ -1,6 +1,8 @@
 import Foundation
 import Testing
 @testable import WorkLogger
+import WorkLoggerCore
+import WorkLoggerStore
 
 @Suite struct GoogleChatCollectorTests {
     @Test func rangeIsSearchedDayByDay() {

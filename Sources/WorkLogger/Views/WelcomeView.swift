@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// First-run screen (later behind the toolbar's Modules button): pick the data sources WorkLogger uses.
 struct WelcomeView: View {

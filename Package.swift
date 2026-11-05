@@ -9,13 +9,15 @@ let infoPlist = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
 let package = Package(
     name: "WorkLogger",
     platforms: [.macOS(.v26)],
+    dependencies: [.package(path: "Packages/WorkLoggerKit")],
     targets: [
         .executableTarget(
             name: "WorkLogger",
+            dependencies: [.product(name: "WorkLoggerCore", package: "WorkLoggerKit"),
+                           .product(name: "WorkLoggerStore", package: "WorkLoggerKit")],
             path: "Sources/WorkLogger",
             exclude: ["AppIcon.icon"],
             linkerSettings: [
-                .linkedLibrary("sqlite3"),
                 .linkedFramework("EventKit"),
                 .unsafeFlags(["-Xlinker", "-sectcreate", "-Xlinker", "__TEXT",
                               "-Xlinker", "__info_plist", "-Xlinker", infoPlist])

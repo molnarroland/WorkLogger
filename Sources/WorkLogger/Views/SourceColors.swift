@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// One color per source on every screen: coding blue, meetings violet, chats teal, leave pink;
 /// orange always means "needs a ticket".

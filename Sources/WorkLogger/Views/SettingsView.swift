@@ -1,5 +1,7 @@
 import SwiftUI
 import AppKit
+import WorkLoggerCore
+import WorkLoggerStore
 
 struct SettingsView: View {
     @Environment(AppState.self) private var state

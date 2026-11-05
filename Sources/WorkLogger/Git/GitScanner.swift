@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 enum GitScanner {
     private static let skipped: Set<String> = ["node_modules", "vendor", "build", "dist", ".build",

@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Chat histories of the range: per day, each conversation with its message count and active time.
 struct ChatsView: View {

@@ -1,5 +1,7 @@
 import SwiftUI
 import WebKit
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// A signed-in website the app reads from, with its own persistent cookies and storage (separate from Safari
 /// and from the other sources). The user signs in once in its window; the app then drives the same page.

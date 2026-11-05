@@ -1,5 +1,7 @@
 import SwiftUI
 import Charts
+import WorkLoggerCore
+import WorkLoggerStore
 
 struct ReportsView: View {
     @Environment(AppState.self) private var state

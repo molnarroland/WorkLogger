@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import Testing
 @testable import WorkLogger
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// AppState on an in-memory database with fake services; "now" is Wed 2026-03-04 12:00 in Budapest.
 @MainActor

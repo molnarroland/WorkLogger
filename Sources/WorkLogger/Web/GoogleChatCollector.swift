@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Collects your Google Chat messages for a range inside the signed-in Google Chat window: the same Chat searches
 /// the browser extension runs ("my messages", "mentions of me"), a week at a time.
@@ -29,7 +31,7 @@ struct GoogleChatCollector {
         guard await session.checkSignedIn() else { throw WebSessionError.notSignedIn(session.source.title) }
         session.open(URL(string: "https://chat.google.com/")!)
         try await session.waitUntilLoaded()
-        let account = session.page.url?.path().firstMatch(of: /\/u\/(\d+)/).map { String($0.1) } ?? "0"
+        let account = session.page.url?.path().firstMatch(of: #/\/u\/(\d+)/#).map { String($0.1) } ?? "0"
 
         var found: [String: RawMessage] = [:]
         let days = Self.days(from: from, to: to)

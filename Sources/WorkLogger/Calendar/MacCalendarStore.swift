@@ -2,6 +2,8 @@ import Foundation
 import EventKit
 import AppKit
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 struct MacCalendarInfo: Identifiable, Hashable {
     var id: String          // EKCalendar.calendarIdentifier

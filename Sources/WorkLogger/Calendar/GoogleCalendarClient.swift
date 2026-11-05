@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 struct GoogleCalendarClient {
     let auth: GoogleAuth

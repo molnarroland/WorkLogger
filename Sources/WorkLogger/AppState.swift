@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 import EventKit
+import WorkLoggerCore
+import WorkLoggerStore
 
 @MainActor
 @Observable

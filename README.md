@@ -78,7 +78,7 @@ Commits on a weekend or other rest day without imported work sessions move the s
 Sunday → Monday. A rest day with work sessions keeps its commits.
 The day's target is HRmaster's “Ledolgozott órák”, rounded up (Settings → Round worked time up to).
 
-Run `swift test` to check the parser against fixture rows built from the real page markup.
+The parser's tests (fixture rows built from the real page markup) live in WorkLoggerKit; see Project layout.
 
 ## Calendars
 
@@ -111,3 +111,15 @@ Google Calendar API with your own “Desktop app” OAuth client.
 * The work-time logger parser is format-agnostic. If your report uses a different date layout or labels,
   `Import/TimeloggerParser.swift` is the one file to adjust.
 * The app is not sandboxed, because it runs `git` on your repositories.
+
+## Project layout
+
+| Module | What | Tests |
+|---|---|---|
+| `Packages/WorkLoggerKit` → **WorkLoggerCore** | Models, settings, time, the worklog engine, the HRmaster and chat parsers. Foundation only. | `cd Packages/WorkLoggerKit && swift test` |
+| `Packages/WorkLoggerKit` → **WorkLoggerStore** | SQLite database, stores, draft rebuilding. | same |
+| `Sources/WorkLogger` (app) | App state, views, git, calendars, Tempo, the in-app browser. | `xcodebuild test -scheme WorkLogger` or `swift test` |
+
+`WorkLoggerTestSupport` holds the shared test fixtures; the app's tests use the same file through the
+`Tests/WorkLoggerTests/Fixture.swift` symlink.
+

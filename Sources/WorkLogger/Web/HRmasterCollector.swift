@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Reads the monthly work-time calendar ("Munkaidő") from the signed-in HRmaster window: opens the page, steps the
 /// month selector to each month of the range and hands the calendar panel's HTML to `HRmasterParser`.

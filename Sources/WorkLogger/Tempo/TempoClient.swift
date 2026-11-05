@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 enum TempoError: LocalizedError {
     case missing(String)

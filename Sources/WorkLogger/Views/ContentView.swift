@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 enum Pane: String, CaseIterable, Identifiable {
     case repositories = "Repositories"

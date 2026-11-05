@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Work sessions of the range, read from HRmaster (Fetch range): one strip per day with net and reported hours.
 struct SessionsView: View {

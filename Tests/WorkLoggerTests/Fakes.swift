@@ -3,6 +3,8 @@ import SwiftUI
 import Testing
 import UniformTypeIdentifiers
 @testable import WorkLogger
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Secrets kept in a dictionary; empty values remove the entry, like the Keychain wrapper.
 final class InMemorySecrets: SecretStore, @unchecked Sendable {

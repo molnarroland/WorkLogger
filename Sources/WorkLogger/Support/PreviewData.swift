@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 extension AppState {
     /// An AppState backed by a throwaway SQLite file with a few sample rows, for SwiftUI previews.

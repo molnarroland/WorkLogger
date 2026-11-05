@@ -1,4 +1,6 @@
 import SwiftUI
+import WorkLoggerCore
+import WorkLoggerStore
 
 /// Export popover behind the toolbar's share icon.
 struct ExportView: View {

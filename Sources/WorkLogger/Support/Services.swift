@@ -1,6 +1,8 @@
 import Foundation
 import AppKit
 import UniformTypeIdentifiers
+import WorkLoggerCore
+import WorkLoggerStore
 
 // Everything AppState needs from the outside world, behind small protocols so tests can pass fakes.
 

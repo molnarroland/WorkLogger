@@ -1,4 +1,6 @@
 import Foundation
+import WorkLoggerCore
+import WorkLoggerStore
 
 enum ShellError: LocalizedError {
     case failed(String, Int32, String)
