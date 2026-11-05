@@ -1,24 +1,99 @@
-# WorkLogger
+<div align="center">
 
-A macOS SwiftUI app that turns your git history, calendar meetings, Google Chat conversations and your HRmaster
-work times into reviewed timesheets, stored in a local SQLite file and logged in Tempo (by hand, ticket by ticket,
-or through the Tempo API).
+# ⏱ WorkLogger
+
+**Your month already happened. WorkLogger writes the timesheet for it.**
+
+A native macOS app that turns your git commits, calendar meetings, chats and HR work times into a reviewed
+timesheet, then helps you log it in Tempo or Jira, by hand, through the API or with Claude.
+
+![macOS 26+](https://img.shields.io/badge/macOS-26%2B-black?logo=apple)
+![Swift 6](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)
+![SwiftUI](https://img.shields.io/badge/UI-SwiftUI%20%2B%20Liquid%20Glass-0A84FF)
+![No dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)
+![Local first](https://img.shields.io/badge/data-local%20SQLite-6E5494)
+![English · Magyar](https://img.shields.io/badge/lang-EN%20%C2%B7%20HU-lightgrey)
+
+<img src="docs/screenshots/timesheet.png" alt="The Timesheet: a month grid with each day's logged vs. expected hours" width="900">
+
+</div>
+
+## Why
+
+Booking time is the part of the job nobody became a developer for. At the end of the month you scroll through
+`git log`, your calendar and a chat history, guess how long each thing took, then type it ticket by ticket into
+Tempo. It is slow and error-prone, and it is always late.
+
+WorkLogger does the remembering for you. It reads what you actually did, estimates the time for each piece of work,
+fits it into the hours you really worked, and hands you a timesheet to check. You decide what goes in. WorkLogger
+only does the typing.
+
+### Who it's for
+
+* **Developers** who log time to Jira tickets: commits become worklogs on the ticket in the commit message or branch.
+* **Tech leads and managers** whose day is meetings and chats: calendar events and chat conversations become
+  worklogs too, with rules such as `standup → INT-12`.
+* **Contractors and consultants** working for several clients: one Jira account per site, each with its own
+  worklog system, and every issue goes to the site that owns its project.
+* **Teams with an HR system** (HRmaster): the days and hours HR has on record set the target, so the timesheet
+  and the payroll agree.
+
+## Features
+
+| | |
+|---|---|
+| 🧠 **Commit time estimates** | From the gap since your previous commit and the size and kind of each change, fitted into your working hours. |
+| 📅 **Meetings** | Any calendar macOS syncs (Google, Exchange/Outlook, iCloud, CalDAV), read-only, with rules that map meetings to tickets. |
+| 💬 **Chats** | Google Chat conversations are read day by day and turned into stretches of chatting you can log. |
+| 🕘 **Work times** | HRmaster sessions, breaks, leave and holidays set each day's target. Leave days are logged to an absence issue. |
+| 🗓 **Timesheet** | A Tempo-style month grid: complete, partly logged, nothing logged, leave. Drag entries between days. |
+| ✅ **Review** | Edit any entry inline. Edited entries lock, so rebuilding the drafts never overwrites your changes. |
+| 🎯 **Periods** | Book a stretch of days (a migration, a release) to one ticket in two clicks. |
+| 🎫 **By ticket** | Every ticket with its days and durations, ready to copy into Tempo, with a tick-off list. |
+| 🏢 **Several Jira accounts** | Each site has its own sign-in and worklog provider: **Tempo**, **Jira (Log work)** or **another tool**. Project keys are read from Jira to route each issue, with a default account for the rest. |
+| 🔁 **Read-back** | What is already logged in Tempo or Jira shows next to your entries, so nothing is booked twice. |
+| 🤖 **Claude checklist** | Export a Markdown checklist that Claude in Chrome follows to fill your Tempo timesheet. |
+| 📤 **Export** | Send through the API, or save CSV (Tempo importer) and JSON. |
+| 🔐 **Locked at launch** | API tokens are kept in one Keychain item and opened only on **Unlock**, with Touch ID or your password. |
+| 🍏 **Native and private** | SwiftUI with Liquid Glass, a menu bar clock, keyboard shortcuts, English and Hungarian. Your data stays in a local SQLite file. |
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/review.png" alt="Review"><br><b>Review</b>: every entry by day, editable inline, with what is already in Tempo.</td>
+<td width="50%"><img src="docs/screenshots/by-ticket.png" alt="By ticket"><br><b>By ticket</b>: the days and durations to enter per ticket, ticked off as you go.</td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/totals.png" alt="Totals"><br><b>Totals</b>: hours per ticket (entered vs. still to enter), per source and per week.</td>
+<td><img src="docs/screenshots/work-sessions.png" alt="Work sessions"><br><b>Work sessions</b>: the hours HR has on record, which set each day's target.</td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/chats.png" alt="Chats"><br><b>Chats</b>: conversations turned into stretches of chatting you can log to a ticket.</td>
+<td><img src="docs/screenshots/locked.png" alt="Locked"><br><b>Locked at launch</b>: one Touch ID prompt opens your API tokens.</td>
+</tr>
+</table>
+
+<sub>Screenshots use sample data. A debug build makes them: `WorkLogger -WLScreenshots docs/screenshots` (see Notes).</sub>
 
 ## Run it
 
-Requires macOS 26+ (Liquid Glass) and Xcode 26+ (no third-party dependencies; uses the system SQLite, Charts and Network frameworks).
+Requires macOS 26+ (Liquid Glass) and Xcode 26+. There are no third-party dependencies: the app uses the system
+SQLite, Charts and Network frameworks.
 
-Open `WorkLogger.xcworkspace` in Xcode and press ⌘R; ⌘U runs every test (the app's and each WorkLoggerKit module's,
+Open `WorkLogger.xcworkspace` in Xcode and press ⌘R. ⌘U runs every test (the app's and each WorkLoggerKit module's,
 through the `WorkLogger.xctestplan` test plan). Opening `WorkLogger.xcodeproj` alone still builds and runs the app,
-but its ⌘U only runs the app's tests. Every view has a `#Preview` backed by
-sample data (`Support/PreviewData.swift`, throwaway database).
+but its ⌘U only runs the app's tests. Every view has a `#Preview` backed by sample data
+(`Support/PreviewData.swift`, throwaway database).
 
 **Install:** Product → Archive. The scheme's archive post-action copies the signed app to
 `/Applications/WorkLogger.app` (replacing the previous one) and registers it, so macOS keeps one WorkLogger with its
 calendar permission and Dock icon. From Terminal: `xcodebuild archive -workspace WorkLogger.xcworkspace -scheme WorkLogger`.
 `swift run` still starts the app for a quick look (no translations or icon).
 
-Data lives in `~/Library/Application Support/WorkLogger/worklogs.sqlite`. Tokens are in the Keychain.
+Data lives in `~/Library/Application Support/WorkLogger/worklogs.sqlite`. Tokens are in the Keychain, in one item
+that is read only after **Unlock** (Touch ID or your password). With an ad-hoc signed build, macOS may also ask once for
+the keychain password after each rebuild; **Always Allow** keeps it quiet until the next build.
 
 ## Workflow
 
@@ -40,7 +115,7 @@ Data lives in `~/Library/Application Support/WorkLogger/worklogs.sqlite`. Tokens
 8. **Log in Tempo → By ticket** – every ticket with the days and durations to enter; copy them into Tempo and tick
    each day off. **Totals** shows hours per ticket (entered vs. still to enter) and per source.
 9. **Export** (toolbar) – copy or save a Markdown checklist that Claude with Claude in Chrome follows to fill your
-   Tempo timesheet, push through the Tempo API, or save CSV / JSON.
+   Tempo timesheet, send through the API of each issue's Jira account (Tempo or Jira worklogs), or save CSV / JSON.
 
 ## How times are calculated
 
@@ -104,15 +179,28 @@ Recurring meetings are expanded; all-day, cancelled and declined events are skip
 If you can't add the Google account to macOS (e.g. a managed Mac), the Advanced section still supports the
 Google Calendar API with your own “Desktop app” OAuth client.
 
-## Tempo
+## Jira accounts and worklog providers
 
-* **Push to Tempo** uses Tempo REST API v4 (`POST /4/worklogs`). It needs the numeric Jira issue id and your
-  account id, which the app looks up through the Jira Cloud REST API (cached in SQLite). Settings needs the Jira site,
-  email, Jira API token and a Tempo API token (Tempo → Settings → API Integration). One request per entry.
+Settings → **Jira** lists your Jira accounts, one per site. Each has its own name, site, email, Jira API token and
+**worklog provider**:
+
+| Provider | Sending | Reading back |
+| --- | --- | --- |
+| **Tempo** | Tempo REST API v4 (`POST /4/worklogs`), with the numeric Jira issue id and your account id looked up through Jira and cached per site. Needs a Tempo API token (Tempo → Settings → API Integration). | `GET /4/worklogs/user/{accountId}` |
+| **Jira (Log work)** | `POST /rest/api/3/issue/{key}/worklog` with the start in your time zone and the description as the comment. No Tempo token. | Your issues with worklogs in the range (JQL `worklogAuthor = currentUser()`), then each issue's worklogs that are yours |
+| **Another tool** | Nothing is sent; the account's entries are listed as not sent. Use the CSV / JSON / Markdown exports. | — |
+
+**Which account gets an issue:** WorkLogger reads each site's project keys (`/rest/api/3/project/search`, after a
+successful **Check Jira**, the first time an account has none, or with **Read from Jira**). `TAO-12` goes to the
+account that has project `TAO`. Keys no account has go to the **default** account, which also gives the exports their
+Jira link and account id. **Check Jira** / **Check Tempo** make harmless calls and show, line by line, what works and
+which token permission is missing.
+
 * **CSV** uses Tempo's worklog-import columns `Issue Key, Date Started, Time Spent, Comment`
   (times in UTC with a `Z` suffix). That importer belongs to Tempo's Time Tracker app; for Tempo Timesheets on
-  Jira Cloud, the API push is the supported route.
+  Jira Cloud, the API is the supported route.
 * **JSON** contains the API v4 bodies (with issue keys) if you prefer to script the upload.
+* Settings from before accounts (one Jira site and Tempo token) become the first account on upgrade, tokens included.
 
 ## Notes
 
@@ -120,8 +208,8 @@ Google Calendar API with your own “Desktop app” OAuth client.
   Google Chat, ⌘[ / ⌘] previous / next month, ⌘T this month.
 * **Menu bar:** a clock item shows today's logged time; it opens today's bar, what still needs a ticket, Collect,
   Fetch Google Chat, Open Timesheet and Log in Tempo. Settings → General hides it.
-* **Tempo read-back:** with a Tempo token in Settings, WorkLogger reads your existing Tempo worklogs for the selected
-  days (when the window opens, when the range changes, after sending, and with Read Tempo on the Timesheet). Day cards
+* **Read-back:** for every Jira account with a provider WorkLogger can read (and its tokens), WorkLogger reads your
+  existing worklogs for the selected days (when the window opens, when the range changes, after sending, and with Read Tempo on the Timesheet). Day cards
   show "Tempo 6h", the day panel lists them under "In Tempo", and entries whose ticket already has its time in Tempo
   that day show "In Tempo" in Review and count as entered in By ticket.
 * **Formatting:** swift-format with the repository's `.swift-format` (4 spaces, 130 columns, existing line breaks
@@ -133,6 +221,9 @@ Google Calendar API with your own “Desktop app” OAuth client.
   Xcode adds new strings to them when you build. Tests run in English (`WorkLogger.xctestplan`).
 * **Logs:** Console.app, subsystem `dev.worklogger`, categories `app`, `store`, `git`, `calendar`, `tempo` and `web`
   (fetch steps, sign-in changes, failed sends and migrations; message contents are never logged).
+* **Screenshots:** a debug build launched with `-WLScreenshots <folder>` opens last month as sample data (throwaway
+  database), shows each page, saves the main window as PNGs and quits (`Support/ScreenshotTour.swift`). It captures
+  its own window, so no Screen Recording permission is needed. Shrink them for the repo with `sips -Z 1600 *.png`.
 * **Chats:** a pause longer than Settings → Chats → “New stretch after a pause of” (10 minutes by default) starts a new
   stretch of chatting; “Always” on a conversation logs it to its ticket on every day it has messages.
 
@@ -154,10 +245,10 @@ an existing step. GitHub Actions (`.github/workflows/test.yml`) runs the package
 | **WorkLoggerStore** | SQLite database, stores, draft rebuilding. |
 | **WorkLoggerGit** | Reading history and finding repositories with the `git` CLI (`GitService`). |
 | **WorkLoggerCalendar** | macOS calendars (EventKit) and the Google Calendar API (`CalendarSource`, `GoogleCalendarAccount`). |
-| **WorkLoggerTempo** | Jira/Tempo REST client, CSV/JSON/Markdown export, pushing worklogs (`TempoService`). |
+| **WorkLoggerTempo** | Jira client per account with its worklog provider (Tempo or Jira), project keys, connection checks, CSV/JSON/Markdown export, sending and reading back worklogs (`TempoService`). |
 | **WorkLoggerWeb** | Reading Google Chat (day by day) and HRmaster (month by month) from a signed-in page (`PageDriver`); tested with a fake page. |
 | **WorkLoggerTestSupport** | Shared test fixtures and fakes. |
 
 The app (`Sources/WorkLogger`) keeps the app state (`AppState.swift` plus one `AppState+<Feature>.swift` per area),
-the views, the WebKit sign-in windows (`WebSession`, the real `PageDriver`), the Keychain and the file panels. Its tests run with `xcodebuild test -scheme WorkLogger` (⌘U) or `swift test` and use the
+the views, the WebKit sign-in windows (`WebSession`, the real `PageDriver`), the Keychain with the Touch ID unlock and the file panels. Its tests run with `xcodebuild test -scheme WorkLogger` (⌘U) or `swift test` and use the
 shared fixtures and fakes through the `Tests/WorkLoggerTests/Fixture.swift` and `SharedFakes.swift` symlinks.

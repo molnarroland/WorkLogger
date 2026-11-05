@@ -148,6 +148,10 @@ struct ContentView: View {
                     showWelcome = false
                     openWindow(id: WebSession.Source.hrmaster.windowID)
                 }
+                if ScreenshotTour.isActive {
+                    showWelcome = false
+                    Task { await ScreenshotTour.run(state) }
+                }
                 if WebDebugProbe.fetch != nil {
                     showWelcome = false
                     Task { await WebDebugProbe.runFetch(state) }

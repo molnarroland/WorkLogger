@@ -19,7 +19,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct WorkLoggerApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-    @State private var state = AppState()
+    #if DEBUG
+        @State private var state = ScreenshotTour.isActive ? AppState.demo : AppState()
+    #else
+        @State private var state = AppState()
+    #endif
 
     // Each part is its own small Scene / Commands type: one big nested body made the Swift runtime overflow the
     // stack while resolving its type on launch.
