@@ -9,7 +9,7 @@ jobs:
     # macOS 26 + Xcode 26: the app uses Liquid Glass and SwiftUI's WebKit API.
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Style (swift-format, .swift-format)
         run: swift format lint --strict --recursive --parallel Sources Tests Packages/WorkLoggerKit/Sources Packages/WorkLoggerKit/Tests
       - name: Package tests (Core, Store, Git, Calendar, Tempo, Web)
