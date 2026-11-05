@@ -6,12 +6,27 @@ struct SessionsView: View {
     @Environment(AppState.self) private var state
     @State private var raw = ""
     @State private var parsed: ParsedTimesheet?
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        @Bindable var state = state
         VStack(spacing: 0) {
             HStack {
                 Text("Work sessions").font(.title2.weight(.semibold))
                 Spacer()
+                TextField("HRmaster address", text: $state.settings.hrmasterURL, prompt: Text("https://company.hrmaster.hu"))
+                    .textFieldStyle(.roundedBorder).frame(width: 240)
+                    .help("Your company's HRmaster address; it differs per company")
+                Button("HRmaster…") { openWindow(id: WebSession.Source.hrmaster.windowID) }
+                    .buttonStyle(.glass)
+                    .disabled(HRmasterCollector.normalize(state.settings.hrmasterURL) == nil)
+                    .help("Opens HRmaster inside WorkLogger; sign in there once and the login is kept")
+                Button {
+                    Task { await state.fetchHRmaster() }
+                } label: { Label("Fetch range", systemImage: "arrow.down.circle") }
+                    .buttonStyle(.glass)
+                    .disabled(state.isBusy || HRmasterCollector.normalize(state.settings.hrmasterURL) == nil)
+                    .help("Reads the Munkaidő calendar of each month in the selected dates")
                 Button("Clear sessions in range", role: .destructive) { state.clearSessionsInRange() }
                     .buttonStyle(.glass)
                     .disabled(state.sessions.isEmpty && state.dayRecords.isEmpty)

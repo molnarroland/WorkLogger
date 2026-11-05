@@ -4,8 +4,10 @@ import SwiftUI
 struct ChatsView: View {
     @Environment(AppState.self) private var state
     @State private var showPaste = false
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        @Bindable var state = state
         VStack(spacing: 0) {
             HStack {
                 Text("Chats").font(.title2.weight(.semibold))
@@ -15,6 +17,18 @@ struct ChatsView: View {
                 Button("Clear chats in range", role: .destructive) { state.clearChatsInRange() }
                     .buttonStyle(.glass)
                     .disabled(state.chats.isEmpty)
+                TextField("Your Chat email", text: $state.settings.chatEmail,
+                          prompt: Text(state.settings.authorEmails.first ?? "you@company.com"))
+                    .textFieldStyle(.roundedBorder).frame(width: 220)
+                Button("Google Chat…") { openWindow(id: WebSession.Source.googleChat.windowID) }
+                    .buttonStyle(.glass)
+                    .help("Opens Google Chat inside WorkLogger; sign in there once")
+                Button {
+                    Task { await state.fetchGoogleChat() }
+                } label: { Label("Fetch range", systemImage: "arrow.down.circle") }
+                    .buttonStyle(.glass)
+                    .disabled(state.isBusy)
+                    .help("Searches your messages and mentions in Google Chat for the selected dates")
                 Button { showPaste = true } label: { Label("Paste export…", systemImage: "doc.on.clipboard") }
                     .buttonStyle(.glassProminent)
             }

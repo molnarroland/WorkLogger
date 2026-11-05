@@ -89,6 +89,10 @@ struct AppSettings: Codable, Equatable {
     var breakKeywords: [String] = ["lunch", "ebéd", "break", "szünet", "pause", "pihenő"]
     var shortDateMonthFirst: Bool = true   // "11.03." = 3 November (Hungarian order)
 
+    // In-app sign-in sources
+    var chatEmail: String = ""        // your Google Chat address; the first commit email when empty
+    var hrmasterURL: String = ""
+
     // Absences (leave, public holidays from the HR system)
     var absenceIssueKey: String = ""
     var absenceRules: [MeetingRule] = []   // day label contains → issue, e.g. "Betegszabadság" → HR-3

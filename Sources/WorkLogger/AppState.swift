@@ -27,6 +27,8 @@ final class AppState {
     var dirty: Set<Int64> = []
     var status = "Ready"
     var chats: [ChatDay] = []
+    /// Set when a background fetch found the site signed out: the window opens for sign-in and the fetch resumes.
+    var signInNeeded: WebSession.Source?
     var isBusy = false
     var googleConnected: Bool
     var calendarAccess: MacCalendarStore.Access = .notDetermined
@@ -60,7 +62,11 @@ final class AppState {
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let database: Database
         do {
-            database = try Database(url: databaseURL ?? dir.appendingPathComponent("worklogs.sqlite"))
+            var url = databaseURL ?? dir.appendingPathComponent("worklogs.sqlite")
+            #if DEBUG
+            if databaseURL == nil, let path = UserDefaults.standard.string(forKey: "WLDatabase") { url = URL(fileURLWithPath: path) }
+            #endif
+            database = try Database(url: url)
         } catch {
             fatalError("Cannot open the database: \(error.localizedDescription)")
         }
@@ -345,6 +351,40 @@ final class AppState {
         reloadRange()
     }
 
+    /// Reads the HRmaster work-time calendar for each month of the range in the background, with progress in the
+    /// status bar. Returns true when you need to sign in first.
+    @discardableResult
+    func fetchHRmaster() async -> Bool {
+        guard !isBusy else { return false }
+        guard let base = HRmasterCollector.normalize(settings.hrmasterURL) else {
+            status = "Enter your company's HRmaster address on the Work sessions page first."
+            return false
+        }
+        isBusy = true
+        defer { isBusy = false }
+        do {
+            let pages = try await HRmasterCollector(session: .hrmaster, base: base)
+                .collect(HRmasterCollector.months(from: rangeStart, to: rangeEnd)) { self.status = $0 }
+            var days = 0
+            attempt("Importing work sessions") {
+                for (m, html) in pages {
+                    let parsed = HRmasterParser(fallbackYear: m.year, fallbackMonth: m.month).parse(html)
+                    try db.importTimesheet(parsed)
+                    days += parsed.dayKeys.count
+                }
+                status = "HRmaster: imported \(days) days. Rebuild drafts to apply them."
+            }
+            reloadRange()
+        } catch WebSessionError.notSignedIn {
+            status = "HRmaster is signed out. Sign in in the HRmaster window; fetching continues after."
+            signInNeeded = .hrmaster
+            return true
+        } catch {
+            status = error.localizedDescription
+        }
+        return false
+    }
+
     func clearSessionsInRange() {
         attempt("Clearing sessions") { try db.deleteSessions(fromDay: fromDay, toDay: toDay) }
         reloadRange()
@@ -570,6 +610,31 @@ final class AppState {
             status = "Logged \(DurationFormat.string(minutes * 60)) of “\(c.name)” to \(key)."
         }
         reloadRange()
+    }
+
+    /// Reads your Google Chat messages for the range in the background (the signed-in Google Chat page, no window)
+    /// and imports them, with progress in the status bar. Returns true when you need to sign in first.
+    @discardableResult
+    func fetchGoogleChat() async -> Bool {
+        guard !isBusy else { return false }
+        let email = settings.chatEmail.isEmpty ? (settings.authorEmails.first ?? "") : settings.chatEmail
+        guard !email.isEmpty else { status = "Enter your Google Chat email on the Chats page first."; return false }
+        isBusy = true
+        defer { isBusy = false }
+        do {
+            let export = try await GoogleChatCollector(session: .googleChat, email: email)
+                .collect(from: rangeStart, to: rangeEnd) { self.status = $0 }
+            let added = try db.importChats(export)
+            reloadRange()
+            status = "Google Chat: \(added) new messages in \(export.conversations.count) conversations."
+        } catch WebSessionError.notSignedIn {
+            status = "Google Chat is signed out. Sign in in the Google Chat window; fetching continues after."
+            signInNeeded = .googleChat
+            return true
+        } catch {
+            status = "Google Chat: \(error.localizedDescription)"
+        }
+        return false
     }
 
     func clearChatsInRange() {

@@ -60,6 +60,7 @@ struct ContentView: View {
     @State private var pane: Pane? = .timesheet
     @State private var showExport = false
     @State private var showWelcome = false
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         NavigationSplitView {
@@ -97,7 +98,19 @@ struct ContentView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) { StatusBar() }
         }
         .sheet(isPresented: $showWelcome) { WelcomeView() }
-        .onAppear { showWelcome = !state.settings.welcomed }
+        // A background fetch found a source signed out: show its sign-in window and bounce the Dock icon.
+        .onChange(of: state.signInNeeded) { _, source in
+            guard let source else { return }
+            openWindow(id: source.windowID)
+            NSApp.requestUserAttention(.criticalRequest)
+        }
+        .onAppear {
+            showWelcome = !state.settings.welcomed
+            #if DEBUG
+            if WebDebugProbe.isActive { showWelcome = false; openWindow(id: WebSession.Source.hrmaster.windowID) }
+            if WebDebugProbe.fetch != nil { showWelcome = false; Task { await WebDebugProbe.runFetch(state) } }
+            #endif
+        }
         .onChange(of: state.settings.modules) {
             if let m = pane?.module, !state.settings.modules.contains(m) { pane = .timesheet }
         }

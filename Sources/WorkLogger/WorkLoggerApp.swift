@@ -30,6 +30,15 @@ struct WorkLoggerApp: App {
             }
         }
 
+        // In-app browser windows for sources you sign in to. One window per source: a WebPage can only be shown
+        // in one WebView, and a WindowGroup could restore or open a second copy (that crashed on launch).
+        Window("Google Chat", id: WebSession.Source.googleChat.windowID) {
+            WebSessionWindow(source: .googleChat).environment(state)
+        }
+        Window("HRmaster", id: WebSession.Source.hrmaster.windowID) {
+            WebSessionWindow(source: .hrmaster).environment(state)
+        }
+
         // App menu → Settings… (⌘,), also opened from the gear in the toolbar.
         Settings {
             SettingsView()
