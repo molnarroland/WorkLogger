@@ -78,6 +78,25 @@
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"
-      revealArchiveInOrganizer = "YES">
+      revealArchiveInOrganizer = "NO">
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Install in Applications"
+               scriptText = "# Product → Archive also installs the signed app, replacing the previous copy, so macOS keeps one&#10;# WorkLogger (with its calendar permission and Dock icon) in /Applications.&#10;APP=&quot;$ARCHIVE_PRODUCTS_PATH/Applications/WorkLogger.app&quot;&#10;[ -d &quot;$APP&quot; ] || exit 0&#10;rm -rf /Applications/WorkLogger.app&#10;ditto &quot;$APP&quot; /Applications/WorkLogger.app&#10;/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /Applications/WorkLogger.app&#10;"
+               shellToInvoke = "/bin/sh">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "A10000000000000000000010"
+                     BuildableName = "WorkLogger.app"
+                     BlueprintName = "WorkLogger"
+                     ReferencedContainer = "container:WorkLogger.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
    </ArchiveAction>
 </Scheme>

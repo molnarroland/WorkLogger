@@ -11,12 +11,12 @@ Requires macOS 26+ (Liquid Glass) and Xcode 26+ (no third-party dependencies; us
 Open `WorkLogger.xcworkspace` in Xcode and press ⌘R; ⌘U runs every test (the app's and each WorkLoggerKit module's,
 through the `WorkLogger.xctestplan` test plan). Opening `WorkLogger.xcodeproj` alone still builds and runs the app,
 but its ⌘U only runs the app's tests. Every view has a `#Preview` backed by
-sample data (`Support/PreviewData.swift`, throwaway database). Command line alternatives:
+sample data (`Support/PreviewData.swift`, throwaway database).
 
-```bash
-./scripts/make-app.sh  # builds build/WorkLogger.app (recommended: calendar permission sticks to the app)
-swift run              # quick start from Terminal; or open Package.swift in Xcode → Run
-```
+**Install:** Product → Archive. The scheme's archive post-action copies the signed app to
+`/Applications/WorkLogger.app` (replacing the previous one) and registers it, so macOS keeps one WorkLogger with its
+calendar permission and Dock icon. From Terminal: `xcodebuild archive -workspace WorkLogger.xcworkspace -scheme WorkLogger`.
+`swift run` still starts the app for a quick look (no translations or icon).
 
 Data lives in `~/Library/Application Support/WorkLogger/worklogs.sqlite`. Tokens are in the Keychain.
 
