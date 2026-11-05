@@ -59,7 +59,7 @@ private struct ChatListRow: View {
             Text("\(chat.count) msg").foregroundStyle(.secondary).monospacedDigit()
             Text(DurationFormat.string(chat.activeSeconds)).monospacedDigit().frame(minWidth: 44, alignment: .trailing)
         }
-        .help("\(DayKey.hm(chat.times.first!)) – \(DayKey.hm(chat.times.last!)) · messages less than \(Int(ChatDay.gap / 60)) minutes apart count as one stretch")
+        .help("\(DayKey.hm(chat.times.first!)) – \(DayKey.hm(chat.times.last!)) · messages less than \(Int(chat.gap / 60)) minutes apart count as one stretch")
     }
 }
 
@@ -70,6 +70,7 @@ private struct ChatMessages: View {
 
     var body: some View {
         let logged = state.chatWorklog(chat)
+        let rule = state.settings.chatRules.first { $0.conversationId == chat.conversationId }
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(chat.name).font(.headline).lineLimit(1)
@@ -81,6 +82,13 @@ private struct ChatMessages: View {
                     Button(logged == nil ? "Log \(DurationFormat.string(chat.activeSeconds))" : "Change issue", action: log)
                         .disabled(JiraKey.normalize(issue) == nil || logged?.status == .exported)
                 }
+                // A rule: this conversation goes to the ticket every day, like a meeting rule.
+                Toggle("Always", isOn: Binding(
+                    get: { rule != nil },
+                    set: { state.setChatRule(chat, issue: $0 ? issue : nil) }))
+                    .toggleStyle(.checkbox)
+                    .disabled(rule == nil && JiraKey.normalize(issue) == nil)
+                    .help("Log this conversation to \(rule?.issueKey ?? "this ticket") on every day it has messages")
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 6) {

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Repo: Identifiable, Hashable {
+public struct Repo: Identifiable, Hashable, Sendable {
     public var id: Int64
     public var path: String
     public var name: String
@@ -20,7 +20,7 @@ public struct Repo: Identifiable, Hashable {
 
 /// A Jira project a repository can be assigned to. Tempo can only log to issues,
 /// so a project needs a catch-all issue (e.g. "PROJ-1 General development").
-public struct ProjectMapping: Identifiable, Hashable {
+public struct ProjectMapping: Identifiable, Hashable, Sendable {
     public var key: String
     public var defaultIssue: String?
     public var id: String { key }
@@ -31,7 +31,7 @@ public struct ProjectMapping: Identifiable, Hashable {
     }
 }
 
-public struct FileStat: Hashable {
+public struct FileStat: Hashable, Sendable {
     public var added: Int
     public var deleted: Int
     public var path: String
@@ -44,7 +44,7 @@ public struct FileStat: Hashable {
 }
 
 /// A commit as read from `git log`.
-public struct GitCommit: Hashable {
+public struct GitCommit: Hashable, Sendable {
     public var hash: String
     public var date: Date
     public var author: String
@@ -67,7 +67,7 @@ public struct GitCommit: Hashable {
 }
 
 /// A commit as stored in SQLite (ignored paths such as lockfiles already removed from the stats).
-public struct StoredCommit: Hashable {
+public struct StoredCommit: Hashable, Sendable {
     public var repoId: Int64
     public var hash: String
     public var date: Date
@@ -97,12 +97,12 @@ public struct StoredCommit: Hashable {
     }
 }
 
-public enum SessionKind: String, Codable, CaseIterable {
+public enum SessionKind: String, Codable, CaseIterable, Sendable {
     case work, pause
 }
 
 /// A work session or break imported from the work-time logger.
-public struct WorkSession: Identifiable, Hashable {
+public struct WorkSession: Identifiable, Hashable, Sendable {
     public var id: Int64?
     public var day: String
     public var start: Date
@@ -121,7 +121,7 @@ public struct WorkSession: Identifiable, Hashable {
     }
 }
 
-public struct Meeting: Identifiable, Hashable {
+public struct Meeting: Identifiable, Hashable, Sendable {
     public var id: String
     public var calendarId: String
     public var title: String
@@ -142,7 +142,7 @@ public struct Meeting: Identifiable, Hashable {
     }
 }
 
-public enum WorklogSource: String, Codable, CaseIterable {
+public enum WorklogSource: String, Codable, CaseIterable, Sendable {
     case git, meeting, absence, manual, period, chat
 
     public var icon: String {
@@ -167,13 +167,13 @@ public enum WorklogSource: String, Codable, CaseIterable {
     }
 }
 
-public enum WorklogStatus: String, Codable, CaseIterable {
+public enum WorklogStatus: String, Codable, CaseIterable, Sendable {
     case draft, reviewed, exported
     /// Exported covers both sent by the Tempo API and ticked off after entering it in Tempo by hand.
     public var label: String { self == .exported ? "In Tempo" : rawValue.capitalized }
 }
 
-public struct Worklog: Identifiable, Hashable {
+public struct Worklog: Identifiable, Hashable, Sendable {
     public var id: Int64
     public var day: String
     public var start: Date

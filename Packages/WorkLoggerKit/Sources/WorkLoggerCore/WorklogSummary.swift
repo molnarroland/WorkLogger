@@ -28,7 +28,7 @@ public extension Sequence where Element == WorkSession {
 }
 
 /// How a timesheet day compares to what it should add up to; the day cell shows it as a colour.
-public enum DayProgress: Equatable {
+public enum DayProgress: Equatable, Sendable {
     /// Leave or a public holiday.
     case absence
     /// Nothing expected and nothing logged (a free rest day).
@@ -51,7 +51,7 @@ public enum DayProgress: Equatable {
 }
 
 /// Dragged entries travel as "worklogs:1,2,3" so unrelated text drops are ignored. Exported entries can't move.
-public enum WorklogDrag {
+public enum WorklogDrag: Sendable {
     public static func payload(_ logs: [Worklog]) -> String {
         "worklogs:" + logs.filter { $0.status != .exported }.map { String($0.id) }.joined(separator: ",")
     }

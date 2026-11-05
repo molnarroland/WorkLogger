@@ -1,7 +1,7 @@
 import Foundation
 
 /// Estimates how long a commit took from its size, the kind of change and the free time since the previous commit.
-public struct CommitEstimator {
+public struct CommitEstimator: Sendable {
     public var settings: AppSettings
 
     private static let trivial = ["typo", "bump", "version", "merge", "format", "lint", "cs fix", "cs-fix",

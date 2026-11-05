@@ -1,12 +1,12 @@
 import Foundation
 
 /// Totals of worklogs per day, week or month, split by issue and by source (the Reports pane).
-public enum Period: String, CaseIterable, Identifiable {
+public enum Period: String, CaseIterable, Identifiable, Sendable {
     case day = "Daily", week = "Weekly", month = "Monthly"
     public var id: String { rawValue }
 }
 
-public struct ReportBucket: Identifiable {
+public struct ReportBucket: Identifiable, Sendable {
     public var issue: String
     public var seconds: Int
     public var id: String { issue }
@@ -17,7 +17,7 @@ public struct ReportBucket: Identifiable {
     }
 }
 
-public struct SourceSlice: Identifiable {
+public struct SourceSlice: Identifiable, Sendable {
     public var source: String
     public var hours: Double
     public var id: String { source }
@@ -28,7 +28,7 @@ public struct SourceSlice: Identifiable {
     }
 }
 
-public struct ReportGroup: Identifiable {
+public struct ReportGroup: Identifiable, Sendable {
     public var id: String
     public var label: String
     public var total: Int
@@ -44,7 +44,7 @@ public struct ReportGroup: Identifiable {
     }
 }
 
-public enum Report {
+public enum Report: Sendable {
     public static func group(_ logs: [Worklog], by period: Period) -> [ReportGroup] {
         let cal = DayKey.calendar
         let grouped = Dictionary(grouping: logs) { w -> String in

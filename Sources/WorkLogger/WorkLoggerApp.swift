@@ -43,6 +43,7 @@ struct WorkLoggerApp: App {
                     .keyboardShortcut("g", modifiers: [.command, .option])
                     .disabled(!state.settings.modules.contains(.chats))
             }
+            PaneCommands(modules: state.settings.modules)
             // Go: move through months, like the Timesheet arrows.
             CommandMenu("Go") {
                 Button("Previous Month") { state.shiftMonth(-1) }.keyboardShortcut("[")
@@ -65,6 +66,28 @@ struct WorkLoggerApp: App {
             SettingsView()
                 .environment(state)
                 .frame(width: 640, height: 720)
+        }
+    }
+}
+
+/// View menu: jump to a page (⌘1…⌘9 in sidebar order) and Log in Tempo (⌘L).
+struct PaneCommands: Commands {
+    let modules: Set<Module>
+    @FocusedValue(\.selectPane) private var selectPane
+
+    var body: some Commands {
+        CommandGroup(before: .sidebar) {
+            Button("Log in Tempo") { selectPane?(.byTicket) }
+                .keyboardShortcut("l")
+                .disabled(selectPane == nil)
+            Divider()
+            let panes = Step.allCases.flatMap { $0.panes(modules) }
+            ForEach(Array(panes.prefix(9).enumerated()), id: \.element) { i, p in
+                Button(p.rawValue) { selectPane?(p) }
+                    .keyboardShortcut(KeyEquivalent(Character("\(i + 1)")))
+                    .disabled(selectPane == nil)
+            }
+            Divider()
         }
     }
 }

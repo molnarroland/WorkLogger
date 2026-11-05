@@ -38,5 +38,5 @@ let package = Package(
         .testTarget(name: "WorkLoggerTempoTests", dependencies: ["WorkLoggerTempo", "WorkLoggerTestSupport"]),
         .testTarget(name: "WorkLoggerWebTests", dependencies: ["WorkLoggerWeb", "WorkLoggerTestSupport"]),
     ],
-    swiftLanguageModes: [.v5]
+    swiftLanguageModes: [.v6]
 )

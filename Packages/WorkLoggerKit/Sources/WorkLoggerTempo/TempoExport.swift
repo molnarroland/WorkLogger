@@ -3,7 +3,7 @@ import WorkLoggerCore
 import WorkLoggerStore
 
 /// The body Tempo REST API v4 expects for POST /4/worklogs (issueKey kept for readability; issueId is resolved on push).
-public struct TempoWorklogPayload: Codable {
+public struct TempoWorklogPayload: Codable, Sendable {
     public var issueKey: String
     public var issueId: Int64?
     public var authorAccountId: String?

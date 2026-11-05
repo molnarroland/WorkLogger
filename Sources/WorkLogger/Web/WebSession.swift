@@ -69,6 +69,7 @@ final class WebSession: PageDriver {
             ok = !host.isEmpty && cookies.contains { $0.name == ".AspNet.ApplicationCookie"
                 && host.hasSuffix($0.domain.trimmingCharacters(in: CharacterSet(charactersIn: ".")).lowercased()) }
         }
+        if signedIn != ok { Log.web.notice("\(self.source.title, privacy: .public) signed \(ok ? "in" : "out", privacy: .public)") }
         signedIn = ok
         return ok
     }

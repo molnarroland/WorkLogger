@@ -153,6 +153,30 @@ import WorkLoggerWeb
         #expect(logs.first?.duration == 120)
     }
 
+    @Test func chatGapSettingAndAlwaysRules() throws {
+        let app = try AppHarness()
+        let json = """
+        {"source":"google-chat","conversations":[{"id":"space/T","type":"space","name":"TAO","messages":[
+          {"time":"2026-03-03T08:00:00Z","sender":"me@x","me":true,"text":"a"},
+          {"time":"2026-03-03T08:14:00Z","sender":"me@x","me":true,"text":"b"},
+          {"time":"2026-03-04T08:00:00Z","sender":"me@x","me":true,"text":"c"}]}]}
+        """
+        #expect(app.state.importChats(json))
+        let tuesday = try #require(app.state.chats.first { $0.day == "2026-03-03" })
+        #expect(tuesday.activeSeconds == 120)            // 14 min apart: two one-minute stretches
+        app.state.settings.chatGapMinutes = 15
+        #expect(app.state.chats.first { $0.day == "2026-03-03" }?.activeSeconds == 14 * 60)   // now one stretch
+
+        app.state.setChatRule(tuesday, issue: "tao-9")
+        #expect(app.state.settings.chatRules.map(\.issueKey) == ["TAO-9"])
+        #expect(app.state.worklogs.filter { $0.source == .chat }.map(\.day) == ["2026-03-03", "2026-03-04"])
+        app.state.rebuild()                              // rules don't log a day twice
+        #expect(app.state.worklogs.filter { $0.source == .chat }.count == 2)
+
+        app.state.setChatRule(tuesday, issue: nil)
+        #expect(app.state.settings.chatRules.isEmpty)
+    }
+
     // MARK: Editing
 
     @Test func addManualStartsAfterTheLastEntry() throws {

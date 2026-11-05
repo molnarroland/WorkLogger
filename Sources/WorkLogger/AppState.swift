@@ -18,7 +18,7 @@ final class AppState {
             guard settings != oldValue else { return }
             try? db.saveSettings(settings)
             if settings.excludedFolders != oldValue.excludedFolders { removeHiddenRepos() }
-            if settings.modules != oldValue.modules { reloadRange() }
+            if settings.modules != oldValue.modules || settings.chatGapMinutes != oldValue.chatGapMinutes { reloadRange() }
         }
     }
 
@@ -131,7 +131,7 @@ final class AppState {
         attempt("Loading") {
             worklogs = try db.worklogs(fromDay: fromDay, toDay: toDay)
             let on = settings.modules
-            chats = try db.chatDays(from: rangeStart, to: rangeEnd)
+            chats = try db.chatDays(from: rangeStart, to: rangeEnd, gap: TimeInterval(settings.chatGapMinutes * 60))
             commitCounts = try db.commitCounts(from: rangeStart, to: rangeEnd)
             meetings = on.contains(.calendar) ? try db.meetings(from: rangeStart, to: rangeEnd) : []
             sessions = on.contains(.workTimes) ? try db.sessions(fromDay: fromDay, toDay: toDay) : []
@@ -176,6 +176,9 @@ final class AppState {
 
     /// Runs a database step; a failure ends up in the status bar.
     func attempt(_ label: String, _ body: () throws -> Void) {
-        do { try body() } catch { status = "\(label) failed: \(error.localizedDescription)" }
+        do { try body() } catch {
+            status = "\(label) failed: \(error.localizedDescription)"
+            Log.app.error("\(label, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 }

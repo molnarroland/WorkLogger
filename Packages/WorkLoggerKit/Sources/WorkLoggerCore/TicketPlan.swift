@@ -2,7 +2,7 @@ import Foundation
 
 /// The month as Tempo wants it typed by hand: per ticket, one row per day (Tempo takes one worklog per day),
 /// with what is already entered. Entering by hand marks the worklogs `.exported` without a Tempo id.
-public struct TicketDay: Identifiable, Hashable {
+public struct TicketDay: Identifiable, Hashable, Sendable {
     public var key: String?
     public var day: String
     public var seconds: Int
@@ -23,7 +23,7 @@ public struct TicketDay: Identifiable, Hashable {
     }
 }
 
-public struct TicketGroup: Identifiable, Hashable {
+public struct TicketGroup: Identifiable, Hashable, Sendable {
     public var key: String?    // nil: entries without an issue
     public var days: [TicketDay]
 
@@ -38,7 +38,7 @@ public struct TicketGroup: Identifiable, Hashable {
     }
 }
 
-public enum TicketPlan {
+public enum TicketPlan: Sendable {
     /// "No issue" first, then tickets by time, largest first.
     public static func groups(_ logs: [Worklog]) -> [TicketGroup] {
         let timed = logs.filter { $0.duration > 0 }

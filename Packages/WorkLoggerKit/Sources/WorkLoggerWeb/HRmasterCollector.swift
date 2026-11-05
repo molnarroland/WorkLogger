@@ -55,9 +55,11 @@ public struct HRmasterCollector {
                   let r = try? JSONDecoder().decode(Result.self, from: Data(json.utf8))
             else { throw WebSessionError.script("HRmaster: the page could not be read.") }
             if let error = r.error {
+                Log.web.error("HRmaster \(m.year)-\(m.month): \(error, privacy: .public)")
                 if error == "no-panel" { throw WebSessionError.notSignedIn("HRmaster") }
                 throw WebSessionError.script("HRmaster: \(error)")
             }
+            Log.web.info("HRmaster \(m.year)-\(m.month): \(r.label ?? "-", privacy: .public), \(r.html?.count ?? 0) characters")
             out.append((m, r.html ?? ""))
         }
         return out

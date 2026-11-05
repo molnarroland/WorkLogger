@@ -116,6 +116,13 @@ Google Calendar API with your own “Desktop app” OAuth client.
 
 ## Notes
 
+* **Shortcuts:** ⌘L Log in Tempo, ⌘1–⌘9 the sidebar pages, ⌘R Collect, ⇧⌘R Rebuild drafts, ⌥⌘H / ⌥⌘G fetch HRmaster /
+  Google Chat, ⌘[ / ⌘] previous / next month, ⌘T this month.
+* **Logs:** Console.app, subsystem `dev.worklogger`, categories `app`, `store`, `git`, `calendar`, `tempo` and `web`
+  (fetch steps, sign-in changes, failed sends and migrations; message contents are never logged).
+* **Chats:** a pause longer than Settings → Chats → “New stretch after a pause of” (10 minutes by default) starts a new
+  stretch of chatting; “Always” on a conversation logs it to its ticket on every day it has messages.
+
 * Work times are read from HRmaster's Munkaidő page (`HRmasterParser` in WorkLoggerCore); if HRmaster changes its
   markup, that parser and `HRmasterCollector`'s page script are the places to adjust.
 * The app is not sandboxed, because it runs `git` on your repositories.

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DayInput {
+public struct DayInput: Sendable {
     public var day: String
     public var sessions: [WorkSession]
     public var commits: [StoredCommit]
@@ -21,7 +21,7 @@ public struct DayInput {
 }
 
 /// Turns one day's commits, meetings and work sessions into draft worklogs.
-public struct WorklogBuilder {
+public struct WorklogBuilder: Sendable {
     public var settings: AppSettings
     public var repos: [Int64: Repo]
     public var projects: [String: ProjectMapping]

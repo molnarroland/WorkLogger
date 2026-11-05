@@ -268,6 +268,7 @@ public final class Database {
         let version = try query("PRAGMA user_version").first?.intValue("user_version") ?? 0
         for (i, sql) in Self.migrations.enumerated() where i >= version {
             try execute(sql + "\nPRAGMA user_version = \(i + 1);")
+            Log.store.notice("Migrated \(self.path, privacy: .public) to schema \(i + 1)")
         }
     }
 }

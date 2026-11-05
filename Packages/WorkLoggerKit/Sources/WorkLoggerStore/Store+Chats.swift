@@ -30,7 +30,7 @@ public extension Database {
     }
 
     /// Conversations with messages in [from, to), split per day.
-    func chatDays(from: Date, to: Date) throws -> [ChatDay] {
+    func chatDays(from: Date, to: Date, gap: TimeInterval = ChatDay.defaultGap) throws -> [ChatDay] {
         let rows = try query("""
         SELECT m.conversation_id, m.ts_ms, c.name, c.type FROM chat_messages m
         JOIN chat_conversations c ON c.id = m.conversation_id
@@ -42,7 +42,7 @@ public extension Database {
             let t = Date(timeIntervalSince1970: TimeInterval(r.int("ts_ms") ?? 0) / 1000)
             let day = DayKey.key(t)
             byKey[id + "|" + day, default: ChatDay(conversationId: id, name: r.string("name") ?? id,
-                                                   type: r.string("type") ?? "", day: day, times: [])].times.append(t)
+                                                   type: r.string("type") ?? "", day: day, times: [], gap: gap)].times.append(t)
         }
         return byKey.values.sorted { ($0.day, $0.times[0]) < ($1.day, $1.times[0]) }
     }

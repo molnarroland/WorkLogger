@@ -1,11 +1,11 @@
 import Foundation
 
 /// A chat history export (e.g. Google Chat), pasted as base64 of zlib-compressed JSON (PHP `gzcompress`) or as plain JSON.
-public struct ChatExport: Decodable {
+public struct ChatExport: Decodable, Sendable {
     public var source: String
     public var conversations: [Conversation]
 
-    public struct Conversation: Decodable {
+    public struct Conversation: Decodable, Sendable {
         public var id: String
         public var type: String
         public var name: String?
@@ -27,7 +27,7 @@ public struct ChatExport: Decodable {
         }
     }
 
-    public struct Message: Decodable {
+    public struct Message: Decodable, Sendable {
         public var time: Date
         public var sender: String?   // null when the exporter couldn't tell who wrote it
         public var me: Bool
@@ -56,7 +56,7 @@ public struct ChatExport: Decodable {
         }
     }
 
-    public enum ParseError: LocalizedError {
+    public enum ParseError: LocalizedError, Sendable {
         case notRecognized
         public var errorDescription: String? { "Paste the base64 text of the chat export, or its JSON." }
     }
@@ -89,7 +89,7 @@ public struct ChatExport: Decodable {
     }
 }
 
-public struct ChatLine: Hashable {
+public struct ChatLine: Hashable, Sendable {
     public var time: Date
     public var sender: String
     public var me: Bool
@@ -106,12 +106,14 @@ public struct ChatLine: Hashable {
 }
 
 /// One conversation's messages on one day, as listed on the Chats page.
-public struct ChatDay: Identifiable, Hashable {
+public struct ChatDay: Identifiable, Hashable, Sendable {
     public var conversationId: String
     public var name: String
     public var type: String
     public var day: String
     public var times: [Date]   // sorted
+    /// Messages further apart than this start a new stretch (Settings → Chats).
+    public var gap: TimeInterval = ChatDay.defaultGap
 
     public var id: String { conversationId + "|" + day }
     public var count: Int { times.count }
@@ -121,13 +123,12 @@ public struct ChatDay: Identifiable, Hashable {
     public static let minLoggable = 15
 
     /// Messages less than `gap` apart form one burst; a burst lasts from its first to its last message, at least a minute.
-    // ponytail: fixed 10-minute gap, make it a setting if it misjudges real chats.
-    public static let gap: TimeInterval = 10 * 60
+    public static let defaultGap: TimeInterval = 10 * 60
     public var activeSeconds: Int {
         guard var start = times.first, var last = times.first else { return 0 }
         var total: TimeInterval = 0
         for t in times.dropFirst() {
-            if t.timeIntervalSince(last) > Self.gap {
+            if t.timeIntervalSince(last) > gap {
                 total += max(last.timeIntervalSince(start), 60)
                 start = t
             }
@@ -137,7 +138,9 @@ public struct ChatDay: Identifiable, Hashable {
         return Int(total)
     }
 
-    public init(conversationId: String, name: String, type: String, day: String, times: [Date]) {
+    public init(conversationId: String, name: String, type: String, day: String, times: [Date],
+                gap: TimeInterval = ChatDay.defaultGap) {
+        self.gap = gap
         self.conversationId = conversationId
         self.name = name
         self.type = type

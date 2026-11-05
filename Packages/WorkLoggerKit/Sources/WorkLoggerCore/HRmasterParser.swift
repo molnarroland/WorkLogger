@@ -1,7 +1,7 @@
 import Foundation
 
 /// Kind of day as reported by the HR system.
-public enum DayStatus: String, Codable, CaseIterable {
+public enum DayStatus: String, Codable, CaseIterable, Sendable {
     case workday, restDay, publicHoliday, leave, other
 
     /// HRmaster marks days with `Type_CalendarDayStatus_<X>`; leave of any kind (Szabadság, betegszabadság…) is `LabourCode`.
@@ -19,7 +19,7 @@ public enum DayStatus: String, Codable, CaseIterable {
 }
 
 /// What the HR system says about one day, independent of the individual sessions.
-public struct DayRecord: Identifiable, Hashable {
+public struct DayRecord: Identifiable, Hashable, Sendable {
     public var day: String
     public var status: DayStatus
     public var label: String            // e.g. "Munkanap (Home Office)", "Szabadság", "Pihenőnap"
@@ -36,7 +36,7 @@ public struct DayRecord: Identifiable, Hashable {
     }
 }
 
-public struct ParsedTimesheet {
+public struct ParsedTimesheet: Sendable {
     public var sessions: [WorkSession] = []
     public var days: [DayRecord] = []
     public var format: String = ""
@@ -62,7 +62,7 @@ public struct ParsedTimesheet {
 /// - `FactWorkedHoursSum`, `UnpaidRestBreaksSum` → the totals the HR system calculated
 /// - `WorkScheduleRepeater` cells (Munkaidő 1–n) and `RestBreaksRepeater` cells (Szünet 1–n),
 ///   each holding a From and a To `Evolution.TimepickerSwitchInput`
-public struct HRmasterParser {
+public struct HRmasterParser: Sendable {
     public var fallbackYear: Int
     public var fallbackMonth: Int
 

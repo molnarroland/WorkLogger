@@ -42,6 +42,15 @@ enum Pane: String, CaseIterable, Identifiable {
     }
 }
 
+/// Lets menu commands switch the window's page (View → Timesheet ⌘1…, Log in Tempo ⌘L).
+struct PaneSelectorKey: FocusedValueKey { typealias Value = (Pane) -> Void }
+extension FocusedValues {
+    var selectPane: PaneSelectorKey.Value? {
+        get { self[PaneSelectorKey.self] }
+        set { self[PaneSelectorKey.self] = newValue }
+    }
+}
+
 /// Sidebar groups in the order a timesheet is filled: set up once, bring in the month, fill it, then log it in Tempo.
 enum Step: String, CaseIterable, Identifiable {
     case setup = "1 · Set up"
@@ -105,6 +114,7 @@ struct ContentView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) { StatusBar() }
         }
         .sheet(isPresented: $showWelcome) { WelcomeView() }
+        .focusedSceneValue(\.selectPane) { pane = $0 }
         // A background fetch found a source signed out: show its sign-in window and bounce the Dock icon.
         .onChange(of: state.signInNeeded) { _, source in
             guard let source else { return }

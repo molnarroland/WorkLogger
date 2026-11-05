@@ -46,7 +46,7 @@ public struct FakeError: LocalizedError {
     }
 }
 
-public final class FakeTempo: TempoService {
+public final class FakeTempo: TempoService, @unchecked Sendable {
     public init() {}
     public var account = "acc-1"
     public var issueIds: [String: Int64] = [:]

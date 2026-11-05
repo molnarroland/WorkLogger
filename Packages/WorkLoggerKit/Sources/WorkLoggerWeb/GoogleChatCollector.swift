@@ -67,7 +67,11 @@ public struct GoogleChatCollector {
                 })
                 guard let json = raw as? String,
                       let list = try? JSONDecoder().decode([RawMessage].self, from: Data(json.utf8))
-                else { throw WebSessionError.script("Google Chat's page changed; the message list could not be read.") }
+                else {
+                    Log.web.error("Google Chat search page could not be read at \(session.currentURL?.absoluteString ?? "-", privacy: .public)")
+                    throw WebSessionError.script("Google Chat's page changed; the message list could not be read.")
+                }
+                Log.web.info("Google Chat \(search.label, privacy: .public) \(DayKey.key(day.start), privacy: .public): \(list.count) results")
                 for m in list where m.gid != nil && m.ts >= start && m.ts < end {
                     found[m.id] = m
                     today.insert(m.id)

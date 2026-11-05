@@ -1,11 +1,11 @@
 import Foundation
 
-public enum QuickRange: String, CaseIterable {
+public enum QuickRange: String, CaseIterable, Sendable {
     case today = "Today", thisWeek = "This week", lastWeek = "Last week", thisMonth = "This month", lastMonth = "Last month"
 }
 
 /// The selected days, inclusive. `from` and `to` may be in either order (the date pickers allow it).
-public struct DateRange: Equatable {
+public struct DateRange: Equatable, Sendable {
     public var from: Date
     public var to: Date
 

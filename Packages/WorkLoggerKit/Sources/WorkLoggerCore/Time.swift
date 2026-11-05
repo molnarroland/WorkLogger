@@ -1,7 +1,7 @@
 import Foundation
 
 /// Day keys ("yyyy-MM-dd" in the local time zone) and calendar helpers. Weeks start on Monday (ISO).
-public enum DayKey {
+public enum DayKey: Sendable {
     private struct Config {
         let calendar: Calendar
         let formatter: DateFormatter
@@ -81,7 +81,7 @@ public enum DayKey {
     }
 }
 
-public struct Interval: Hashable {
+public struct Interval: Hashable, Sendable {
     public var start: Date
     public var end: Date
     public var duration: TimeInterval { max(0, end.timeIntervalSince(start)) }
@@ -92,7 +92,7 @@ public struct Interval: Hashable {
     }
 }
 
-public enum Intervals {
+public enum Intervals: Sendable {
     public static func normalize(_ list: [Interval]) -> [Interval] {
         var out: [Interval] = []
         for i in list.filter({ $0.end > $0.start }).sorted(by: { $0.start < $1.start }) {
@@ -130,7 +130,7 @@ public enum Intervals {
     }
 }
 
-public enum DurationFormat {
+public enum DurationFormat: Sendable {
     public static func string(_ seconds: Int) -> String {
         let minutes = Int((Double(seconds) / 60).rounded())
         let h = minutes / 60, m = minutes % 60

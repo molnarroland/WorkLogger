@@ -15,8 +15,10 @@ public enum GitHistory {
                     ok.append((repo.id, try git.log(repoPath: repo.path, since: since, until: until, authors: authors)))
                 } catch {
                     failed.append("\(repo.name): \(error.localizedDescription)")
+                    Log.git.error("Reading \(repo.path, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
                 }
             }
+            Log.git.info("Read \(ok.reduce(0) { $0 + $1.commits.count }) commits from \(ok.count) repositories")
             return (ok, failed)
         }.value
     }

@@ -70,5 +70,6 @@ extension AppState {
             status = "Drafts rebuilt for \(fromDay) – \(toDay)."
         }
         reloadRange()
+        applyChatRules()
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum RoundingMode: String, Codable, CaseIterable, Identifiable {
+public enum RoundingMode: String, Codable, CaseIterable, Identifiable, Sendable {
     /// `sessions` behaves like `fixedHours` and is kept only so older saved settings still decode.
     case estimate, fixedHours, sessions
     public var id: String { rawValue }
@@ -13,7 +13,7 @@ public enum RoundingMode: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-public struct MeetingRule: Codable, Hashable, Identifiable {
+public struct MeetingRule: Codable, Hashable, Identifiable, Sendable {
     public var id = UUID()
     public var contains: String
     public var issueKey: String
@@ -26,7 +26,21 @@ public struct MeetingRule: Codable, Hashable, Identifiable {
 }
 
 /// A stretch of days booked to one issue, e.g. a two-week migration project.
-public struct ProjectPeriod: Codable, Hashable, Identifiable {
+/// A conversation that is always logged to the same ticket (Chats → "always").
+public struct ChatRule: Codable, Hashable, Identifiable, Sendable {
+    public var conversationId: String
+    public var name: String
+    public var issueKey: String
+    public var id: String { conversationId }
+
+    public init(conversationId: String, name: String, issueKey: String) {
+        self.conversationId = conversationId
+        self.name = name
+        self.issueKey = issueKey
+    }
+}
+
+public struct ProjectPeriod: Codable, Hashable, Identifiable, Sendable {
     public var id = UUID()
     public var title: String
     public var issueKey: String
@@ -45,7 +59,7 @@ public struct ProjectPeriod: Codable, Hashable, Identifiable {
 }
 
 /// Optional data sources, switched on the welcome screen. Off means the source is neither read nor used for drafts.
-public enum Module: String, Codable, CaseIterable, Identifiable {
+public enum Module: String, Codable, CaseIterable, Identifiable, Sendable {
     case git, calendar, workTimes, chats
     public var id: String { rawValue }
     public var title: String {
@@ -74,7 +88,7 @@ public enum Module: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-public struct AppSettings: Codable, Equatable {
+public struct AppSettings: Codable, Equatable, Sendable {
     // Modules and first-run welcome
     public var modules: Set<Module> = Set(Module.allCases)
     /// Modules that existed when settings were last saved; modules added in later versions start switched on.
@@ -105,6 +119,10 @@ public struct AppSettings: Codable, Equatable {
     public var defaultDayStart: String = "09:00"
     public var defaultDayEnd: String = "17:30"
     public var includeWeekends: Bool = false
+
+    // Chats
+    public var chatGapMinutes: Int = 10      // messages further apart start a new stretch of chatting
+    public var chatRules: [ChatRule] = []
 
     // In-app sign-in sources
     public var chatEmail: String = ""        // your Google Chat address; the first commit email when empty

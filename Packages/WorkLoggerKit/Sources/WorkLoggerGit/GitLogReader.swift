@@ -6,17 +6,14 @@ public enum GitLogReader {
     private static let fieldSep: Character = "\u{1f}"
     private static let headerEnd: Character = "\u{1d}"
 
-    private static let iso: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime]
-        return f
-    }()
+    /// Sendable, unlike ISO8601DateFormatter; handles git's `%aI` offsets (+01:00) both ways.
+    private static let iso = Date.ISO8601FormatStyle()
 
     /// Reads the user's non-merge commits on all branches between `since` and `until`.
     /// `%S` gives the ref the commit was reached from, which is used to find Jira keys in branch names.
     public static func log(repoPath: String, since: Date, until: Date, authors: [String]) throws -> [GitCommit] {
         var args = ["git", "-C", repoPath, "log", "--all", "--no-merges", "--source", "--numstat",
-                    "--since=\(iso.string(from: since))", "--until=\(iso.string(from: until))",
+                    "--since=\(iso.format(since))", "--until=\(iso.format(until))",
                     "--pretty=format:%x1e%H%x1f%aI%x1f%an%x1f%ae%x1f%s%x1f%b%x1f%S%x1d"]
         args += authors.map { "--author=\($0)" }
         let output = try Shell.run(args)
@@ -29,7 +26,7 @@ public enum GitLogReader {
         for record in output.split(separator: recordSep, omittingEmptySubsequences: true) {
             guard let sep = record.firstIndex(of: headerEnd) else { continue }
             let fields = record[..<sep].split(separator: fieldSep, omittingEmptySubsequences: false).map(String.init)
-            guard fields.count >= 7, let date = iso.date(from: fields[1]), !seen.contains(fields[0]) else { continue }
+            guard fields.count >= 7, let date = try? iso.parse(fields[1]), !seen.contains(fields[0]) else { continue }
             seen.insert(fields[0])
 
             var files: [FileStat] = []

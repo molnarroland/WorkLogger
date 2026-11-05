@@ -1,6 +1,6 @@
 import Foundation
 
-public enum JiraKey {
+public enum JiraKey: Sendable {
     private static let regex = try! NSRegularExpression(
         pattern: #"(?<![A-Za-z0-9])([A-Z][A-Z0-9_]{1,9})-(\d+)(?![A-Za-z0-9])"#)
 

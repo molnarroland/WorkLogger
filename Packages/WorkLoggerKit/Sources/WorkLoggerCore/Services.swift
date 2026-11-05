@@ -3,7 +3,7 @@ import Foundation
 // Services shared by several modules, behind protocols so tests can pass fakes.
 
 /// Keychain account names of the API tokens.
-public enum SecretKey {
+public enum SecretKey: Sendable {
     public static let jiraToken = "jira.apiToken"
     public static let tempoToken = "tempo.apiToken"
     public static let googleSecret = "google.clientSecret"

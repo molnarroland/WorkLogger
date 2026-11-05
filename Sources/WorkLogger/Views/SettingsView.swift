@@ -55,6 +55,27 @@ struct SettingsView: View {
 
             AbsenceSettings()
 
+            Section {
+                Stepper(value: $state.settings.chatGapMinutes, in: 1...60) {
+                    LabeledContent("New stretch after a pause of", value: "\(state.settings.chatGapMinutes) min")
+                }
+                ForEach(state.settings.chatRules) { rule in
+                    HStack {
+                        Text(rule.name)
+                        Image(systemName: "arrow.right").foregroundStyle(.secondary)
+                        Text(rule.issueKey).bold()
+                        Spacer()
+                        Button(role: .destructive) { state.settings.chatRules.removeAll { $0.id == rule.id } } label: {
+                            Image(systemName: "trash") }
+                            .buttonStyle(.borderless)
+                    }
+                }
+            } header: {
+                Text("Chats")
+            } footer: {
+                Text("Messages closer together than the pause count as one stretch of chatting; each stretch is at least a minute. Conversations listed here (ticked “Always” on the Chats page) are logged to their ticket on every day they have messages.")
+            }
+
             SignedInSites()
 
             Section {

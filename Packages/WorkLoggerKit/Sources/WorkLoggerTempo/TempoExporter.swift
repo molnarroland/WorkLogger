@@ -37,6 +37,7 @@ public struct TempoExporter {
                 outcome.sent += 1
             } catch {
                 outcome.failures.append("\(payload.issueKey) \(payload.startDate): \(error.localizedDescription)")
+                Log.tempo.error("Sending \(payload.issueKey, privacy: .public) \(payload.startDate, privacy: .public) failed: \(error.localizedDescription, privacy: .public)")
             }
         }
         return outcome
