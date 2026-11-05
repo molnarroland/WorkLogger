@@ -350,6 +350,7 @@ import WorkLoggerWeb
             Fixture.meeting("private", day: "2026-03-03", "11:00", "12:00", calendarId: "home"),
         ]
         app.googleEvents = [Fixture.meeting("google", day: "2026-03-05", "14:00", "15:00", calendarId: "primary")]
+        await app.state.unlock()
         app.state.refreshCalendars()
         app.state.setCalendar("work", selected: true)
 
@@ -460,9 +461,22 @@ import WorkLoggerWeb
         #expect(app.state.status.contains("Client"))  // ACME is logged in another tool: named, not sent
     }
 
-    @Test func oldTokensMoveToTheMigratedAccount() throws {
+    @Test func startsLockedAndUnlocksOnRequest() async throws {
+        let app = try AppHarness()
+        app.secrets.set("refresh", for: SecretKey.googleRefresh)
+        #expect(app.state.locked && !app.state.googleConnected)  // nothing read before Unlock
+        app.unlocks = false  // cancelled
+        await app.state.unlock()
+        #expect(app.state.locked)
+        app.unlocks = true
+        await app.state.unlock()
+        #expect(!app.state.locked && app.state.googleConnected)
+    }
+
+    @Test func oldTokensMoveToTheMigratedAccount() async throws {
         let app = try AppHarness(settings: Self.withAccount)
         app.secrets.set("jira-t", for: SecretKey.legacyJiraToken)
+        await app.state.unlock()
         let account = app.state.settings.jiraAccounts[0]
         #expect(app.secrets.get(account.jiraTokenKey) == "jira-t")
         #expect(app.secrets.get(SecretKey.legacyJiraToken) == nil)

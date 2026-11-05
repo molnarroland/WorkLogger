@@ -4172,6 +4172,16 @@
         }
       }
     },
+    "Still locked.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Továbbra is zárolva."
+          }
+        }
+      }
+    },
     "Still to enter": {
       "localizations": {
         "hu": {
@@ -4441,6 +4451,16 @@
         }
       }
     },
+    "Unlock with Touch ID or your password to use your API tokens.": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oldd fel Touch ID-val vagy a jelszavaddal az API-tokenjeid használatához."
+          }
+        }
+      }
+    },
     "Unlocked: replaced when drafts are rebuilt": {
       "localizations": {
         "hu": {
@@ -4560,6 +4580,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "A WorkLogger olvashatja a naptáraidat"
+          }
+        }
+      }
+    },
+    "WorkLogger is locked": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A WorkLogger zárolva van"
           }
         }
       }
@@ -4760,6 +4790,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "erre a jegyre"
+          }
+        }
+      }
+    },
+    "unlock your API tokens": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "feloldja az API-tokenjeidet"
           }
         }
       }

@@ -92,6 +92,7 @@ final class AppHarness {
     let files = FakeFiles()
     let tempo = FakeTempo()
     var tempoError: Error?
+    var unlocks = true
     var googleEvents: [Meeting] = []
     var googleSignInError: Error?
     private(set) var googleAccounts: [FakeGoogle] = []
@@ -122,6 +123,7 @@ final class AppHarness {
                 if let tempoError { throw tempoError }
                 return tempo
             },
+            unlock: { [unowned self] in unlocks },
             now: { [unowned self] in now }))
 
     @discardableResult

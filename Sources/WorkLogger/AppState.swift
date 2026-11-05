@@ -55,7 +55,9 @@ final class AppState {
     /// Show only days with missing reports (Review lists them, the Timesheet dims the rest).
     var onlyMissingDays = false
     var isBusy = false
-    var googleConnected: Bool
+    var googleConnected = false
+    /// The app starts locked: the tokens (and the Keychain) are only read after Unlock.
+    var locked = true
     var calendarAccess: MacCalendarStore.Access = .notDetermined
     var macCalendars: [MacCalendarInfo] = []
 
@@ -73,11 +75,9 @@ final class AppState {
             loaded.knownModules = Set(Module.allCases)
         }
         settings = loaded
-        googleConnected = services.secrets.get(SecretKey.googleRefresh) != nil
         let month = DateRange.month(containing: services.now())!
         from = month.from
         to = month.to
-        moveLegacyTokens()
         reloadAll()
         refreshCalendars()
         // New accounts and calendars sync in the background; refresh the list when macOS reports a change.
@@ -106,6 +106,20 @@ final class AppState {
             fatalError("Cannot open the database: \(error.localizedDescription)")
         }
         self.init(db: database, services: .live)
+    }
+
+    // MARK: Lock
+
+    /// Touch ID or the password, then everything that needs the tokens.
+    func unlock() async {
+        guard await services.unlock() else {
+            status = String(localized: "Still locked.")
+            return
+        }
+        locked = false
+        moveLegacyTokens()
+        googleConnected = services.secrets.get(SecretKey.googleRefresh) != nil
+        await refreshTempo()
     }
 
     // MARK: Range

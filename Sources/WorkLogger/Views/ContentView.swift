@@ -79,6 +79,10 @@ struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
+        if state.locked { LockedView() } else { unlocked }
+    }
+
+    private var unlocked: some View {
         NavigationSplitView {
             List(selection: $pane) {
                 ForEach(Step.allCases) { step in
@@ -404,8 +408,40 @@ struct SecretField: View {
 
     var body: some View {
         SecureField(title, text: $value)
-            .onAppear { value = state.services.secrets.get(account) ?? "" }
-            .onChange(of: value) { state.services.secrets.set(value, for: account) }
+            .disabled(state.locked)
+            .task(id: state.locked) { value = state.services.secrets.get(account) ?? "" }
+            .onChange(of: value) { if !state.locked { state.services.secrets.set(value, for: account) } }
+    }
+}
+
+/// Shown until the tokens are unlocked: one button, one Touch ID (or password) prompt.
+struct LockedView: View {
+    @Environment(AppState.self) private var state
+    @State private var unlocking = false
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "lock.fill").font(.system(size: 44)).foregroundStyle(.secondary)
+            Text("WorkLogger is locked").font(.title2.weight(.semibold))
+            Text("Unlock with Touch ID or your password to use your API tokens.").foregroundStyle(.secondary)
+            Button {
+                Task {
+                    unlocking = true
+                    await state.unlock()
+                    unlocking = false
+                }
+            } label: {
+                Label("Unlock", systemImage: "touchid")
+            }
+            .buttonStyle(.glassProminent).controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+            .disabled(unlocking)
+            if !unlocking, state.status == String(localized: "Still locked.") {
+                Text("Still locked.").font(.callout).foregroundStyle(.secondary)
+            }
+        }
+        .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

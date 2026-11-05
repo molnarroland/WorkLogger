@@ -12,6 +12,7 @@ extension AppState {
     static var preview: AppState {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("WorkLogger-preview-\(UUID().uuidString).sqlite")
         let state = AppState(databaseURL: url)
+        state.locked = false
         let db = state.db
         let today = DayKey.key(Date())
         func at(_ hm: String) -> Date { DayKey.at(today, hm: hm) ?? Date() }
@@ -66,6 +67,7 @@ extension AppState {
     static var empty: AppState {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("WorkLogger-empty-\(UUID().uuidString).sqlite")
         let state = AppState(databaseURL: url)
+        state.locked = false
         state.settings.welcomed = true
         return state
     }
