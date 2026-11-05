@@ -46,6 +46,9 @@ struct MainWindow: Scene {
                 .environment(state)
                 .frame(minWidth: 1080, minHeight: 680)
         }
+        // Always open at launch: as a single Window it otherwise follows window restoration, and after quitting with
+        // the window closed (closing it quits the app) WorkLogger started with no window at all.
+        .defaultLaunchBehavior(.presented)
         .commands {
             FileCommands(state: state)
             PaneCommands(modules: state.settings.modules)
@@ -77,9 +80,11 @@ struct SignInWindows: Scene {
         Window("Google Chat", id: WebSession.Source.googleChat.windowID) {
             WebSessionWindow(source: .googleChat).environment(state)
         }
+        .defaultLaunchBehavior(.suppressed)  // opened when needed (sign-in, Google Chat…), not restored at launch
         Window("HRmaster", id: WebSession.Source.hrmaster.windowID) {
             WebSessionWindow(source: .hrmaster).environment(state)
         }
+        .defaultLaunchBehavior(.suppressed)
     }
 }
 
