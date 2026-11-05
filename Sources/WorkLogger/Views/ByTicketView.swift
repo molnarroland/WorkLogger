@@ -1,6 +1,10 @@
 import SwiftUI
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 /// Log in Tempo by hand: pick a ticket, then copy each day's duration and text into Tempo and tick it off.
 struct ByTicketView: View {

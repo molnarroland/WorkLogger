@@ -2,11 +2,15 @@ import SwiftUI
 import WebKit
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 /// A signed-in website the app reads from, with its own persistent cookies and storage (separate from Safari
 /// and from the other sources). The user signs in once in its window; the app then drives the same page.
 @MainActor @Observable
-final class WebSession {
+final class WebSession: PageDriver {
     enum Source: String, CaseIterable, Identifiable, Codable {
         case googleChat = "google-chat", hrmaster
         var id: String { rawValue }
@@ -44,6 +48,12 @@ final class WebSession {
     }
 
     func open(_ url: URL) { page.load(URLRequest(url: url)) }
+
+    // PageDriver
+    var siteName: String { source.title }
+    var currentURL: URL? { page.url }
+    func isSignedIn() async -> Bool { await checkSignedIn() }
+    func waitUntilLoaded() async throws { try await waitUntilLoaded(timeout: .seconds(45)) }
 
     /// Signed in when the site's session cookie is stored: Google's SID, HRmaster's ASP.NET sign-in cookie.
     @discardableResult
@@ -85,7 +95,9 @@ final class WebSession {
 
     /// Runs a script (async function body); retried when a redirect replaces the page while it runs, which WebKit
     /// reports as "completion handler … no longer reachable".
-    func run(_ script: String, arguments: [String: Any] = [:], attempts: Int = 4) async throws -> Any? {
+    func run(_ script: String, arguments: [String: Any]) async throws -> Any? { try await run(script, arguments: arguments, attempts: 4) }
+
+    func run(_ script: String, arguments: [String: Any], attempts: Int) async throws -> Any? {
         for attempt in 1... {
             do { return try await page.callJavaScript(script, arguments: arguments) } catch where attempt < attempts {
                 try await Task.sleep(for: .seconds(3))
@@ -96,7 +108,7 @@ final class WebSession {
     }
 
     /// Runs a long script that keeps its progress (a JSON string) in `window.__wlProgress`, reported every second.
-    func run(_ script: String, arguments: [String: Any] = [:], progress: @escaping (String) -> Void) async throws -> Any? {
+    func run(_ script: String, arguments: [String: Any], progress: @escaping (String) -> Void) async throws -> Any? {
         let poll = Task { @MainActor [page] in
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
@@ -108,23 +120,12 @@ final class WebSession {
     }
 
     /// Waits for the current navigation to finish (the page may redirect a few times).
-    func waitUntilLoaded(timeout: Duration = .seconds(45)) async throws {
+    func waitUntilLoaded(timeout: Duration) async throws {
         let clock = ContinuousClock(), end = clock.now + timeout
         try await Task.sleep(for: .milliseconds(500))
         while page.isLoading {
             guard clock.now < end else { throw WebSessionError.timeout(source.title) }
             try await Task.sleep(for: .milliseconds(200))
-        }
-    }
-}
-
-enum WebSessionError: LocalizedError {
-    case timeout(String), notSignedIn(String), script(String)
-    var errorDescription: String? {
-        switch self {
-        case .timeout(let s): return "\(s) did not finish loading."
-        case .notSignedIn(let s): return "Sign in to \(s) in its window first."
-        case .script(let m): return m
         }
     }
 }

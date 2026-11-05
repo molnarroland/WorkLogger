@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		A10000000000000000000060 /* WorkLoggerCore in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000070 /* WorkLoggerCore */; };
 		A10000000000000000000061 /* WorkLoggerStore in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000071 /* WorkLoggerStore */; };
+		A10000000000000000000063 /* WorkLoggerGit in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000073 /* WorkLoggerGit */; };
+		A10000000000000000000064 /* WorkLoggerCalendar in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000074 /* WorkLoggerCalendar */; };
+		A10000000000000000000065 /* WorkLoggerTempo in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000075 /* WorkLoggerTempo */; };
+		A10000000000000000000066 /* WorkLoggerWeb in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000076 /* WorkLoggerWeb */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +54,10 @@
 			files = (
 				A10000000000000000000060 /* WorkLoggerCore in Frameworks */,
 				A10000000000000000000061 /* WorkLoggerStore in Frameworks */,
+				A10000000000000000000063 /* WorkLoggerGit in Frameworks */,
+				A10000000000000000000064 /* WorkLoggerCalendar in Frameworks */,
+				A10000000000000000000065 /* WorkLoggerTempo in Frameworks */,
+				A10000000000000000000066 /* WorkLoggerWeb in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,6 +121,10 @@
 			packageProductDependencies = (
 				A10000000000000000000070 /* WorkLoggerCore */,
 				A10000000000000000000071 /* WorkLoggerStore */,
+				A10000000000000000000073 /* WorkLoggerGit */,
+				A10000000000000000000074 /* WorkLoggerCalendar */,
+				A10000000000000000000075 /* WorkLoggerTempo */,
+				A10000000000000000000076 /* WorkLoggerWeb */,
 			);
 			productName = WorkLogger;
 			productReference = A10000000000000000000011 /* WorkLogger.app */;
@@ -448,6 +460,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */;
 			productName = WorkLoggerStore;
+		};
+		A10000000000000000000073 /* WorkLoggerGit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */;
+			productName = WorkLoggerGit;
+		};
+		A10000000000000000000074 /* WorkLoggerCalendar */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */;
+			productName = WorkLoggerCalendar;
+		};
+		A10000000000000000000075 /* WorkLoggerTempo */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */;
+			productName = WorkLoggerTempo;
+		};
+		A10000000000000000000076 /* WorkLoggerWeb */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000080 /* XCLocalSwiftPackageReference "Packages/WorkLoggerKit" */;
+			productName = WorkLoggerWeb;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

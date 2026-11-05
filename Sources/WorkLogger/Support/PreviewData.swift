@@ -1,6 +1,10 @@
 import Foundation
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 extension AppState {
     /// An AppState backed by a throwaway SQLite file with a few sample rows, for SwiftUI previews.

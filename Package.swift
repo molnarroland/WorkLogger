@@ -14,7 +14,11 @@ let package = Package(
         .executableTarget(
             name: "WorkLogger",
             dependencies: [.product(name: "WorkLoggerCore", package: "WorkLoggerKit"),
-                           .product(name: "WorkLoggerStore", package: "WorkLoggerKit")],
+                           .product(name: "WorkLoggerStore", package: "WorkLoggerKit"),
+                           .product(name: "WorkLoggerGit", package: "WorkLoggerKit"),
+                           .product(name: "WorkLoggerCalendar", package: "WorkLoggerKit"),
+                           .product(name: "WorkLoggerTempo", package: "WorkLoggerKit"),
+                           .product(name: "WorkLoggerWeb", package: "WorkLoggerKit")],
             path: "Sources/WorkLogger",
             exclude: ["AppIcon.icon"],
             linkerSettings: [

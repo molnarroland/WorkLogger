@@ -57,8 +57,7 @@ enum HRmasterFixture {
 
 final class HRmasterParserTests: XCTestCase {
     private func parse(_ raw: String = HRmasterFixture.march2026) -> ParsedTimesheet {
-        TimeloggerParser(breakKeywords: [], shortDateMonthFirst: true, defaultYear: 2026)
-            .parseTimesheet(raw, fallbackMonth: 11)
+        HRmasterParser(fallbackYear: 2026, fallbackMonth: 11).parse(raw)
     }
 
     func testDetectsFormatAndMonth() {

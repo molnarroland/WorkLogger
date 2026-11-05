@@ -4,6 +4,10 @@ import Testing
 @testable import WorkLogger
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 /// AppState on an in-memory database with fake services; "now" is Wed 2026-03-04 12:00 in Budapest.
 @MainActor

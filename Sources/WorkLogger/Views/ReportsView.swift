@@ -2,6 +2,10 @@ import SwiftUI
 import Charts
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 struct ReportsView: View {
     @Environment(AppState.self) private var state

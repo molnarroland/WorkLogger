@@ -1,0 +1,1 @@
+../../Packages/WorkLoggerKit/Sources/WorkLoggerTestSupport/SharedFakes.swift

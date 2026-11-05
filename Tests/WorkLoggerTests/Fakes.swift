@@ -5,44 +5,13 @@ import UniformTypeIdentifiers
 @testable import WorkLogger
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
-/// Secrets kept in a dictionary; empty values remove the entry, like the Keychain wrapper.
-final class InMemorySecrets: SecretStore, @unchecked Sendable {
-    private let lock = NSLock()
-    private var values: [String: String]
 
-    init(_ values: [String: String] = [:]) { self.values = values }
 
-    func get(_ account: String) -> String? { lock.withLock { values[account] } }
-    func set(_ value: String?, for account: String) {
-        lock.withLock { values[account] = (value?.isEmpty ?? true) ? nil : value }
-    }
-}
-
-/// Answers requests with `handler` and records them.
-final class FakeHTTP: HTTPClient, @unchecked Sendable {
-    private let lock = NSLock()
-    private var recorded: [URLRequest] = []
-    var handler: @Sendable (URLRequest) -> (status: Int, body: String)
-
-    init(_ handler: @escaping @Sendable (URLRequest) -> (status: Int, body: String) = { _ in (200, "{}") }) {
-        self.handler = handler
-    }
-
-    var requests: [URLRequest] { lock.withLock { recorded } }
-
-    func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
-        lock.withLock { recorded.append(request) }
-        let (status, body) = handler(request)
-        let response = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
-        return (Data(body.utf8), response)
-    }
-}
-
-struct FakeError: LocalizedError {
-    var message = "boom"
-    var errorDescription: String? { message }
-}
 
 final class FakeGit: GitService, @unchecked Sendable {
     private let lock = NSLock()
@@ -95,27 +64,6 @@ final class FakeFiles: FilePresenter {
     func copyToPasteboard(_ text: String) { copied.append(text) }
 }
 
-final class FakeTempo: TempoService {
-    var account = "acc-1"
-    var issueIds: [String: Int64] = [:]
-    var failingKeys: Set<String> = []
-    var nextWorklogId: Int64 = 100
-    private(set) var created: [TempoWorklogPayload] = []
-    private(set) var issueLookups: [String] = []
-
-    func accountId() async throws -> String { account }
-    func issueId(for key: String) async throws -> Int64 {
-        issueLookups.append(key)
-        guard let id = issueIds[key] else { throw FakeError(message: "\(key) not found") }
-        return id
-    }
-    func create(_ payload: TempoWorklogPayload) async throws -> Int64 {
-        if failingKeys.contains(payload.issueKey) { throw FakeError(message: "rejected") }
-        created.append(payload)
-        defer { nextWorklogId += 1 }
-        return nextWorklogId
-    }
-}
 
 final class FakeGoogle: GoogleCalendarAccount {
     let clientId: String

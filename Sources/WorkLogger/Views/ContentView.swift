@@ -1,6 +1,10 @@
 import SwiftUI
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 enum Pane: String, CaseIterable, Identifiable {
     case repositories = "Repositories"

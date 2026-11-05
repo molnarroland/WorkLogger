@@ -1,6 +1,10 @@
 import SwiftUI
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 /// Project periods: a stretch of days booked to one issue (e.g. a migration that runs for three weeks).
 struct PeriodsView: View {

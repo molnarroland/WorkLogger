@@ -159,7 +159,7 @@ public struct HRmasterParser {
 
         let status = first(Self.statusTypeRegex).map(DayStatus.init(hrmasterType:)) ?? .other
         let label = first(Self.statusLabelRegex)
-            .map { TimeloggerParser.decodeEntities($0).trimmingCharacters(in: .whitespacesAndNewlines) } ?? ""
+            .map { Self.decodeEntities($0).trimmingCharacters(in: .whitespacesAndNewlines) } ?? ""
         let record = DayRecord(day: day, status: status, label: label,
                                reportedWorked: duration(Self.workedRegex), reportedBreaks: duration(Self.unpaidRegex))
         result.days.append(record)
@@ -227,5 +227,32 @@ public struct HRmasterParser {
     public init(fallbackYear: Int, fallbackMonth: Int) {
         self.fallbackYear = fallbackYear
         self.fallbackMonth = fallbackMonth
+    }
+
+    /// Named and numeric HTML entities (&nbsp;, &#233;, &#x151;…) in cell text.
+    public static func decodeEntities(_ s: String) -> String {
+        var r = s
+        let named: [(String, String)] = [("&nbsp;", " "), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", "\""),
+                                         ("&#39;", "'"), ("&apos;", "'"), ("&ndash;", "–"), ("&mdash;", "—"),
+                                         ("&amp;", "&")]
+        for (k, v) in named { r = r.replacingOccurrences(of: k, with: v) }
+
+        let regex = try! NSRegularExpression(pattern: "&#(x?)([0-9a-fA-F]+);")
+        let ns = r as NSString
+        var result = ""
+        var last = 0
+        for m in regex.matches(in: r, range: NSRange(location: 0, length: ns.length)) {
+            result += ns.substring(with: NSRange(location: last, length: m.range.location - last))
+            let isHex = ns.substring(with: m.range(at: 1)) == "x"
+            if let code = UInt32(ns.substring(with: m.range(at: 2)), radix: isHex ? 16 : 10),
+               let scalar = Unicode.Scalar(code) {
+                result.append(Character(scalar))
+            } else {
+                result += ns.substring(with: m.range)
+            }
+            last = m.range.location + m.range.length
+        }
+        result += ns.substring(from: last)
+        return result
     }
 }

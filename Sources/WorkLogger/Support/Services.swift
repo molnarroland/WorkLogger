@@ -3,71 +3,23 @@ import AppKit
 import UniformTypeIdentifiers
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
-// Everything AppState needs from the outside world, behind small protocols so tests can pass fakes.
-
-/// Where API tokens are kept. The app uses the Keychain.
-protocol SecretStore: Sendable {
-    func get(_ account: String) -> String?
-    func set(_ value: String?, for account: String)
-}
+// Everything AppState needs from the outside world, behind small protocols so tests can pass fakes. The protocols
+// for git, calendars and Tempo live in their WorkLoggerKit modules; secrets and HTTP in WorkLoggerCore.
 
 struct KeychainStore: SecretStore {
+
     func get(_ account: String) -> String? { Keychain.get(account) }
     func set(_ value: String?, for account: String) { Keychain.set(value, for: account) }
 }
 
-/// Sends HTTP requests. The app uses `URLSession.shared`.
-protocol HTTPClient: Sendable {
-    func send(_ request: URLRequest) async throws -> (Data, URLResponse)
-}
 
-extension URLSession: HTTPClient {
-    func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
-        try await data(for: request)
-    }
-}
 
-/// Reads repositories and history. The app runs the `git` command line tool.
-protocol GitService: Sendable {
-    func log(repoPath: String, since: Date, until: Date, authors: [String]) throws -> [GitCommit]
-    func globalUserEmail() -> String?
-    func findRepos(root: URL, excluded: [String]) -> [URL]
-}
 
-struct SystemGit: GitService {
-    func log(repoPath: String, since: Date, until: Date, authors: [String]) throws -> [GitCommit] {
-        try GitLogReader.log(repoPath: repoPath, since: since, until: until, authors: authors)
-    }
-    func globalUserEmail() -> String? { GitScanner.globalUserEmail() }
-    func findRepos(root: URL, excluded: [String]) -> [URL] { GitScanner.findRepos(root: root, excluded: excluded) }
-}
-
-/// Calendars the system knows about. The app reads them through EventKit (`MacCalendarStore`).
-protocol CalendarSource: AnyObject {
-    var access: MacCalendarStore.Access { get }
-    func requestAccess() async throws -> Bool
-    func calendars() -> [MacCalendarInfo]
-    func meetings(calendarIds: Set<String>, from: Date, to: Date) -> [Meeting]
-}
-
-extension MacCalendarStore: CalendarSource {}
-
-/// A Google account read through the Calendar API (`GoogleAuth`).
-protocol GoogleCalendarAccount: AnyObject {
-    var clientId: String { get }
-    var clientSecret: String { get }
-    func signIn() async throws
-    func signOut()
-    func meetings(calendarId: String, from: Date, to: Date) async throws -> [Meeting]
-}
-
-/// Jira and Tempo calls needed to push worklogs (`TempoClient`).
-protocol TempoService {
-    func accountId() async throws -> String
-    func issueId(for key: String) async throws -> Int64
-    func create(_ payload: TempoWorklogPayload) async throws -> Int64
-}
 
 /// Open and save panels and the pasteboard.
 @MainActor

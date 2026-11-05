@@ -2,6 +2,10 @@
 import Foundation
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 /// Debug builds only: launch with `-WLProbeScript <file.js> -WLProbeOut <file>` to open the HRmaster window,
 /// run the script (an async function body) on its page and write the result to the out file. Used to inspect
@@ -46,7 +50,7 @@ enum WebDebugProbe {
             // A script returning "RETRY…" is run again (e.g. while you sign in in the window), for up to 5 minutes.
             let end = ContinuousClock.now + .seconds(300)
             repeat {
-                let value = try? await session.run(js)
+                let value = try? await session.run(js, arguments: [:])
                 result = (value as? String) ?? String(describing: value)
                 if !result.hasPrefix("RETRY") { break }
                 try await Task.sleep(for: .seconds(5))

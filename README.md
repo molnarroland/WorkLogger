@@ -1,7 +1,8 @@
 # WorkLogger
 
-A macOS SwiftUI app that turns your git history, calendar meetings and the monthly report of your
-work-time logger into reviewed timesheets, stored in a local SQLite file and exported to Tempo.
+A macOS SwiftUI app that turns your git history, calendar meetings, Google Chat conversations and your HRmaster
+work times into reviewed timesheets, stored in a local SQLite file and logged in Tempo (by hand, ticket by ticket,
+or through the Tempo API).
 
 ## Run it
 
@@ -22,9 +23,9 @@ Data lives in `~/Library/Application Support/WorkLogger/worklogs.sqlite`. Tokens
 1. **Repositories** – choose your workspace folder; every git repo below it (4 levels deep) is listed.
    Enter your commit email(s). Optionally give a repo a default issue (`TAO-17`) or a project (`TAO`).
    Projects get a catch-all issue, because Tempo can only log to issues.
-2. **Work sessions** – paste the monthly HTML (page source or copied text) of your work-time logger, choose
-   Parse, check the preview, Import. Multiple sessions per day are fine; break rows (lunch, ebéd, szünet…)
-   and the gaps between sessions are not working time.
+2. **Work sessions** – enter your company's HRmaster address, sign in once in the HRmaster window, then choose
+   **Fetch range**: each month's Munkaidő calendar is read in the background. Breaks and the gaps between sessions
+   are not working time.
 3. **Calendar** – add your calendar account (see below) and add rules such as `standup → INT-12`.
 4. **Timesheet** – Tempo-style month grid: each day shows logged vs. expected hours (green complete, orange partly,
    red nothing, purple leave). Click a day for its entries; shift-click a second day to mark the stretch as a period.
@@ -32,9 +33,12 @@ Data lives in `~/Library/Application Support/WorkLogger/worklogs.sqlite`. Tokens
    go to that issue (meetings keep theirs, leave is never filled). Rebuild drafts after changes.
 6. **Review** – pick a range and choose **Collect**. Edit start, duration, issue or description inline.
    Edited entries lock automatically, so **Rebuild drafts** (after changing settings or sessions) keeps them.
-7. **Totals** – daily / weekly / monthly hours per issue and per source.
-8. **Export** (toolbar share icon) – copy or save a Markdown checklist that Claude with Claude in Chrome follows to
-   fill your Tempo timesheet, push through the Tempo API, or save CSV / JSON.
+7. **Chats** – sign in to Google Chat once in its window, then **Fetch range** reads your messages and mentions day
+   by day; log a conversation's active time to a ticket.
+8. **Log in Tempo → By ticket** – every ticket with the days and durations to enter; copy them into Tempo and tick
+   each day off. **Totals** shows hours per ticket (entered vs. still to enter) and per source.
+9. **Export** (toolbar) – copy or save a Markdown checklist that Claude with Claude in Chrome follows to fill your
+   Tempo timesheet, push through the Tempo API, or save CSV / JSON.
 
 ## How times are calculated
 
@@ -57,8 +61,10 @@ issue → project catch-all issue. Unresolved entries are highlighted and never 
 
 ## HRmaster import
 
-Copy the HTML of the Munkaidő table (Datacenter → Calendar, one month per paste, or several months at once) into the
-Work sessions page. The parser reads the page through its `data-e2e-testing` attributes:
+**Fetch range** on the Work sessions page opens `…/Datacenter/#/employeeWorkingTime/own` in the signed-in HRmaster
+session, steps the month arrows to each month of the range and parses the Munkaidő panel. HRmaster's login cookies
+are kept for 14 days, but HRmaster itself ends idle sessions after about 25 minutes; a fetch then asks you to sign in.
+The parser reads the page through its `data-e2e-testing` attributes:
 
 | What | Where it comes from |
 | --- | --- |
@@ -67,7 +73,7 @@ Work sessions page. The parser reads the page through its `data-e2e-testing` att
 | Day label | e.g. “Munkanap (Home Office)”, “Szabadság”, “Pihenőnap” |
 | Work sessions | Munkaidő 1–n columns (From/To) |
 | Breaks | Szünet 1–n columns, subtracted from the sessions |
-| Check totals | “Ledolgozott órák”; the preview warns when the sessions don't add up to it |
+| Check totals | “Ledolgozott órák”; Work sessions shows it next to the net time and marks a mismatch orange |
 
 The HR day type decides the daily target, so transferred Saturday workdays count as workdays and weekday
 holidays or leave never get filled with commit time. With an absence issue set (Settings → Absences), leave days
@@ -108,18 +114,25 @@ Google Calendar API with your own “Desktop app” OAuth client.
 
 ## Notes
 
-* The work-time logger parser is format-agnostic. If your report uses a different date layout or labels,
-  `Import/TimeloggerParser.swift` is the one file to adjust.
+* Work times are read from HRmaster's Munkaidő page (`HRmasterParser` in WorkLoggerCore); if HRmaster changes its
+  markup, that parser and `HRmasterCollector`'s page script are the places to adjust.
 * The app is not sandboxed, because it runs `git` on your repositories.
 
 ## Project layout
 
-| Module | What | Tests |
-|---|---|---|
-| `Packages/WorkLoggerKit` → **WorkLoggerCore** | Models, settings, time, the worklog engine, the HRmaster and chat parsers. Foundation only. | `cd Packages/WorkLoggerKit && swift test` |
-| `Packages/WorkLoggerKit` → **WorkLoggerStore** | SQLite database, stores, draft rebuilding. | same |
-| `Sources/WorkLogger` (app) | App state, views, git, calendars, Tempo, the in-app browser. | `xcodebuild test -scheme WorkLogger` or `swift test` |
+The logic lives in the local package `Packages/WorkLoggerKit`; each module has its own tests
+(`cd Packages/WorkLoggerKit && swift test`, no app build needed).
 
-`WorkLoggerTestSupport` holds the shared test fixtures; the app's tests use the same file through the
-`Tests/WorkLoggerTests/Fixture.swift` symlink.
+| Module | What |
+|---|---|
+| **WorkLoggerCore** | Models, settings, time, the worklog engine, the HRmaster and chat parsers, the secret/HTTP protocols. Foundation only. |
+| **WorkLoggerStore** | SQLite database, stores, draft rebuilding. |
+| **WorkLoggerGit** | Reading history and finding repositories with the `git` CLI (`GitService`). |
+| **WorkLoggerCalendar** | macOS calendars (EventKit) and the Google Calendar API (`CalendarSource`, `GoogleCalendarAccount`). |
+| **WorkLoggerTempo** | Jira/Tempo REST client, CSV/JSON/Markdown export, pushing worklogs (`TempoService`). |
+| **WorkLoggerWeb** | Reading Google Chat (day by day) and HRmaster (month by month) from a signed-in page (`PageDriver`); tested with a fake page. |
+| **WorkLoggerTestSupport** | Shared test fixtures and fakes. |
 
+The app (`Sources/WorkLogger`) keeps the app state (`AppState.swift` plus one `AppState+<Feature>.swift` per area),
+the views, the WebKit sign-in windows (`WebSession`, the real `PageDriver`), the Keychain and the file panels. Its tests run with `xcodebuild test -scheme WorkLogger` (⌘U) or `swift test` and use the
+shared fixtures and fakes through the `Tests/WorkLoggerTests/Fixture.swift` and `SharedFakes.swift` symlinks.

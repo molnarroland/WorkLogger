@@ -2,13 +2,11 @@ import Foundation
 import Security
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
-enum SecretKey {
-    static let jiraToken = "jira.apiToken"
-    static let tempoToken = "tempo.apiToken"
-    static let googleSecret = "google.clientSecret"
-    static let googleRefresh = "google.refreshToken"
-}
 
 /// API tokens live in the macOS Keychain, never in the SQLite file.
 enum Keychain {

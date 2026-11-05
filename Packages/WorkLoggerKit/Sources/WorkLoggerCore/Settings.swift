@@ -106,10 +106,6 @@ public struct AppSettings: Codable, Equatable {
     public var defaultDayEnd: String = "17:30"
     public var includeWeekends: Bool = false
 
-    // Work-time logger import
-    public var breakKeywords: [String] = ["lunch", "ebéd", "break", "szünet", "pause", "pihenő"]
-    public var shortDateMonthFirst: Bool = true   // "11.03." = 3 November (Hungarian order)
-
     // In-app sign-in sources
     public var chatEmail: String = ""        // your Google Chat address; the first commit email when empty
     public var hrmasterURL: String = ""

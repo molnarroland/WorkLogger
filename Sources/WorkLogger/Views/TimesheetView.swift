@@ -2,6 +2,10 @@ import SwiftUI
 import AppKit
 import WorkLoggerCore
 import WorkLoggerStore
+import WorkLoggerGit
+import WorkLoggerCalendar
+import WorkLoggerTempo
+import WorkLoggerWeb
 
 /// Tempo-style month grid: every day shows what is logged against what it should be, so gaps stand out.
 /// Click a day for its entries; shift-click to select several days and mark them as a project period.
