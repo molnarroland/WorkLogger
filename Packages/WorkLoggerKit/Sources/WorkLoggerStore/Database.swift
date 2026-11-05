@@ -153,120 +153,121 @@ public final class Database {
 
     // MARK: - Schema
 
+    /// Schema steps, oldest first: step N brings the database to `user_version` N. Append new steps; never edit old ones.
+    static let migrations: [String] = [
+        // 1: repos, projects, commits, sessions, meetings, worklogs, issue cache, settings
+        """
+        CREATE TABLE IF NOT EXISTS repos(
+            id INTEGER PRIMARY KEY,
+            path TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            issue_key TEXT,
+            project_key TEXT,
+            enabled INTEGER NOT NULL DEFAULT 1
+        );
+        CREATE TABLE IF NOT EXISTS projects(
+            key TEXT PRIMARY KEY,
+            default_issue TEXT
+        );
+        CREATE TABLE IF NOT EXISTS commits(
+            repo_id INTEGER NOT NULL REFERENCES repos(id) ON DELETE CASCADE,
+            hash TEXT NOT NULL,
+            ts INTEGER NOT NULL,
+            author TEXT,
+            email TEXT,
+            subject TEXT NOT NULL DEFAULT '',
+            body TEXT NOT NULL DEFAULT '',
+            ref TEXT NOT NULL DEFAULT '',
+            files INTEGER NOT NULL DEFAULT 0,
+            insertions INTEGER NOT NULL DEFAULT 0,
+            deletions INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(repo_id, hash)
+        );
+        CREATE INDEX IF NOT EXISTS idx_commits_ts ON commits(ts);
+        CREATE TABLE IF NOT EXISTS sessions(
+            id INTEGER PRIMARY KEY,
+            day TEXT NOT NULL,
+            start_ts INTEGER NOT NULL,
+            end_ts INTEGER NOT NULL,
+            kind TEXT NOT NULL,
+            label TEXT NOT NULL DEFAULT ''
+        );
+        CREATE INDEX IF NOT EXISTS idx_sessions_day ON sessions(day);
+        CREATE TABLE IF NOT EXISTS meetings(
+            event_id TEXT PRIMARY KEY,
+            calendar_id TEXT NOT NULL,
+            title TEXT NOT NULL DEFAULT '',
+            details TEXT NOT NULL DEFAULT '',
+            start_ts INTEGER NOT NULL,
+            end_ts INTEGER NOT NULL,
+            skipped INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_meetings_start ON meetings(start_ts);
+        CREATE TABLE IF NOT EXISTS worklogs(
+            id INTEGER PRIMARY KEY,
+            day TEXT NOT NULL,
+            start_ts INTEGER NOT NULL,
+            duration INTEGER NOT NULL,
+            issue_key TEXT,
+            description TEXT NOT NULL DEFAULT '',
+            source TEXT NOT NULL,
+            source_ref TEXT NOT NULL DEFAULT '',
+            repo_id INTEGER,
+            estimated INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'draft',
+            locked INTEGER NOT NULL DEFAULT 0,
+            tempo_id INTEGER
+        );
+        CREATE INDEX IF NOT EXISTS idx_worklogs_day ON worklogs(day);
+        CREATE TABLE IF NOT EXISTS issue_cache(
+            key TEXT PRIMARY KEY,
+            issue_id INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS settings(
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+        """,
+        // 2: HRmaster day types and labels
+        """
+        CREATE TABLE IF NOT EXISTS day_info(
+            day TEXT PRIMARY KEY,
+            status TEXT NOT NULL,
+            label TEXT NOT NULL DEFAULT '',
+            reported_worked INTEGER,
+            reported_breaks INTEGER
+        );
+        """,
+        // 3: chat histories
+        """
+        CREATE TABLE IF NOT EXISTS chat_conversations(
+            id TEXT PRIMARY KEY,
+            source TEXT NOT NULL,
+            type TEXT NOT NULL DEFAULT '',
+            name TEXT NOT NULL DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS chat_messages(
+            conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+            ts_ms INTEGER NOT NULL,
+            sender TEXT NOT NULL,
+            me INTEGER NOT NULL DEFAULT 0,
+            text TEXT NOT NULL DEFAULT '',
+            PRIMARY KEY(conversation_id, ts_ms, sender)
+        );
+        CREATE INDEX IF NOT EXISTS idx_chat_messages_ts ON chat_messages(ts_ms);
+        """,
+        // 4: files sent in chats
+        """
+        ALTER TABLE chat_messages ADD COLUMN files TEXT NOT NULL DEFAULT '';
+        """,
+    ]
+
+    static var schemaVersion: Int { migrations.count }
+
     private func migrate() throws {
         let version = try query("PRAGMA user_version").first?.intValue("user_version") ?? 0
-        if version < 1 {
-            try execute("""
-            CREATE TABLE IF NOT EXISTS repos(
-                id INTEGER PRIMARY KEY,
-                path TEXT UNIQUE NOT NULL,
-                name TEXT NOT NULL,
-                issue_key TEXT,
-                project_key TEXT,
-                enabled INTEGER NOT NULL DEFAULT 1
-            );
-            CREATE TABLE IF NOT EXISTS projects(
-                key TEXT PRIMARY KEY,
-                default_issue TEXT
-            );
-            CREATE TABLE IF NOT EXISTS commits(
-                repo_id INTEGER NOT NULL REFERENCES repos(id) ON DELETE CASCADE,
-                hash TEXT NOT NULL,
-                ts INTEGER NOT NULL,
-                author TEXT,
-                email TEXT,
-                subject TEXT NOT NULL DEFAULT '',
-                body TEXT NOT NULL DEFAULT '',
-                ref TEXT NOT NULL DEFAULT '',
-                files INTEGER NOT NULL DEFAULT 0,
-                insertions INTEGER NOT NULL DEFAULT 0,
-                deletions INTEGER NOT NULL DEFAULT 0,
-                PRIMARY KEY(repo_id, hash)
-            );
-            CREATE INDEX IF NOT EXISTS idx_commits_ts ON commits(ts);
-            CREATE TABLE IF NOT EXISTS sessions(
-                id INTEGER PRIMARY KEY,
-                day TEXT NOT NULL,
-                start_ts INTEGER NOT NULL,
-                end_ts INTEGER NOT NULL,
-                kind TEXT NOT NULL,
-                label TEXT NOT NULL DEFAULT ''
-            );
-            CREATE INDEX IF NOT EXISTS idx_sessions_day ON sessions(day);
-            CREATE TABLE IF NOT EXISTS meetings(
-                event_id TEXT PRIMARY KEY,
-                calendar_id TEXT NOT NULL,
-                title TEXT NOT NULL DEFAULT '',
-                details TEXT NOT NULL DEFAULT '',
-                start_ts INTEGER NOT NULL,
-                end_ts INTEGER NOT NULL,
-                skipped INTEGER NOT NULL DEFAULT 0
-            );
-            CREATE INDEX IF NOT EXISTS idx_meetings_start ON meetings(start_ts);
-            CREATE TABLE IF NOT EXISTS worklogs(
-                id INTEGER PRIMARY KEY,
-                day TEXT NOT NULL,
-                start_ts INTEGER NOT NULL,
-                duration INTEGER NOT NULL,
-                issue_key TEXT,
-                description TEXT NOT NULL DEFAULT '',
-                source TEXT NOT NULL,
-                source_ref TEXT NOT NULL DEFAULT '',
-                repo_id INTEGER,
-                estimated INTEGER NOT NULL DEFAULT 0,
-                status TEXT NOT NULL DEFAULT 'draft',
-                locked INTEGER NOT NULL DEFAULT 0,
-                tempo_id INTEGER
-            );
-            CREATE INDEX IF NOT EXISTS idx_worklogs_day ON worklogs(day);
-            CREATE TABLE IF NOT EXISTS issue_cache(
-                key TEXT PRIMARY KEY,
-                issue_id INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS settings(
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL
-            );
-            PRAGMA user_version = 1;
-            """)
-        }
-        if version < 2 {
-            try execute("""
-            CREATE TABLE IF NOT EXISTS day_info(
-                day TEXT PRIMARY KEY,
-                status TEXT NOT NULL,
-                label TEXT NOT NULL DEFAULT '',
-                reported_worked INTEGER,
-                reported_breaks INTEGER
-            );
-            PRAGMA user_version = 2;
-            """)
-        }
-        if version < 3 {
-            try execute("""
-            CREATE TABLE IF NOT EXISTS chat_conversations(
-                id TEXT PRIMARY KEY,
-                source TEXT NOT NULL,
-                type TEXT NOT NULL DEFAULT '',
-                name TEXT NOT NULL DEFAULT ''
-            );
-            CREATE TABLE IF NOT EXISTS chat_messages(
-                conversation_id TEXT NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
-                ts_ms INTEGER NOT NULL,
-                sender TEXT NOT NULL,
-                me INTEGER NOT NULL DEFAULT 0,
-                text TEXT NOT NULL DEFAULT '',
-                PRIMARY KEY(conversation_id, ts_ms, sender)
-            );
-            CREATE INDEX IF NOT EXISTS idx_chat_messages_ts ON chat_messages(ts_ms);
-            PRAGMA user_version = 3;
-            """)
-        }
-        if version < 4 {
-            try execute("""
-            ALTER TABLE chat_messages ADD COLUMN files TEXT NOT NULL DEFAULT '';
-            PRAGMA user_version = 4;
-            """)
+        for (i, sql) in Self.migrations.enumerated() where i >= version {
+            try execute(sql + "\nPRAGMA user_version = \(i + 1);")
         }
     }
 }

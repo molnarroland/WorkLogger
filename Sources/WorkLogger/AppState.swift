@@ -24,7 +24,12 @@ final class AppState {
 
     var from: Date
     var to: Date
-    var worklogs: [Worklog] = []
+    var worklogs: [Worklog] = [] {
+        didSet { tempoProgress = Self.progress(of: worklogs) }
+    }
+    /// For the status bar: entries without a ticket, and ticket-days already in Tempo. Kept up to date with
+    /// `worklogs` instead of being recomputed on every redraw.
+    private(set) var tempoProgress: (missing: Int, entered: Int, total: Int) = (0, 0, 0)
     var repos: [Repo] = []
     var projects: [ProjectMapping] = []
     var meetings: [Meeting] = []

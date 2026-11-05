@@ -8,7 +8,9 @@ or through the Tempo API).
 
 Requires macOS 26+ (Liquid Glass) and Xcode 26+ (no third-party dependencies; uses the system SQLite, Charts and Network frameworks).
 
-Open `WorkLogger.xcodeproj` in Xcode and press ⌘R (⌘U runs the tests). Every view has a `#Preview` backed by
+Open `WorkLogger.xcworkspace` in Xcode and press ⌘R; ⌘U runs every test (the app's and each WorkLoggerKit module's,
+through the `WorkLogger.xctestplan` test plan). Opening `WorkLogger.xcodeproj` alone still builds and runs the app,
+but its ⌘U only runs the app's tests. Every view has a `#Preview` backed by
 sample data (`Support/PreviewData.swift`, throwaway database). Command line alternatives:
 
 ```bash
@@ -122,6 +124,9 @@ Google Calendar API with your own “Desktop app” OAuth client.
 
 The logic lives in the local package `Packages/WorkLoggerKit`; each module has its own tests
 (`cd Packages/WorkLoggerKit && swift test`, no app build needed).
+
+Database schema changes go to the end of `Database.migrations` (step N brings the file to `user_version` N); never edit
+an existing step. GitHub Actions (`.github/workflows/test.yml`) runs the package tests and the whole workspace on every push.
 
 | Module | What |
 |---|---|

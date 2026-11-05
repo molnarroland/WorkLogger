@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import SQLite3
 @testable import WorkLoggerStore
 import WorkLoggerCore
 import WorkLoggerTestSupport
@@ -24,8 +25,27 @@ import WorkLoggerTestSupport
     // MARK: Schema & transactions
 
     @Test func migratesToTheLatestVersion() throws {
-        #expect(try db.query("PRAGMA user_version").first?.intValue("user_version") == 4)
+        #expect(try db.query("PRAGMA user_version").first?.intValue("user_version") == Database.schemaVersion)
+        #expect(Database.schemaVersion == 4)
         #expect(db.path == ":memory:")
+    }
+
+    /// A database left at an older version (here 2: before chats) is brought up to date and keeps its data.
+    @Test func upgradesAnOlderDatabaseAndKeepsItsData() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("worklogger-\(UUID().uuidString).sqlite")
+        defer { try? FileManager.default.removeItem(at: url) }
+        var handle: OpaquePointer?
+        #expect(sqlite3_open(url.path, &handle) == SQLITE_OK)
+        for (i, sql) in Database.migrations.prefix(2).enumerated() {
+            #expect(sqlite3_exec(handle, sql + "\nPRAGMA user_version = \(i + 1);", nil, nil, nil) == SQLITE_OK)
+        }
+        #expect(sqlite3_exec(handle, "INSERT INTO repos(path, name) VALUES('/w/billing', 'billing');", nil, nil, nil) == SQLITE_OK)
+        sqlite3_close(handle)
+
+        let upgraded = try Database(url: url)
+        #expect(try upgraded.query("PRAGMA user_version").first?.intValue("user_version") == Database.schemaVersion)
+        #expect(try upgraded.repos().map(\.name) == ["billing"])
+        #expect(try upgraded.importChats(ChatExport(source: "t", conversations: [])) == 0)   // chat tables exist
     }
 
     @Test func failedTransactionRollsBack() throws {

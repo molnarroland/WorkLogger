@@ -1,0 +1,62 @@
+{
+  "configurations": [
+    {
+      "id": "4F1D2C3B-0000-4000-8000-000000000001",
+      "name": "Default",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "target": {
+        "containerPath": "container:WorkLogger.xcodeproj",
+        "identifier": "A10000000000000000000024",
+        "name": "WorkLoggerTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:Packages/WorkLoggerKit",
+        "identifier": "WorkLoggerCoreTests",
+        "name": "WorkLoggerCoreTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:Packages/WorkLoggerKit",
+        "identifier": "WorkLoggerStoreTests",
+        "name": "WorkLoggerStoreTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:Packages/WorkLoggerKit",
+        "identifier": "WorkLoggerGitTests",
+        "name": "WorkLoggerGitTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:Packages/WorkLoggerKit",
+        "identifier": "WorkLoggerCalendarTests",
+        "name": "WorkLoggerCalendarTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:Packages/WorkLoggerKit",
+        "identifier": "WorkLoggerTempoTests",
+        "name": "WorkLoggerTempoTests"
+      }
+    },
+    {
+      "target": {
+        "containerPath": "container:Packages/WorkLoggerKit",
+        "identifier": "WorkLoggerWebTests",
+        "name": "WorkLoggerWebTests"
+      }
+    }
+  ],
+  "version": 1
+}

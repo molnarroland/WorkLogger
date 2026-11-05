@@ -1,0 +1,21 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    # macOS 26 + Xcode 26: the app uses Liquid Glass and SwiftUI's WebKit API.
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package tests (Core, Store, Git, Calendar, Tempo, Web)
+        run: swift test --package-path Packages/WorkLoggerKit
+      - name: App and package tests through the workspace
+        run: |
+          xcodebuild test \
+            -workspace WorkLogger.xcworkspace \
+            -scheme WorkLogger \
+            -destination 'platform=macOS,arch=arm64' \
+            CODE_SIGNING_ALLOWED=NO
