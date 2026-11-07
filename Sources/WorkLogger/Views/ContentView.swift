@@ -76,6 +76,8 @@ struct ContentView: View {
     @State private var pane: Pane? = .timesheet
     @State private var showExport = false
     @State private var showWelcome = false
+    /// A half-screen window: the toolbar drops the centered title and shortens Log in Tempo so nothing overflows.
+    @State private var compact = false
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -109,21 +111,30 @@ struct ContentView: View {
             .defaultScrollAnchor(.top)
             .navigationSplitViewColumnWidth(min: 190, ideal: 210)
         } detail: {
-            Group {
-                switch pane ?? .timesheet {
-                case .repositories: RepositoriesView()
-                case .calendar: CalendarView()
-                case .sessions: SessionsView()
-                case .periods: PeriodsView()
-                case .chats: ChatsView()
-                case .timesheet: TimesheetView()
-                case .review: ReviewView()
-                case .byTicket: ByTicketView(pane: $pane)
-                case .reports: ReportsView()
+            // Stacked, not a safe-area inset: the inspector pages (Timesheet, Review) laid out under an inset status bar.
+            VStack(spacing: 0) {
+                Group {
+                    switch pane ?? .timesheet {
+                    case .repositories: RepositoriesView()
+                    case .calendar: CalendarView()
+                    case .sessions: SessionsView()
+                    case .periods: PeriodsView()
+                    case .chats: ChatsView()
+                    case .timesheet: TimesheetView()
+                    case .review: ReviewView()
+                    case .byTicket: ByTicketView(pane: $pane)
+                    case .reports: ReportsView()
+                    }
                 }
+                // Below this the split view folds the sidebar away instead of squeezing the page.
+                .frame(minWidth: 500, maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                StatusBar()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .safeAreaInset(edge: .bottom, spacing: 0) { StatusBar() }
+        }
+        .onGeometryChange(for: Bool.self) {
+            $0.size.width < 980
+        } action: {
+            compact = $0
         }
         .sheet(isPresented: $showWelcome) { WelcomeView() }
         .focusedSceneValue(\.selectPane) { pane = $0 }
@@ -171,8 +182,10 @@ struct ContentView: View {
                 }
             }
             .sharedBackgroundVisibility(.hidden)
-            ToolbarItem(placement: .principal) { Text("WorkLogger").font(.headline) }
-                .sharedBackgroundVisibility(.hidden)
+            if !compact {
+                ToolbarItem(placement: .principal) { Text("WorkLogger").font(.headline) }
+                    .sharedBackgroundVisibility(.hidden)
+            }
             // Order follows the month: bring data in, then log it in Tempo.
             ToolbarItemGroup(placement: .primaryAction) {
                 Menu {
@@ -204,7 +217,11 @@ struct ContentView: View {
                 Button {
                     pane = .byTicket
                 } label: {
-                    Label("Log in Tempo", systemImage: "checklist.checked").labelStyle(.titleAndIcon)
+                    if compact {
+                        Label("Log in Tempo", systemImage: "checklist.checked").labelStyle(.iconOnly)
+                    } else {
+                        Label("Log in Tempo", systemImage: "checklist.checked").labelStyle(.titleAndIcon)
+                    }
                 }
                 .buttonStyle(.glassProminent)
                 .help("Each ticket's days and durations, ready to copy into Tempo")
@@ -270,23 +287,84 @@ struct StatusBar: View {
     }
 }
 
-/// Section title used above content areas.
+/// Section title used above content areas. When the controls don't fit beside the title (a half-screen window, or the
+/// longer Hungarian labels), they move to their own row below it and wrap.
 struct PaneHeader<Trailing: View>: View {
     let title: LocalizedStringKey
     var subtitle: LocalizedStringKey = ""
     @ViewBuilder var trailing: Trailing
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(title).font(.title2.weight(.semibold))
-            Text(subtitle).foregroundStyle(.secondary)
-            Spacer()
-            trailing
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                titles.fixedSize()
+                Spacer(minLength: 12)
+                trailing
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                titles
+                FlowLayout(spacing: 8) { trailing }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
         .padding(.bottom, 8)
     }
+
+    private var titles: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(title).font(.title2.weight(.semibold)).lineLimit(2)
+            Text(subtitle).foregroundStyle(.secondary).lineLimit(1)
+        }
+    }
+}
+
+/// Lays its views out in rows like words, starting a new row when the next one doesn't fit.
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let rows = rows(subviews, width: proposal.width ?? .infinity)
+        let width = rows.map { $0.reduce(0) { $0 + $1.size.width } + spacing * CGFloat($0.count - 1) }.max() ?? 0
+        return CGSize(width: width, height: rows.reduce(0) { $0 + $1.height } + spacing * CGFloat(max(rows.count - 1, 0)))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in rows(subviews, width: bounds.width) {
+            var x = bounds.minX
+            for item in row {
+                item.view.place(
+                    at: CGPoint(x: x, y: y + (row.height - item.size.height) / 2), proposal: ProposedViewSize(item.size))
+                x += item.size.width + spacing
+            }
+            y += row.height + spacing
+        }
+    }
+
+    fileprivate struct Item {
+        let view: LayoutSubview
+        let size: CGSize
+    }
+
+    private func rows(_ subviews: Subviews, width: CGFloat) -> [[Item]] {
+        var rows: [[Item]] = [[]]
+        var x: CGFloat = 0
+        for view in subviews {
+            let size = view.sizeThatFits(.unspecified)
+            if x > 0, x + size.width > width {
+                rows.append([])
+                x = 0
+            }
+            rows[rows.count - 1].append(Item(view: view, size: size))
+            x += size.width + spacing
+        }
+        return rows.filter { !$0.isEmpty }
+    }
+}
+
+extension Array where Element == FlowLayout.Item {
+    fileprivate var height: CGFloat { map(\.size.height).max() ?? 0 }
 }
 
 /// ‹ range › : one field for the selected days (click for a calendar to pick a range), with arrows that move it.

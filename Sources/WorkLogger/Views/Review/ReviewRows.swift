@@ -15,31 +15,46 @@ struct DayHeader: View {
     var body: some View {
         let total = logs.totalDuration
         let missing = logs.missingIssue.count
-        HStack(spacing: 12) {
-            Text(DayKey.title(day)).font(.headline)
-            if let record = state.dayRecords[day], !record.label.isEmpty {
-                Text(record.label).foregroundStyle(record.status == .workday ? Color.secondary : Color.blue)
+        // One line when it fits; on a half-screen window the actions move under the day's facts.
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                info(total: total, missing: missing)
+                Spacer()
+                actions
             }
-            Text(DurationFormat.string(total)).monospacedDigit()
-            if let target {
-                Text("of \(DurationFormat.string(target))")
-                    .foregroundStyle(total == target ? Color.secondary : Color.orange)
+            VStack(alignment: .leading, spacing: 4) {
+                FlowLayout(spacing: 12) { info(total: total, missing: missing) }
+                HStack(spacing: 12) { actions }
             }
-            if missing > 0 {
-                Label("\(missing) without issue", systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
-            }
-            Spacer()
-            Button("Mark reviewed") { state.setStatus(.reviewed, forAllIn: day) }
-                .buttonStyle(.borderless)
-            Button {
-                state.addManual(day: day)
-            } label: {
-                Label("Add entry", systemImage: "plus")
-            }
-            .buttonStyle(.borderless)
         }
         .padding(.vertical, 4)
+    }
+
+    @ViewBuilder private func info(total: Int, missing: Int) -> some View {
+        Text(DayKey.title(day)).font(.headline)
+        if let record = state.dayRecords[day], !record.label.isEmpty {
+            Text(record.label).foregroundStyle(record.status == .workday ? Color.secondary : Color.blue)
+        }
+        Text(DurationFormat.string(total)).monospacedDigit()
+        if let target {
+            Text("of \(DurationFormat.string(target))")
+                .foregroundStyle(total == target ? Color.secondary : Color.orange)
+        }
+        if missing > 0 {
+            Label("\(missing) without issue", systemImage: "exclamationmark.triangle")
+                .foregroundStyle(.orange)
+        }
+    }
+
+    @ViewBuilder private var actions: some View {
+        Button("Mark reviewed") { state.setStatus(.reviewed, forAllIn: day) }
+            .buttonStyle(.borderless)
+        Button {
+            state.addManual(day: day)
+        } label: {
+            Label("Add entry", systemImage: "plus")
+        }
+        .buttonStyle(.borderless)
     }
 }
 

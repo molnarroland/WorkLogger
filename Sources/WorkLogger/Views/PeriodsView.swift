@@ -16,6 +16,8 @@ struct PeriodsView: View {
         palette[(all.firstIndex(of: period) ?? 0) % palette.count]
     }
 
+    @State private var wide = true
+
     var body: some View {
         @Bindable var state = state
         VStack(spacing: 0) {
@@ -37,7 +39,9 @@ struct PeriodsView: View {
                     Text("Add one here, or shift-click two days on the Timesheet to select a stretch and mark it.")
                 }
             } else {
-                HStack(alignment: .top, spacing: 0) {
+                // Side by side when there's room; on a half-screen window the month goes under the list.
+                let layout = wide ? AnyLayout(HStackLayout(alignment: .top, spacing: 0)) : AnyLayout(VStackLayout(spacing: 0))
+                layout {
                     Form {
                         Section {
                             ForEach($state.settings.periods) { $period in
@@ -54,10 +58,15 @@ struct PeriodsView: View {
                     }
                     .formStyle(.grouped)
                     PeriodMonth(periods: state.settings.periods)
-                        .frame(width: 300)
+                        .frame(width: wide ? 300 : nil)
                         .padding(16)
                 }
             }
+        }
+        .onGeometryChange(for: Bool.self) {
+            $0.size.width >= 760
+        } action: {
+            wide = $0
         }
     }
 }

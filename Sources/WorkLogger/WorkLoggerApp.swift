@@ -48,7 +48,7 @@ struct MainWindow: Scene {
         Window("WorkLogger", id: "main") {
             ContentView()
                 .environment(state)
-                .frame(minWidth: 1080, minHeight: 680)
+                .frame(minWidth: 700, minHeight: 560)
         }
         // Always open at launch: as a single Window it otherwise follows window restoration, and after quitting with
         // the window closed (closing it quits the app) WorkLogger started with no window at all.

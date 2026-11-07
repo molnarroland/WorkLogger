@@ -11,16 +11,24 @@
     enum ScreenshotTour {
         static var folder: String? { UserDefaults.standard.string(forKey: "WLScreenshots") }
         static var isActive: Bool { folder != nil }
+        /// `-WLScreenshotSize 720x900` checks a smaller window (half-screen tiling); the README size is the default.
+        static var size: NSSize {
+            let parts = (UserDefaults.standard.string(forKey: "WLScreenshotSize") ?? "").split(separator: "x").compactMap {
+                Double($0)
+            }
+            return parts.count == 2 ? NSSize(width: parts[0], height: parts[1]) : NSSize(width: 1360, height: 860)
+        }
 
         static func run(_ state: AppState) async {
             guard let folder else { return }
             let dir = URL(fileURLWithPath: folder, isDirectory: true)
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             try? await Task.sleep(for: .seconds(1))
-            window?.setFrame(NSRect(x: 80, y: 80, width: 1360, height: 860), display: true)
+            window?.setFrame(NSRect(origin: NSPoint(x: 80, y: 80), size: size), display: true)
             for (pane, name) in [
                 (Pane.timesheet, "timesheet"), (.review, "review"), (.byTicket, "by-ticket"), (.reports, "totals"),
-                (.sessions, "work-sessions"), (.chats, "chats"),
+                (.sessions, "work-sessions"), (.chats, "chats"), (.periods, "periods"), (.calendar, "meetings"),
+                (.repositories, "repositories"),
             ] {
                 state.requestedPane = pane
                 try? await Task.sleep(for: .seconds(1.5))

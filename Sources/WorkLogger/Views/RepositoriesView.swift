@@ -25,8 +25,8 @@ struct RepositoriesView: View {
                     .foregroundStyle(state.settings.workspaceRoot.isEmpty ? Color.secondary : Color.primary)
                     .lineLimit(1).truncationMode(.middle)
                     Spacer()
-                    Button("Choose folder…") { state.chooseWorkspace() }.buttonStyle(.glass)
-                    Button("Scan again") { state.scanWorkspace() }.buttonStyle(.glassProminent)
+                    Button("Choose folder…") { state.chooseWorkspace() }.buttonStyle(.glass).fixedSize()
+                    Button("Scan again") { state.scanWorkspace() }.buttonStyle(.glassProminent).fixedSize()
                         .disabled(state.settings.workspaceRoot.isEmpty)
                 }
                 SetupRow("Your commit emails") {

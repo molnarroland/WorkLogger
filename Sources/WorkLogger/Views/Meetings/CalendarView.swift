@@ -85,20 +85,17 @@ struct CalendarView: View {
                 }
             }
             .formStyle(.grouped)
-            .frame(width: 440)
+            .frame(minWidth: 260, idealWidth: 440, maxWidth: 440)
             .frame(maxHeight: .infinity)
 
             Divider()
 
             VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Text("Meetings in range").font(.title2.weight(.semibold))
-                    Spacer()
+                PaneHeader(title: "Meetings in range") {
                     Button("Read meetings") { Task { await state.refreshMeetings() } }
                         .buttonStyle(.glass)
                         .disabled(!state.canReadMeetings || state.isBusy)
                 }
-                .padding(12)
                 Divider()
                 if let suggestion = repeatingWithoutTicket(builder) {
                     RuleSuggestion(title: suggestion.title, count: suggestion.count)
@@ -135,7 +132,7 @@ struct CalendarView: View {
                     .listStyle(.inset)
                 }
             }
-            .frame(minWidth: 420, maxHeight: .infinity)
+            .frame(minWidth: 240, maxHeight: .infinity)
         }
         .onAppear { state.refreshCalendars() }
     }

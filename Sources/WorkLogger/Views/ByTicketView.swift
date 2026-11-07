@@ -31,7 +31,7 @@ struct ByTicketView: View {
                 }
                 .listStyle(.sidebar)
             }
-            .frame(width: 300)
+            .frame(minWidth: 210, idealWidth: 300, maxWidth: 300)
             Divider()
             Group {
                 if let current {
@@ -83,13 +83,18 @@ private struct TicketDetail: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(group.key ?? "").font(.title.monospaced().weight(.medium))
-                Spacer()
-                CopyButton(title: "Copy key", text: group.key ?? "")
-                CopyButton(title: "Copy all", text: TicketPlan.text(group), prominent: true)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    title
+                    Spacer()
+                    copyButtons
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    title
+                    HStack { copyButtons }
+                }
             }
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 Chip("\(group.days.count) days")
                 Chip("\(DurationFormat.string(group.seconds)) total")
                 Chip(
@@ -131,6 +136,15 @@ private struct TicketDetail: View {
         }
         .padding(18)
     }
+
+    private var title: some View {
+        Text(group.key ?? "").font(.title.monospaced().weight(.medium)).lineLimit(1).fixedSize()
+    }
+
+    @ViewBuilder private var copyButtons: some View {
+        CopyButton(title: "Copy key", text: group.key ?? "")
+        CopyButton(title: "Copy all", text: TicketPlan.text(group), prominent: true)
+    }
 }
 
 private struct NoIssueDetail: View {
@@ -139,13 +153,16 @@ private struct NoIssueDetail: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("No issue").font(.title.monospaced().weight(.medium)).foregroundStyle(.orange)
-                    Text("These entries can't go to Tempo until they have a ticket.").foregroundStyle(.secondary)
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    heading
+                    Spacer()
+                    fixButton
                 }
-                Spacer()
-                Button("Fix in Review", action: fix).buttonStyle(.glassProminent)
+                VStack(alignment: .leading, spacing: 8) {
+                    heading
+                    fixButton
+                }
             }
             Table(group.days) {
                 TableColumn("Day") { d in Text(DayKey.title(d.day)) }.width(min: 110, ideal: 130)
@@ -154,6 +171,17 @@ private struct NoIssueDetail: View {
             }
         }
         .padding(18)
+    }
+
+    private var heading: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("No issue").font(.title.monospaced().weight(.medium)).foregroundStyle(.orange)
+            Text("These entries can't go to Tempo until they have a ticket.").foregroundStyle(.secondary)
+        }
+    }
+
+    private var fixButton: some View {
+        Button("Fix in Review", action: fix).buttonStyle(.glassProminent)
     }
 }
 

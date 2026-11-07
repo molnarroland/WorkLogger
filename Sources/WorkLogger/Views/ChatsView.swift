@@ -15,13 +15,11 @@ struct ChatsView: View {
     var body: some View {
         @Bindable var state = state
         VStack(spacing: 0) {
-            HStack {
-                Text("Chats").font(.title2.weight(.semibold))
-                Text(
+            PaneHeader(
+                title: "Chats",
+                subtitle:
                     "\(state.chats.count) conversations · \(DurationFormat.string(state.chats.reduce(0) { $0 + $1.activeSeconds })) active"
-                )
-                .foregroundStyle(.secondary)
-                Spacer()
+            ) {
                 Button("Clear chats in range", role: .destructive) { state.clearChatsInRange() }
                     .buttonStyle(.glass)
                     .disabled(state.chats.isEmpty)
@@ -49,7 +47,6 @@ struct ChatsView: View {
                 }
                 .buttonStyle(.glassProminent)
             }
-            .padding(12)
             Divider()
 
             if state.chats.isEmpty {

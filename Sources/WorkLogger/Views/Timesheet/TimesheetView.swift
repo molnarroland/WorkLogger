@@ -14,6 +14,10 @@ struct TimesheetView: View {
     @State private var selection: Set<String> = []
     @State private var chatDay: String?
     @State private var anchor: String?
+    /// Room for the day panel beside the grid; on a half-screen window it opens as a popover on the clicked day.
+    @State private var wide = true
+    @State private var showPopover = false
+    @State private var showLegend = false
 
     private var weeks: [[String]] {
         let cal = DayKey.calendar
@@ -43,26 +47,67 @@ struct TimesheetView: View {
                                     DayCell(day: day, inRange: inRange.contains(day), selected: selection.contains(day))
                                         .opacity(missingDays.map { $0.contains(day) || !inRange.contains(day) ? 1 : 0.3 } ?? 1)
                                         .onTapGesture { select(day, in: inRange) }
+                                        .popover(isPresented: popover(for: day), arrowEdge: .trailing) {
+                                            detail(framed: false)
+                                        }
                                 }
                             }
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
-                Spacer(minLength: 0)
             }
-            .frame(minWidth: 640)
 
-            DayDetail(selection: selection.sorted(), clear: { selection = [] }, openChats: { chatDay = $0 })
-                .frame(width: 320)
-                .frame(maxHeight: .infinity, alignment: .top)
-                .padding([.top, .trailing, .bottom], 12)
+            if wide {
+                detail(framed: true)
+                    .frame(width: 320)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding([.top, .trailing, .bottom], 12)
+            }
+        }
+        .onGeometryChange(for: Bool.self) {
+            $0.size.width >= 900
+        } action: {
+            wide = $0
         }
         .chatInspector(day: $chatDay)
     }
 
+    private func detail(framed: Bool) -> some View {
+        DayDetail(
+            selection: selection.sorted(), framed: framed,
+            clear: {
+                selection = []
+                showPopover = false
+            }, openChats: { chatDay = $0 })
+    }
+
+    /// The popover hangs off the last selected day (the clicked one, or the end of a shift-clicked stretch).
+    private func popover(for day: String) -> Binding<Bool> {
+        Binding(
+            get: { !wide && showPopover && selection.max() == day },
+            set: { if !$0 { showPopover = false } })
+    }
+
     private func header(logged: Int, expected: Int) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 10) {
+                monthControls
+                Spacer(minLength: 8)
+                summary(logged: logged, expected: expected, alignment: .trailing)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                monthControls
+                summary(logged: logged, expected: expected, alignment: .leading)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+    }
+
+    @ViewBuilder private var monthControls: some View {
         HStack(spacing: 10) {
             Button {
                 state.shiftMonth(-1)
@@ -72,7 +117,7 @@ struct TimesheetView: View {
             .buttonStyle(.glass)
             Text(state.rangeStart.formatted(.dateTime.month(.wide).year()))
                 .font(.title2.weight(.semibold))
-                .frame(minWidth: 170)
+                .lineLimit(1).fixedSize()
             Button {
                 state.shiftMonth(1)
             } label: {
@@ -90,22 +135,35 @@ struct TimesheetView: View {
                 .buttonStyle(.glass)
                 .help("Read what is already logged in Tempo for these days")
             }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("\(DurationFormat.string(logged)) of \(DurationFormat.string(expected))")
-                    .font(.headline).monospacedDigit()
-                let gap = expected - logged
-                let missing = state.worklogs.missingIssue.count
-                let left =
-                    gap > 0
-                    ? String(localized: "\(DurationFormat.string(gap)) still to log") : String(localized: "Everything logged")
-                Text(missing > 0 ? String(localized: "\(left) · \(missing) need a ticket") : left)
-                    .font(.callout)
-                    .foregroundStyle(gap > 0 || missing > 0 ? Color.orange : Color.green)
+            if !wide {
+                Button {
+                    showLegend = true
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+                .buttonStyle(.glass)
+                .help("What the colors mean")
+                .popover(isPresented: $showLegend, arrowEdge: .bottom) {
+                    DayDetail(selection: [], framed: false, clear: {}, openChats: { _ in })
+                }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+    }
+
+    private func summary(logged: Int, expected: Int, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
+            Text("\(DurationFormat.string(logged)) of \(DurationFormat.string(expected))")
+                .font(.headline).monospacedDigit()
+            let gap = expected - logged
+            let missing = state.worklogs.missingIssue.count
+            let left =
+                gap > 0
+                ? String(localized: "\(DurationFormat.string(gap)) still to log") : String(localized: "Everything logged")
+            Text(missing > 0 ? String(localized: "\(left) · \(missing) need a ticket") : left)
+                .font(.callout).lineLimit(1)
+                .foregroundStyle(gap > 0 || missing > 0 ? Color.orange : Color.green)
+        }
+        .fixedSize()
     }
 
     private func weekdayRow(_ week: [String]) -> some View {
@@ -131,6 +189,7 @@ struct TimesheetView: View {
             selection = selection == [day] ? [] : [day]
             anchor = day
         }
+        showPopover = !selection.isEmpty
     }
 }
 

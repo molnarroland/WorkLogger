@@ -14,9 +14,7 @@ struct SessionsView: View {
     var body: some View {
         @Bindable var state = state
         VStack(spacing: 0) {
-            HStack {
-                Text("Work sessions").font(.title2.weight(.semibold))
-                Spacer()
+            PaneHeader(title: "Work sessions") {
                 TextField("HRmaster address", text: $state.settings.hrmasterURL, prompt: Text("https://company.hrmaster.hu"))
                     .textFieldStyle(.roundedBorder).frame(width: 240)
                     .help("Your company's HRmaster address; it differs per company")
@@ -37,7 +35,6 @@ struct SessionsView: View {
                     .buttonStyle(.glass)
                     .disabled(state.sessions.isEmpty && state.dayRecords.isEmpty)
             }
-            .padding(12)
             Divider()
 
             if state.sessions.isEmpty && state.dayRecords.isEmpty {

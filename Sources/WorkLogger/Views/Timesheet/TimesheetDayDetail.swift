@@ -12,6 +12,8 @@ import WorkLoggerWeb
 struct DayDetail: View {
     @Environment(AppState.self) private var state
     let selection: [String]
+    /// Beside the grid it draws its own glass panel; in a popover the popover is the panel.
+    var framed = true
     let clear: () -> Void
     let openChats: (String) -> Void
     @State private var title = ""
@@ -29,7 +31,10 @@ struct DayDetail: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        .glassEffect(framed ? .regular : .identity, in: .rect(cornerRadius: 20))
+        .frame(width: framed ? nil : 340)
+        .frame(maxHeight: framed ? .infinity : 520)
+        .fixedSize(horizontal: false, vertical: !framed)
     }
 
     private var legend: some View {

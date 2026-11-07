@@ -4853,6 +4853,19 @@
           }
         }
       }
+    },
+    "%@ / %@": {
+      "shouldTranslate": false
+    },
+    "What the colors mean": {
+      "localizations": {
+        "hu": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit jelentenek a színek"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

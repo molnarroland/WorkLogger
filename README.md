@@ -223,7 +223,7 @@ which token permission is missing.
   (fetch steps, sign-in changes, failed sends and migrations; message contents are never logged).
 * **Screenshots:** a debug build launched with `-WLScreenshots <folder>` opens last month as sample data (throwaway
   database), shows each page, saves the main window as PNGs and quits (`Support/ScreenshotTour.swift`). It captures
-  its own window, so no Screen Recording permission is needed. Shrink them for the repo with `sips -Z 1600 *.png`.
+  its own window, so no Screen Recording permission is needed. Shrink them for the repo with `sips -Z 1600 *.png`. Add `-WLScreenshotSize 720x880` to check a smaller window (e.g. half-screen tiling).
 * **Chats:** a pause longer than Settings → Chats → “New stretch after a pause of” (10 minutes by default) starts a new
   stretch of chatting; “Always” on a conversation logs it to its ticket on every day it has messages.
 

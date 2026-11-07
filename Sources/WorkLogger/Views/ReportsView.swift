@@ -20,9 +20,7 @@ struct ReportsView: View {
         let groups = Report.group(state.worklogs, by: period)
         let total = state.worklogs.totalDuration
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 12) {
-                Text("Totals").font(.title2.weight(.semibold))
-                Spacer()
+            PaneHeader(title: "Totals") {
                 Picker("Period", selection: $period) {
                     ForEach(Period.allCases) { Text($0.localizedName).tag($0) }
                 }
@@ -30,7 +28,6 @@ struct ReportsView: View {
                 .labelsHidden()
                 .frame(width: 260)
             }
-            .padding(12)
             Divider()
 
             if groups.isEmpty {
