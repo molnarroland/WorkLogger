@@ -1,0 +1,433 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-07T18:15:02+01:00",
+  "title": "Design System: WorkLogger",
+  "extensions": {
+    "colorMeta": {
+      "accent-system-blue": {
+        "role": "primary",
+        "displayName": "System Accent Blue",
+        "canonical": "SwiftUI system color (light-mode reference #007AFF)",
+        "tonalRamp": [
+          "#000923",
+          "#002156",
+          "#003C8F",
+          "#0059CC",
+          "#247EF4",
+          "#65A6FF",
+          "#9ECCFF",
+          "#D6F1FF"
+        ]
+      },
+      "state-complete-green": {
+        "role": "secondary",
+        "displayName": "Complete Green",
+        "canonical": "SwiftUI system color (light-mode reference #34C759)",
+        "tonalRamp": [
+          "#001101",
+          "#003004",
+          "#00530C",
+          "#007916",
+          "#0F9D3D",
+          "#66BC73",
+          "#A0DAA6",
+          "#D8F9DB"
+        ]
+      },
+      "state-partial-orange": {
+        "role": "secondary",
+        "displayName": "Partial Orange",
+        "canonical": "SwiftUI system color (light-mode reference #FF9500)",
+        "tonalRamp": [
+          "#180600",
+          "#401800",
+          "#6C2E00",
+          "#9C4500",
+          "#C26800",
+          "#DA934F",
+          "#F1BE90",
+          "#FFE8CE"
+        ]
+      },
+      "state-empty-red": {
+        "role": "secondary",
+        "displayName": "Empty Red",
+        "canonical": "SwiftUI system color (light-mode reference #FF3B30)",
+        "tonalRamp": [
+          "#1F0000",
+          "#4E0000",
+          "#820000",
+          "#BB0000",
+          "#E43A2F",
+          "#F97969",
+          "#FFADA0",
+          "#FFDFD7"
+        ]
+      },
+      "state-leave-purple": {
+        "role": "secondary",
+        "displayName": "Leave Purple",
+        "canonical": "SwiftUI system color (light-mode reference #AF52DE)",
+        "tonalRamp": [
+          "#13031C",
+          "#351048",
+          "#5C2078",
+          "#8532AD",
+          "#A858D2",
+          "#C488E7",
+          "#E0B6F9",
+          "#FCE4FF"
+        ]
+      },
+      "state-extra-blue": {
+        "role": "secondary",
+        "displayName": "Extra Blue",
+        "canonical": "SwiftUI system color (light-mode reference #007AFF)",
+        "tonalRamp": [
+          "#000923",
+          "#002156",
+          "#003C8F",
+          "#0059CC",
+          "#247EF4",
+          "#65A6FF",
+          "#9ECCFF",
+          "#D6F1FF"
+        ]
+      },
+      "state-idle-gray": {
+        "role": "secondary",
+        "displayName": "Idle Gray",
+        "canonical": "SwiftUI system color (light-mode reference #8E8E93)",
+        "tonalRamp": [
+          "#0B0B0C",
+          "#252527",
+          "#424245",
+          "#616165",
+          "#828286",
+          "#A5A5A8",
+          "#C9C9CB",
+          "#EEEEF0"
+        ]
+      },
+      "source-coding-blue": {
+        "role": "tertiary",
+        "displayName": "Coding Blue",
+        "canonical": "SwiftUI system color (light-mode reference #007AFF)",
+        "tonalRamp": [
+          "#000923",
+          "#002156",
+          "#003C8F",
+          "#0059CC",
+          "#247EF4",
+          "#65A6FF",
+          "#9ECCFF",
+          "#D6F1FF"
+        ]
+      },
+      "source-meeting-purple": {
+        "role": "tertiary",
+        "displayName": "Meeting Purple",
+        "canonical": "SwiftUI system color (light-mode reference #AF52DE)",
+        "tonalRamp": [
+          "#13031C",
+          "#351048",
+          "#5C2078",
+          "#8532AD",
+          "#A858D2",
+          "#C488E7",
+          "#E0B6F9",
+          "#FCE4FF"
+        ]
+      },
+      "source-chat-teal": {
+        "role": "tertiary",
+        "displayName": "Chat Teal",
+        "canonical": "SwiftUI system color (light-mode reference #30B0C7)",
+        "tonalRamp": [
+          "#000E13",
+          "#002B34",
+          "#004C5A",
+          "#006F82",
+          "#1E92A5",
+          "#69B2C1",
+          "#A2D3DE",
+          "#D9F4FB"
+        ]
+      },
+      "source-leave-pink": {
+        "role": "tertiary",
+        "displayName": "Leave Pink",
+        "canonical": "SwiftUI system color (light-mode reference #FF2D55)",
+        "tonalRamp": [
+          "#200003",
+          "#4F000E",
+          "#83001E",
+          "#BC002F",
+          "#E6314F",
+          "#FA747E",
+          "#FFAAAD",
+          "#FFDEDE"
+        ]
+      },
+      "source-period-indigo": {
+        "role": "tertiary",
+        "displayName": "Period Indigo",
+        "canonical": "SwiftUI system color (light-mode reference #5856D6)",
+        "tonalRamp": [
+          "#070720",
+          "#1D1D50",
+          "#353585",
+          "#504FBF",
+          "#6E72E6",
+          "#939CF6",
+          "#BBC4FF",
+          "#E6ECFF"
+        ]
+      },
+      "source-manual-gray": {
+        "role": "tertiary",
+        "displayName": "Manual Gray",
+        "canonical": "SwiftUI system color (light-mode reference #8E8E93)",
+        "tonalRamp": [
+          "#0B0B0C",
+          "#252527",
+          "#424245",
+          "#616165",
+          "#828286",
+          "#A5A5A8",
+          "#C9C9CB",
+          "#EEEEF0"
+        ]
+      },
+      "needs-ticket-orange": {
+        "role": "tertiary",
+        "displayName": "Needs-a-Ticket Orange",
+        "canonical": "SwiftUI system color (light-mode reference #FF9500)",
+        "tonalRamp": [
+          "#180600",
+          "#401800",
+          "#6C2E00",
+          "#9C4500",
+          "#C26800",
+          "#DA934F",
+          "#F1BE90",
+          "#FFE8CE"
+        ]
+      },
+      "window-background": {
+        "role": "neutral",
+        "displayName": "Window White",
+        "canonical": "SwiftUI system color (light-mode reference #FFFFFF)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "sidebar-background": {
+        "role": "neutral",
+        "displayName": "Sidebar Gray",
+        "canonical": "SwiftUI system color (light-mode reference #EBEBEB)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "label-primary": {
+        "role": "neutral",
+        "displayName": "Label Primary",
+        "canonical": "SwiftUI hierarchical style (.primary/.secondary/.tertiary/.quaternary)"
+      },
+      "label-secondary": {
+        "role": "neutral",
+        "displayName": "Label Secondary",
+        "canonical": "SwiftUI hierarchical style (.primary/.secondary/.tertiary/.quaternary)"
+      },
+      "label-tertiary": {
+        "role": "neutral",
+        "displayName": "Label Tertiary",
+        "canonical": "SwiftUI hierarchical style (.primary/.secondary/.tertiary/.quaternary)"
+      },
+      "fill-quaternary": {
+        "role": "neutral",
+        "displayName": "Quaternary Fill",
+        "canonical": "SwiftUI hierarchical style (.primary/.secondary/.tertiary/.quaternary)"
+      }
+    },
+    "typographyMeta": {
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": ".title2.weight(.semibold): page headers, locked screen."
+      },
+      "big-figure": {
+        "displayName": "Big Figure",
+        "purpose": ".title.monospaced(): headline totals."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Day numbers, panel titles, toolbar title."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "List rows, form fields."
+      },
+      "callout": {
+        "displayName": "Callout",
+        "purpose": "Toolbar range, row metadata, status bar, helper text."
+      },
+      "caption": {
+        "displayName": "Caption 2",
+        "purpose": "Day-card durations, totals, HR labels, period chips; always tabular."
+      }
+    },
+    "shadows": [],
+    "materials": [
+      {
+        "name": "glass-regular",
+        "value": ".glassEffect(.regular)",
+        "purpose": "Panels, pills, drag previews."
+      },
+      {
+        "name": "glass-interactive",
+        "value": ".glassEffect(.regular.interactive())",
+        "purpose": "Toolbar pills and the selected day card (tinted accent 35%)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "system-default",
+        "value": "SwiftUI default springs; no custom animation tokens",
+        "purpose": "Glass interactive press response and list changes use system motion."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Prominent Button",
+      "kind": "button",
+      "refersTo": "button-prominent",
+      "description": "The single primary action per context (Log in Tempo, Unlock); .glassProminent.",
+      "html": "<button class=\"ds-btn-prominent\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><circle cx=\"3\" cy=\"4\" r=\"1.5\"/><path d=\"M7 4h7M7 12h7\"/><circle cx=\"3\" cy=\"12\" r=\"1.5\"/></svg>Log in Tempo</button>",
+      "css": ".ds-btn-prominent { display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 16px; border:none; border-radius:9999px; background:#007AFF; color:#fff; font:400 13px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, sans-serif; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35); transition: filter .15s, transform .15s; cursor:default; } .ds-btn-prominent:hover { filter:brightness(1.08); } .ds-btn-prominent:active { transform:scale(0.97); filter:brightness(0.92); } .ds-btn-prominent:focus-visible { outline:3px solid rgba(0,122,255,0.5); outline-offset:2px; }"
+    },
+    {
+      "name": "Glass Button",
+      "kind": "button",
+      "refersTo": "button-glass",
+      "description": "Default page action (.glass): This month, Fetch range, filters.",
+      "html": "<button class=\"ds-btn-glass\">This month</button>",
+      "css": ".ds-btn-glass { height:28px; padding:0 12px; border-radius:9999px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8); border: 0.5px solid rgba(0,0,0,0.08); color:rgba(0,0,0,0.85); font:400 13px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, sans-serif; transition: background .15s, transform .15s; } .ds-btn-glass:hover { background:rgba(255,255,255,0.8); } .ds-btn-glass:active { transform:scale(0.97); } .ds-btn-glass:focus-visible { outline:3px solid rgba(0,122,255,0.5); outline-offset:2px; }"
+    },
+    {
+      "name": "Review Filter Chips",
+      "kind": "chip",
+      "refersTo": "button-glass",
+      "description": "Glass filter buttons; the selected one takes the accent tint and carries its count.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-chip-on\">No ticket · 1</button><button class=\"ds-chip\">Drafts</button><button class=\"ds-chip\">Locked</button><button class=\"ds-chip\">All</button></div>",
+      "css": ".ds-chips { display:flex; gap:6px; } .ds-chip { height:28px; padding:0 12px; border-radius:9999px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8); border: 0.5px solid rgba(0,0,0,0.08); color:rgba(0,0,0,0.85); font:400 13px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, sans-serif; } .ds-chip:hover { background:rgba(255,255,255,0.8); } .ds-chip:focus-visible { outline:3px solid rgba(0,122,255,0.5); outline-offset:2px; } .ds-chip-on, .ds-chip-on:hover { background:#007AFF; color:#fff; border-color:transparent; }"
+    },
+    {
+      "name": "Toolbar Pill",
+      "kind": "custom",
+      "refersTo": "toolbar-pill",
+      "description": "Standalone interactive glass capsule holding the range stepper.",
+      "html": "<div class=\"ds-pill\"><button aria-label=\"Previous\">‹</button><span>2026. Oct 1–31.</span><button aria-label=\"Next\">›</button></div>",
+      "css": ".ds-pill { display:inline-flex; align-items:center; gap:10px; height:32px; padding:0 12px; border-radius:9999px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8); border: 0.5px solid rgba(0,0,0,0.08); color:rgba(0,0,0,0.5); font:400 12px/1 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, sans-serif; font-variant-numeric:tabular-nums; } .ds-pill button { border:none; background:none; color:inherit; font-size:16px; padding:0 2px; } .ds-pill button:hover { color:rgba(0,0,0,0.85); } .ds-pill button:focus-visible { outline:2px solid #007AFF; border-radius:4px; }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "sidebar-item-selected",
+      "description": "Numbered workflow sections; selected row is the accent capsule.",
+      "html": "<nav class=\"ds-side\"><div class=\"ds-side-h\">3 · Fill the timesheet</div><a class=\"ds-side-i ds-side-on\" href=\"#\">▦ Timesheet</a><a class=\"ds-side-i\" href=\"#\">☰ Review</a></nav>",
+      "css": ".ds-side { width:256px; padding:8px; background:#EBEBEB; font:400 13px/1.3 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, sans-serif; } .ds-side-h { color:rgba(0,0,0,0.5); font-size:11px; font-weight:600; padding:10px 8px 4px; } .ds-side-i { display:block; padding:7px 10px; border-radius:8px; color:rgba(0,0,0,0.85); text-decoration:none; } .ds-side-i:hover { background:rgba(0,0,0,0.05); } .ds-side-i:focus-visible { outline:2px solid #007AFF; } .ds-side-on, .ds-side-on:hover { background:#007AFF; color:#fff; font-weight:600; }"
+    },
+    {
+      "name": "Day Card",
+      "kind": "card",
+      "refersTo": "day-card",
+      "description": "Signature Timesheet cell: state tint 10% fill / 45% stroke, per-source durations, source stack bar, logged/expected.",
+      "html": "<div class=\"ds-days\"><div class=\"ds-day ds-complete\" tabindex=\"0\"><b>14</b><div class=\"ds-row\"><span>⌥</span><span>7h 15m</span></div><div class=\"ds-row\"><span>💬</span><span>30m</span></div><div class=\"ds-row\"><span>👥</span><span>15m</span></div><div class=\"ds-bar\"><i style=\"width:88%;background:#007AFF\"></i><i style=\"width:6%;background:#30B0C7\"></i><i style=\"width:3%;background:#AF52DE\"></i></div><small>8h / 8h</small></div><div class=\"ds-day ds-partial\" tabindex=\"0\"><b>27 <em>⚠</em></b><div class=\"ds-row\"><span>✎</span><span>4h</span></div><div class=\"ds-row\"><span>⌥</span><span>3h 15m</span></div><div class=\"ds-bar\"><i style=\"width:40%;background:#007AFF\"></i><i style=\"width:50%;background:#FF9500\"></i></div><small>7h 15m / 8h</small></div><div class=\"ds-day ds-leave\" tabindex=\"0\"><b>9 <span class=\"ds-hr\">Szabadság</span></b><div class=\"ds-bar\"><i style=\"width:100%;background:#FF2D55\"></i></div><small>8h</small></div></div>",
+      "css": ".ds-days { display:flex; gap:8px; font:400 10px/1.3 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, sans-serif; font-variant-numeric:tabular-nums; } .ds-day { --c:#8E8E93; width:120px; min-height:104px; box-sizing:border-box; padding:8px; border-radius:12px; display:flex; flex-direction:column; gap:4px; background:color-mix(in srgb, var(--c) 10%, white); border:1px solid color-mix(in srgb, var(--c) 45%, transparent); color:rgba(0,0,0,0.85); transition: box-shadow .15s; } .ds-day:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 70%, transparent); } .ds-day:focus-visible { outline:2px solid #007AFF; outline-offset:-1px; background:color-mix(in srgb, #007AFF 18%, white); } .ds-complete { --c:#34C759; } .ds-partial { --c:#FF9500; } .ds-leave { --c:#AF52DE; } .ds-day b { font-size:13px; display:flex; justify-content:space-between; align-items:center; } .ds-day em { color:#FF9500; font-style:normal; font-size:10px; margin-right:auto; margin-left:4px; } .ds-hr { color:#AF52DE; font-size:10px; font-weight:400; } .ds-row { display:flex; justify-content:space-between; } .ds-row span:first-child { color:rgba(0,0,0,0.5); } .ds-bar { margin-top:auto; height:5px; border-radius:9999px; background:rgba(0,0,0,0.1); display:flex; overflow:hidden; } .ds-day small { color:rgba(0,0,0,0.5); font-size:10px; }"
+    },
+    {
+      "name": "Glass Panel",
+      "kind": "card",
+      "refersTo": "glass-panel",
+      "description": "Summary container: headline title, 14px padding, regular glass at 18px radius.",
+      "html": "<section class=\"ds-panel\"><h3>Per source</h3><div class=\"ds-legend\"><span><i style=\"background:#007AFF\"></i>Coding 128h</span><span><i style=\"background:#AF52DE\"></i>Meetings 14h</span><span><i style=\"background:#30B0C7\"></i>Chats 10h</span><span><i style=\"background:#FF9500\"></i>Needs a ticket 4h</span></div></section>",
+      "css": ".ds-panel { width:420px; padding:14px; border-radius:18px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px) saturate(1.8); -webkit-backdrop-filter: blur(20px) saturate(1.8); border: 0.5px solid rgba(0,0,0,0.08); font:400 12px/1.35 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", system-ui, sans-serif; color:rgba(0,0,0,0.85); } .ds-panel h3 { margin:0 0 8px; font-size:13px; font-weight:700; } .ds-legend { display:flex; flex-wrap:wrap; gap:14px; font-variant-numeric:tabular-nums; } .ds-legend span { display:inline-flex; align-items:center; gap:6px; } .ds-legend i { width:10px; height:10px; border-radius:2px; display:inline-block; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Month-End Desk",
+    "overview": "WorkLogger is a calm, native Mac workspace that you sit down at once a month to close out the timesheet. The desk is quiet: a white window, a gray sidebar and a month grid of day cards. The tools float above it as Liquid Glass: capsule pills in the toolbar, one prominent blue **Log in Tempo** action, and glass panels for summaries. Nothing on the desk is decorative. Every tint means something about a day or a source of work, and every number is set in tabular figures so the columns line up like a ledger.\n\nThe system is Apple's, used precisely. Type is SF Pro in the system text styles, colours are the dynamic system colours (so dark mode, Increase Contrast and the user's accent come free), and controls are stock SwiftUI with the macOS 26 glass button styles. The app's own identity lives in a small number of signature pieces: the day card, the source-split progress bar and the fixed meaning of each colour.\n\nDensity is moderate to high. A full month fits one window without scrolling at 1600 × 1000. Secondary text carries most of the labelling, so the primary-label figures (durations, day numbers) stand out.",
+    "keyCharacteristics": [
+      "Native first: SF Pro text styles, system semantic colours, SwiftUI controls, Liquid Glass for floating chrome only.",
+      "Colour is a signal, never decoration. One fixed colour per day state and per work source, the same on every screen.",
+      "Orange always means \"needs a ticket\".",
+      "Tabular, monospaced digits wherever durations or totals appear.",
+      "Glass floats over content. The content itself (grids, lists) stays flat."
+    ],
+    "rules": [
+      {
+        "name": "The One Meaning Rule",
+        "body": "Each colour has exactly one job per family: a day state, or a work source. A new feature reuses an existing meaning or argues for a new colour. It never borrows a hue for decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Orange Alarm Rule",
+        "body": "Orange is reserved for \"needs attention\": no ticket, a partial day, totals that don't match HR. Never use it for emphasis or branding.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ledger Digits Rule",
+        "body": "Every duration, time and total uses monospaced digits (`.monospacedDigit()` at minimum), so columns align and numbers don't jitter while editing.",
+        "section": "typography"
+      },
+      {
+        "name": "The System Styles Only Rule",
+        "body": "Use the semantic text styles (`.headline`, `.callout`, `.caption2`) and not fixed point sizes, so Dynamic Type and the Hungarian strings scale together. `.system(size: 44)` is used only for the lock glyph.",
+        "section": "typography"
+      },
+      {
+        "name": "The Glass Floats Rule",
+        "body": "Glass is for things that act or summarise above the work: controls, panels and drag previews. Data cells and list rows are never glass. The one exception is a *selected* day card, which gains an accent-tinted interactive glass so that it lifts out of the grid.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No Custom Shadow Rule",
+        "body": "Depth comes from the system material and tint, not from drop shadows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use system semantic colours (`.blue`, `.secondary`, `.quaternary`), never hex literals, so light/dark and contrast settings keep working.",
+      "Do colour a day card by its state at 10% fill and 45% stroke, and keep the state set fixed: complete, partial, empty, leave, extra, idle.",
+      "Do take source colours from `WorklogSource.color` and draw time without a ticket in orange, last in the bar.",
+      "Do put `.monospacedDigit()` on every duration, time and total.",
+      "Do use `.glass` for page actions and `.glassProminent` for the single primary action.",
+      "Do keep chrome in glass capsules (`toolbarPill()`) and content flat.",
+      "Do size layouts for Hungarian strings, which run noticeably longer than English."
+    ],
+    "donts": [
+      "Don't add drop shadows. Depth comes from Liquid Glass and tint.",
+      "Don't use orange for anything except \"needs attention\".",
+      "Don't make list rows or grid cells glass, except the selected day card.",
+      "Don't add a second prominent button to a view.",
+      "Don't use fixed font sizes where a system text style fits.",
+      "Don't introduce new leave hues. Leave is currently split between purple (cards) and pink (bars), and the refresh should settle on one."
+    ]
+  }
+}
