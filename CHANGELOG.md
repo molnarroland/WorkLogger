@@ -3,6 +3,18 @@
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-11-20
+
+### Fixed
+
+- **Jira tokens with scopes** now work on every page straight after starting the app. Before, some pages didn't
+  recognise the token until it was tested on the Profiles page: WorkLogger now checks once per site whether the
+  token has to go through api.atlassian.com.
+
+### Changed
+
+- CI runs only formatting, lint and the tests, on Linux; the release builds are made locally with `task release`.
+
 ## [0.1.0] - 2026-11-20
 
 The first public release.
@@ -36,4 +48,5 @@ The first public release.
   - Windows: the 64-bit exe in a zip.
   - Linux: the 64-bit binary, compressed with UPX.
 
-[0.1.0]: https://github.com/molnarroland/WorkLogger/releases/tag/v0.1.0
+[0.1.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.1.1
+[0.1.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.1.0
