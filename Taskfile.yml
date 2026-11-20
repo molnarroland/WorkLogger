@@ -44,12 +44,14 @@ tasks:
 
   fmt:
     summary: Formats Go (gofumpt) and the frontend (Prettier)
+    deps: [common:install:frontend:deps]
     cmds:
       - golangci-lint fmt
       - npm --prefix frontend run format
 
   fmt:check:
     summary: Fails if anything is not formatted
+    deps: [common:install:frontend:deps]
     cmds:
       - golangci-lint fmt --diff
       - npm --prefix frontend run format:check

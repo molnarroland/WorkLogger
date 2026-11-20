@@ -6,7 +6,6 @@ You need Go (the version in `go.mod`), Node 24, [Task](https://taskfile.dev) and
 [Wails v3 CLI](https://v3alpha.wails.io/). Then:
 
 ```sh
-cd frontend && npm ci && cd ..
 task dev        # the app with live reload
 ```
 

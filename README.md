@@ -85,7 +85,6 @@ development packages.
 ```sh
 git clone https://github.com/molnarroland/WorkLogger.git
 cd WorkLogger
-cd frontend && npm ci && cd ..
 task build        # the app in bin/
 task package      # an installable package for this OS
 task dev          # run with live reload
