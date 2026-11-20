@@ -86,6 +86,48 @@ tasks:
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
 
+  release:
+    summary: Builds the release files into bin/release (run on macOS, with Docker and the wails-cross-amd64 image)
+    desc: |
+      bin/release/WorkLogger-<version>-windows-amd64.zip    WorkLogger.exe, zipped
+      bin/release/WorkLogger-<version>-macos-arm64.dmg      the Apple silicon (arm64) .app
+      bin/release/WorkLogger-<version>-linux-amd64          the binary, compressed with UPX
+      bin/release/SHA256SUMS.txt                            their checksums
+      The version is the one in build/config.yml. Nothing is code-signed.
+    platforms: [darwin] # the DMG needs macOS's hdiutil and codesign
+    preconditions:
+      - sh: command -v zip
+        msg: zip is needed for the Windows archive
+      - sh: command -v upx
+        msg: 'UPX is needed for the Linux binary: brew install upx'
+      - sh: docker image inspect wails-cross-amd64 > /dev/null 2>&1
+        msg: 'The amd64 Docker image for the Linux build is missing: task setup:docker:amd64'
+    vars:
+      VERSION:
+        sh: sed -n 's/^ *version:[[:space:]]*"\([^"]*\)".*/\1/p' build/config.yml | head -1
+      OUT: '{{.BIN_DIR}}/release'
+      NAME: '{{.APP_NAME}}-{{.VERSION}}'
+    # One after the other, not as deps: the macOS and Linux builds both write bin/WorkLogger by default.
+    cmds:
+      - rm -rf "{{.OUT}}" && mkdir -p "{{.OUT}}"
+      # Windows: pure Go, cross-compiles without cgo.
+      - task: windows:build
+        vars: { ARCH: amd64 }
+      - zip -j -9 "{{.OUT}}/{{.NAME}}-windows-amd64.zip" "{{.BIN_DIR}}/{{.APP_NAME}}.exe"
+      # macOS: Apple silicon .app, ad-hoc signed, in a DMG.
+      - task: darwin:build
+        vars: { ARCH: arm64 }
+      - task: darwin:create:app:bundle
+      - task: darwin:create:dmg
+      - mv "{{.BIN_DIR}}/{{.APP_NAME}}.dmg" "{{.OUT}}/{{.NAME}}-macos-arm64.dmg"
+      # Linux: cgo (GTK), so it builds in Docker. The image's gcc and GTK libraries are its own architecture,
+      # so an amd64 binary needs the amd64 image (emulated on Apple silicon; see setup:docker:amd64).
+      - task: linux:build
+        vars: { ARCH: amd64, OUTPUT: '{{.OUT}}/{{.NAME}}-linux-amd64', CROSS_IMAGE: wails-cross-amd64 }
+      - upx --best --lzma "{{.OUT}}/{{.NAME}}-linux-amd64"
+      - cd "{{.OUT}}" && shasum -a 256 {{.NAME}}-* > SHA256SUMS.txt
+      - ls -lh "{{.OUT}}"
+
   install:msix:tools:
     summary: Installs tools required for Windows MSIX packaging
     cmds:
@@ -95,3 +137,8 @@ tasks:
     summary: Builds Docker image for cross-compilation (~800MB download)
     cmds:
       - task: common:setup:docker
+
+  setup:docker:amd64:
+    summary: Builds the amd64 cross-compilation image that `task release` uses for the Linux binary
+    cmds:
+      - docker build --platform linux/amd64 -t wails-cross-amd64 -f build/docker/Dockerfile.cross build/docker/

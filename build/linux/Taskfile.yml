@@ -28,6 +28,7 @@ tasks:
           OBFUSCATED: '{{.OBFUSCATED}}'
           GARBLE_ARGS: '{{.GARBLE_ARGS}}'
           CGO_ENABLED: '{{.CGO_ENABLED}}'
+          CROSS_IMAGE: '{{.CROSS_IMAGE}}'
     vars:
       DEFAULT_OUTPUT: '{{.BIN_DIR}}/{{.APP_NAME}}'
       OUTPUT: '{{ .OUTPUT | default .DEFAULT_OUTPUT }}'

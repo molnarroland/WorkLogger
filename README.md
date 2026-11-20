@@ -30,14 +30,14 @@ Each release lists SHA-256 checksums in `SHA256SUMS.txt`.
 
 The builds are **not code-signed** yet, so your system will warn you the first time:
 
-- **macOS** (`…-macos-universal.zip`, Apple silicon and Intel, macOS 26 or later): unzip and move `WorkLogger.app` to
+- **macOS** (`…-macos-arm64.dmg`, Apple silicon, macOS 26 or later): open the DMG and drag `WorkLogger.app` to
   Applications. Open it once; when macOS refuses, go to **System Settings → Privacy & Security** and choose
   **Open Anyway**. Or, in Terminal: `xattr -dr com.apple.quarantine /Applications/WorkLogger.app`.
-- **Windows** (`…-windows-amd64-setup.zip`): unzip it and run the setup `.exe`. When SmartScreen says it protected
-  your PC, choose **More info → Run anyway**. The installer adds the WebView2 runtime if it is missing.
-- **Linux** (`.AppImage`, `.deb` or `.rpm`): needs WebKitGTK 6.0 (`libwebkitgtk-6.0-4` on Debian and Ubuntu,
-  `webkitgtk6.0` on Fedora). For the AppImage: `chmod +x WorkLogger-*.AppImage` and run it. Tokens are stored
-  through the Secret Service, so a keyring (GNOME Keyring, KWallet) must be running.
+- **Windows** (`…-windows-amd64.zip`): unzip it and run `WorkLogger.exe`. When SmartScreen says it protected your
+  PC, choose **More info → Run anyway**. It needs the WebView2 runtime, which Windows 11 already has.
+- **Linux** (`…-linux-amd64`): needs WebKitGTK 6.0 (`libwebkitgtk-6.0-4` on Debian and Ubuntu, `webkitgtk6.0` on
+  Fedora). `chmod +x WorkLogger-*-linux-amd64` and run it. Tokens are stored through the Secret Service, so a
+  keyring (GNOME Keyring, KWallet) must be running.
 
 ## Getting started
 
@@ -87,6 +87,7 @@ git clone https://github.com/molnarroland/WorkLogger.git
 cd WorkLogger
 task build        # the app in bin/
 task package      # an installable package for this OS
+task release      # on macOS: the release files for all three OSes in bin/release (see Taskfile.yml)
 task dev          # run with live reload
 task check        # formatting, lint and tests
 ```
