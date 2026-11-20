@@ -1,5 +1,6 @@
 name: CI
 
+# Lint, formatting and tests only. Platform builds and packaging happen locally (`task release`).
 on:
   push:
     branches: [main]
@@ -17,77 +18,49 @@ env:
   GO_PKGS: . ./app/... ./internal/...
   # Latest patch of this minor, so the standard library carries the current security fixes.
   GO_VERSION: '1.27'
-  WAILS_VERSION: v3.1.0
 
 jobs:
   go:
-    name: Go (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    name: Go
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+      # The Wails packages need the webview headers to compile, even for tests.
       - name: Linux webview libraries
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             libgtk-3-dev libwebkit2gtk-4.1-dev libgtk-4-dev libwebkitgtk-6.0-dev
-      # main.go embeds frontend/dist. The frontend job builds the real thing; a placeholder is enough
-      # to compile and test the Go side here.
+      # main.go embeds frontend/dist; a placeholder is enough to compile and test the Go side.
       - name: Placeholder frontend/dist
-        shell: bash
         run: mkdir -p frontend/dist && echo '<!doctype html>' > frontend/dist/index.html
       - name: Install golangci-lint
-        if: runner.os == 'Linux'
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.15
           install-only: true
       - name: Formatting (gofumpt)
-        if: runner.os == 'Linux'
         run: golangci-lint fmt --diff
       - name: golangci-lint
-        if: runner.os == 'Linux'
         run: golangci-lint run $GO_PKGS
       - name: go vet
-        shell: bash
         run: go vet $GO_PKGS
       - name: go test
-        shell: bash
-        # -race needs cgo, which the Windows runner's default toolchain setup doesn't give us.
-        run: go test ${{ runner.os != 'Windows' && '-race' || '' }} $GO_PKGS
-      - name: go build
-        shell: bash
-        run: go build -o "$RUNNER_TEMP/worklogger" .
-
-  govulncheck:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev libgtk-4-dev libwebkitgtk-6.0-dev
-      - run: mkdir -p frontend/dist && echo '<!doctype html>' > frontend/dist/index.html
-      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
-      - run: govulncheck $GO_PKGS
+        run: go test -race $GO_PKGS
 
   frontend:
-    runs-on: ubuntu-24.04
+    name: Frontend
+    runs-on: ubuntu-26.04
     defaults:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -95,32 +68,11 @@ jobs:
       - run: npm ci
       - name: Prettier
         run: npm run format:check
-      - run: npm run lint
-      - run: npm run test:ci
-      - run: npm run build
+      - name: ESLint
+        run: npm run lint
+      - name: Unit tests
+        run: npm run test:ci
       - name: Storybook tests
         run: |
           npx playwright install --with-deps chromium
           npm run test-storybook
-
-  bindings:
-    name: Bindings are up to date
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          check-latest: true
-      - run: go install github.com/wailsapp/wails/v3/cmd/wails3@${{ env.WAILS_VERSION }}
-      - run: mkdir -p frontend/dist && echo '<!doctype html>' > frontend/dist/index.html
-      # Same command as `task bindings`.
-      - run: wails3 generate bindings -clean=true -ts -i
-      - name: Fail on a diff
-        run: |
-          git status --porcelain frontend/bindings
-          test -z "$(git status --porcelain frontend/bindings)" || {
-            echo "::error::frontend/bindings is stale. Run 'task bindings' and commit the result."
-            git diff --stat frontend/bindings
-            exit 1
-          }

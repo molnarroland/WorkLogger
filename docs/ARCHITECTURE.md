@@ -171,8 +171,8 @@ General) and reads the OS accent, light or dark, contrast and text size through 
   `shell/` has a Storybook story (a spec checks this), and the stories' `play` functions are interaction tests,
   run with an accessibility check (`npm run test-storybook`). The shell stories cover the main flow end to end
   against the fake API.
-- **CI** (`.github/workflows/ci.yml`) runs formatting, lint, both test suites, the Storybook tests, a build on
-  macOS, Windows and Linux, and a check that the generated bindings are up to date.
+- **CI** (`.github/workflows/ci.yml`) runs formatting, lint, both test suites and the Storybook tests on Linux.
+  Platform builds are not part of CI; they are made locally with `task release`.
 
 ## Trust boundaries
 
