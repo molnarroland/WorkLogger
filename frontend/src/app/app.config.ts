@@ -28,8 +28,13 @@ const providers = (api: Api): ApplicationConfig['providers'] => [
   provideRouter(routes, withComponentInputBinding(), withHashLocation()),
   provideSpartanHlm(),
   // Reads the OS before the first render; the remembered Settings → General look wins over it.
-  provideSpartanNative({ host: inWails ? wailsHost() : staticHost(), overrides: rememberedLook() }),
+  provideSpartanNative({ host: inWails ? wailsHost() : browserHost(), overrides: rememberedLook() }),
   { provide: API, useValue: api },
   // The remembered Settings → General language, else the OS's; the settings set it again once they load.
   { provide: I18N_LANG, useValue: rememberedLang() },
 ];
+
+/** A plain browser starts in its own light or dark scheme (the screenshots take the dark one this way). */
+function browserHost() {
+  return staticHost({ scheme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' });
+}

@@ -61,6 +61,16 @@ tasks:
     cmds:
       - go test ./app -run TestStoryFixtures -update
 
+  screenshots:
+    summary: Retakes the screenshots in site/img from the invented sample month (commit the result)
+    desc: |
+      Serves the built frontend in headless Chromium, where the FakeApi answers with the sample data in
+      frontend/src/app/api/testing (regenerate it with `task fixtures`). Pages and states: frontend/scripts/screenshots.mjs.
+    deps: [common:build:frontend]
+    cmds:
+      - npx --prefix frontend playwright install chromium
+      - node frontend/scripts/screenshots.mjs
+
   bindings:
     summary: Regenerates the TypeScript bindings in frontend/bindings (commit the result)
     cmds:
