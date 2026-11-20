@@ -17,8 +17,10 @@ func TestBuildConfluenceFeed(t *testing.T) {
 	}
 	edits := []profileEdit{edit("14:00", "8", "Roadmap", true), edit("09:30", "7", "PROJ-1 Spec", false), edit("10:30", "7", "PROJ-1 Spec", false)}
 	log := func(id int64, hm string, ref string) core.Worklog {
-		return core.Worklog{ID: id, Day: "2026-03-03", Start: ts.At("2026-03-03", hm), Duration: 1800,
-			Source: core.SourceGit, Status: core.StatusDraft, SourceRef: ref}
+		return core.Worklog{
+			ID: id, Day: "2026-03-03", Start: ts.At("2026-03-03", hm), Duration: 1800,
+			Source: core.SourceGit, Status: core.StatusDraft, SourceRef: ref,
+		}
 	}
 	logs := []core.Worklog{log(1, "10:00", "abc"), log(2, "14:00", "def"), log(3, "09:00", "confluence:7:2026-03-03")}
 	got := buildConfluenceFeed(ConfluenceActivityDTO{Days: []ConfluenceDayDTO{}}, edits, logs, map[string]bool{"PROJ": true}, ts.Days)

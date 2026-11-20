@@ -9,9 +9,10 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/molnarroland/WorkLogger/internal/core"
 	"github.com/ncruces/go-sqlite3"
 	"github.com/ncruces/go-sqlite3/driver"
+
+	"github.com/molnarroland/WorkLogger/internal/core"
 )
 
 // plainHeader starts every unencrypted SQLite file.

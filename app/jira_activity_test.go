@@ -35,8 +35,10 @@ func TestOpenJiraIssue(t *testing.T) {
 // commit around 10:00 goes to PROJ-1, the one at 14:40 to PROJ-2, the evening one to neither.
 func TestBuildJiraFeed(t *testing.T) {
 	act := func(hm, key, kind, field, to, text string) accountActivity {
-		return accountActivity{tempo.Activity{At: ts.At("2026-03-03", hm), IssueKey: key, Summary: key + " summary",
-			Kind: kind, Field: field, From: "To Do", To: to, Text: text}, "acme", ""}
+		return accountActivity{tempo.Activity{
+			At: ts.At("2026-03-03", hm), IssueKey: key, Summary: key + " summary",
+			Kind: kind, Field: field, From: "To Do", To: to, Text: text,
+		}, "acme", ""}
 	}
 	acts := []accountActivity{
 		act("15:00", "PROJ-2", "comment", "", "", "Looks good"),
@@ -46,8 +48,10 @@ func TestBuildJiraFeed(t *testing.T) {
 		act("11:10", "PROJ-1", "change", "assignee", "Me", ""),
 	}
 	log := func(id int64, hm string, min int, key *string) core.Worklog {
-		return core.Worklog{ID: id, Day: "2026-03-03", Start: ts.At("2026-03-03", hm), Duration: min * 60, IssueKey: key,
-			Source: core.SourceGit, Status: core.StatusDraft}
+		return core.Worklog{
+			ID: id, Day: "2026-03-03", Start: ts.At("2026-03-03", hm), Duration: min * 60, IssueKey: key,
+			Source: core.SourceGit, Status: core.StatusDraft,
+		}
 	}
 	key := "PROJ-9"
 	logs := []core.Worklog{log(1, "09:30", 45, nil), log(2, "14:40", 10, nil), log(3, "20:00", 30, nil), log(4, "10:00", 60, &key)}

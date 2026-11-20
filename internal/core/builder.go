@@ -514,8 +514,10 @@ func (b Builder) workBlocks(blocks []block, in DayInput, used map[string]bool) [
 	}
 	known := b.KnownPrefixes()
 	for _, p := range in.Confluence {
-		it := workItem{ref: p.Ref(), key: "confluence:" + p.PageID, summary: p.Title, first: p.First,
-			seconds: spanSeconds(p.First, p.Last), source: SourceConfluence}
+		it := workItem{
+			ref: p.Ref(), key: "confluence:" + p.PageID, summary: p.Title, first: p.First,
+			seconds: spanSeconds(p.First, p.Last), source: SourceConfluence,
+		}
 		if p.Space != "" {
 			it.summary = "[" + p.Space + "] " + p.Title
 		}
@@ -525,8 +527,10 @@ func (b Builder) workBlocks(blocks []block, in DayInput, used map[string]bool) [
 		items = append(items, it)
 	}
 	for _, t := range in.Email {
-		it := workItem{ref: t.Ref(), key: "email:" + strings.ToLower(t.Subject), summary: "[Email] " + t.Subject,
-			first: t.First, seconds: min(emailMaxSeconds, t.Count*emailSeconds), source: SourceEmail}
+		it := workItem{
+			ref: t.Ref(), key: "email:" + strings.ToLower(t.Subject), summary: "[Email] " + t.Subject,
+			first: t.First, seconds: min(emailMaxSeconds, t.Count*emailSeconds), source: SourceEmail,
+		}
 		if k, ok := FindKey(t.Subject, known); ok {
 			it.key, it.issue = k, &k
 		}

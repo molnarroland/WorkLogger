@@ -20,8 +20,10 @@ func TestHrmasterGaps(t *testing.T) {
 		Sessions: []core.WorkSession{{Day: "2026-03-02", Start: ts.At("2026-03-02", "09:00"), End: ts.At("2026-03-02", "17:00"), Kind: core.SessionWork}},
 		Days: []core.DayRecord{
 			worked("2026-03-02", 0), worked("2026-03-03", 0), worked("2026-03-04", 8*3600), worked("2026-03-05", 8*3600),
-			{Day: "2026-03-06", Status: core.DayLeave}, {Day: "2026-03-07", Status: core.DayRestDay},
-			{Day: "2026-03-08", Status: core.DayRestDay}, worked("2026-03-09", 8*3600), worked("2026-03-10", 0),
+			{Day: "2026-03-06", Status: core.DayLeave},
+			{Day: "2026-03-07", Status: core.DayRestDay},
+			{Day: "2026-03-08", Status: core.DayRestDay},
+			worked("2026-03-09", 8*3600), worked("2026-03-10", 0),
 		},
 	}))
 	for _, c := range []struct {

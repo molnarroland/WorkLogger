@@ -9,12 +9,12 @@ import (
 
 func TestMaskSecrets(t *testing.T) {
 	for in, want := range map[string]string{
-		"GET https://x.hu/api?key=AIzaSyB0RaagJhe9&q=1 → 200":                "GET https://x.hu/api?key=•••&q=1 → 200",
-		"POST /batchexecute?rpcids=SBNmJb&f.sid=-113131707&at=AJpMio:1794":   "POST /batchexecute?rpcids=SBNmJb&f.sid=•••&at=•••",
-		"Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.e30.abc":                 "Authorization: Bearer •••",
+		"GET https://x.hu/api?key=AIzaSyB0RaagJhe9&q=1 → 200":              "GET https://x.hu/api?key=•••&q=1 → 200",
+		"POST /batchexecute?rpcids=SBNmJb&f.sid=-113131707&at=AJpMio:1794": "POST /batchexecute?rpcids=SBNmJb&f.sid=•••&at=•••",
+		"Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.e30.abc":               "Authorization: Bearer •••",
 		"git -C /Users/me/Workspaces/billing-api log --author=jane.d@x.hu": "git -C /Users/me/Workspaces/billing-api log --author=j•••@x.hu",
-		"cookie TISCh-BGRN6On_JVS8nwsJxLY19N4ZmCkkdC4dKxw0x4IVvxhZ":          "cookie TISC•••",
-		"Google Chat · Tue 3 Mar (2 of 10) · my messages · 12 read…":         "Google Chat · Tue 3 Mar (2 of 10) · my messages · 12 read…",
+		"cookie TISCh-BGRN6On_JVS8nwsJxLY19N4ZmCkkdC4dKxw0x4IVvxhZ":        "cookie TISC•••",
+		"Google Chat · Tue 3 Mar (2 of 10) · my messages · 12 read…":       "Google Chat · Tue 3 Mar (2 of 10) · my messages · 12 read…",
 	} {
 		if got := MaskSecrets(in); got != want {
 			t.Errorf("MaskSecrets(%q) = %q, want %q", in, got, want)

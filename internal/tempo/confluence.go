@@ -134,8 +134,10 @@ func (c Confluence) Activity(ctx context.Context, me, fromDay, toDay string) ([]
 					continue
 				}
 				if t, err := time.Parse(time.RFC3339Nano, ct.Version.When); err == nil && in(t) {
-					e := ConfluenceEdit{At: t, PageID: ct.Container.ID.String(), Title: ct.Container.Title, Space: space,
-						Kind: ct.Container.Type, Comment: true}
+					e := ConfluenceEdit{
+						At: t, PageID: ct.Container.ID.String(), Title: ct.Container.Title, Space: space,
+						Kind: ct.Container.Type, Comment: true,
+					}
 					if ct.Body != nil {
 						e.Text = strings.Join(StorageLines(ct.Body.Storage.Value), "\n")
 					}
