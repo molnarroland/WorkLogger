@@ -17,11 +17,23 @@ const gatewayBase = "https://api.atlassian.com/ex/"
 // gateways remembers each site's gateway address per product once a scoped token needed it ("jira|site" → address).
 var gateways sync.Map
 
+// onSite remembers the sites whose own address accepted the token ("jira|site" → true).
+var onSite sync.Map
+
+// whoAmI is each product's "who am I" call: the one place where the site reliably answers a scoped token with 401.
+// Other calls answer it differently (an empty search, 400, 403, 404), so the route is decided here, once per site.
+var whoAmI = map[string]string{
+	"jira":       "/rest/api/3/myself",
+	"confluence": "/wiki/rest/api/user/current",
+}
+
 // ForgetGateway drops what was learnt about the site's gateways (a token changed: a classic one may work on the
 // site again).
 func ForgetGateway(site string) {
-	gateways.Delete("jira|" + site)
-	gateways.Delete("confluence|" + site)
+	for _, product := range []string{"jira", "confluence"} {
+		gateways.Delete(product + "|" + site)
+		onSite.Delete(product + "|" + site)
+	}
 }
 
 // gateway is the site's gateway address for a product ("jira", "confluence"): its cloud id read from
@@ -62,8 +74,8 @@ type sender func(ctx context.Context, method, rawURL, auth string, body any, wha
 // siteSend is an Atlassian REST call: on the site, or through the product's gateway when the site refuses the token
 // (or refused it before).
 func siteSend(ctx context.Context, h core.HTTPDoer, send sender, site, product, method, path, auth string, body any, what string) ([]byte, error) {
-	if g, ok := gateways.Load(product + "|" + site); ok {
-		return send(ctx, method, g.(string)+path, auth, body, what)
+	if g, ok := route(ctx, h, send, site, product, auth); ok {
+		return send(ctx, method, g+path, auth, body, what)
 	}
 	data, err := send(ctx, method, site+path, auth, body, what)
 	var he HTTPError
@@ -74,4 +86,28 @@ func siteSend(ctx context.Context, h core.HTTPDoer, send sender, site, product, 
 		}
 	}
 	return data, err
+}
+
+// route finds, on the first call to a site, whether the token needs the gateway: it asks the site who you are, and
+// a 401 means a token with scopes. True with the gateway's address; false to use the site. A network error decides
+// nothing, so the next call asks again.
+func route(ctx context.Context, h core.HTTPDoer, send sender, site, product, auth string) (string, bool) {
+	key := product + "|" + site
+	if g, ok := gateways.Load(key); ok {
+		return g.(string), true
+	}
+	if _, ok := onSite.Load(key); ok {
+		return "", false
+	}
+	_, err := send(ctx, "GET", site+whoAmI[product], auth, nil, "Checking the token")
+	var he HTTPError
+	switch {
+	case errors.As(err, &he) && he.Code == http.StatusUnauthorized:
+		if g, gerr := gateway(ctx, h, site, product); gerr == nil {
+			return g, true
+		}
+	case err == nil || errors.As(err, &he):
+		onSite.Store(key, true)
+	}
+	return "", false
 }

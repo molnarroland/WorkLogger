@@ -59,3 +59,55 @@ func TestScopedTokenIssueNotFoundTriesTheGateway(t *testing.T) {
 		t.Fatalf("got %d %v", id, err)
 	}
 }
+
+// Without a check first (a fresh start): the site answers a scoped token's project list with an empty page, not
+// 401, so the first call asks the site who you are to find the gateway.
+func TestScopedTokenFindsTheGatewayWithoutACheck(t *testing.T) {
+	a := account()
+	a.BaseURL = "https://scopedfresh.atlassian.net"
+	h := &ts.FakeHTTP{Handle: func(r *http.Request, _ string) (int, string) {
+		switch {
+		case r.URL.Path == "/_edge/tenant_info":
+			return 200, `{"cloudId":"cloud-3"}`
+		case r.URL.Host == "scopedfresh.atlassian.net" && r.URL.Path == "/rest/api/3/myself":
+			return 401, ""
+		case r.URL.Host == "scopedfresh.atlassian.net":
+			return 200, `{"values":[],"isLast":true}`
+		case strings.HasSuffix(r.URL.Path, "/ex/jira/cloud-3/rest/api/3/project/search"):
+			return 200, `{"values":[{"key":"PROJ"}],"isLast":true}`
+		}
+		return 500, ""
+	}}
+	c := client(t, h, a)
+	if keys, err := c.ProjectKeys(ctx); err != nil || len(keys) != 1 || keys[0] != "PROJ" {
+		t.Fatalf("got %v %v", keys, err)
+	}
+	before := len(h.Requests)
+	if _, err := c.ProjectKeys(ctx); err != nil || len(h.Requests) != before+1 {
+		t.Errorf("the route is decided once: %d more requests, %v", len(h.Requests)-before, err)
+	}
+}
+
+// A classic token: the site says who you are, and every call stays on the site.
+func TestClassicTokenStaysOnTheSite(t *testing.T) {
+	a := account()
+	a.BaseURL = "https://classic.atlassian.net"
+	h := &ts.FakeHTTP{Handle: func(r *http.Request, _ string) (int, string) {
+		switch {
+		case r.URL.Host != "classic.atlassian.net":
+			return 500, ""
+		case r.URL.Path == "/rest/api/3/myself":
+			return 200, `{"accountId":"acc-1"}`
+		}
+		return 200, `{"values":[{"key":"PROJ"}],"isLast":true}`
+	}}
+	c := client(t, h, a)
+	for range 2 {
+		if keys, err := c.ProjectKeys(ctx); err != nil || len(keys) != 1 {
+			t.Fatalf("got %v %v", keys, err)
+		}
+	}
+	if n := len(h.Requests); n != 3 {
+		t.Errorf("one who-am-I, then the calls: %d requests", n)
+	}
+}
