@@ -1,0 +1,14 @@
+<p class="filter small" role="status">
+  <span>{{ 'focus.onlyDay' | t: { day: title() } }}</span>
+  <button
+    hlmBtn
+    variant="ghost"
+    size="xs"
+    type="button"
+    [attr.aria-label]="'focus.showAll' | t"
+    (click)="cleared.emit()"
+  >
+    <ng-icon name="lucideX" aria-hidden="true" />
+    {{ 'focus.showAll' | t }}
+  </button>
+</p>

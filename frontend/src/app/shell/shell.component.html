@@ -1,0 +1,426 @@
+<!-- The window. snSheetHost: macOS sheets (sn-modal-sheet) hang from here, under the title bar. -->
+<div class="sn-window window" snSheetHost>
+  @if (windowControls(); as controls) {
+    <!-- A drag region already; with wailsHost() its buttons act on the real window. -->
+    <sn-title-bar
+      [class.mac-lights]="family() === 'macos' && skinFamily() !== 'macos'"
+      [title]="'app.name' | t"
+      [subtitle]="store.locked() ? '' : monthTitle()"
+      [windowControls]="controls"
+    />
+  }
+  @if (nativeMenubar()) {
+    <sn-menubar [menu]="menu()" native="always" />
+  }
+
+  @if (store.locked()) {
+    <main class="sn-content locked">
+      <sn-status-page icon="lucideLock" [title]="'lock.title' | t" [description]="'lock.body' | t">
+        <!-- eslint-disable-next-line @angular-eslint/template/no-autofocus -- the only control on the lock screen -->
+        <button hlmBtn type="button" [disabled]="store.unlocking()" (click)="store.unlock()" autofocus>
+          {{ 'lock.unlock' | t }}
+        </button>
+        @if (store.stillLocked() && !store.unlocking()) {
+          <p class="sn-text-muted" role="status">{{ 'lock.stillLocked' | t }}</p>
+        }
+      </sn-status-page>
+    </main>
+  } @else {
+    <div class="body">
+      <!--
+        The side panel (layouts C and G): the three views and the pages you pinned, then the days left to do, then
+        All pages (a launcher where pages are pinned) and Settings. Folded, it keeps the icons and one numbered chip per day; the labels stay for screen readers.
+      -->
+      <sn-sidebar-nav
+        id="wl-side-panel"
+        class="sn-sidebar sidebar"
+        [class.folded]="folded()"
+        [collapsed]="folded()"
+        [attr.aria-label]="'nav.label' | t"
+        snResizable="sidebar"
+        [resizeRatio]="0.2"
+        [resizeMin]="192"
+        [resizeMaxRatio]="0.35"
+        [resizeDisabled]="folded()"
+        [resizeLabel]="'panel.resizeSidebar' | t"
+      >
+        @if (!narrow()) {
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon-sm"
+            type="button"
+            class="fold"
+            aria-controls="wl-side-panel"
+            [attr.aria-expanded]="!folded()"
+            [attr.aria-label]="(folded() ? 'nav.expand' : 'nav.collapse') | t"
+            [title]="(folded() ? 'nav.expand' : 'nav.collapse') | t"
+            (click)="toggleSidebar()"
+          >
+            <ng-icon [name]="toggleIcon()" aria-hidden="true" />
+          </button>
+        }
+        <sn-sidebar-section>
+          @for (p of views(); track p.id) {
+            <a
+              snSidebarItem
+              class="view"
+              [routerLink]="'/' + p.id"
+              routerLinkActive
+              #rla="routerLinkActive"
+              [active]="rla.isActive"
+              [icon]="p.icon"
+              [badge]="badge(p)"
+              >{{ p.label | t }}</a
+            >
+          }
+        </sn-sidebar-section>
+        @if (pinnedPanes().length) {
+          <sn-sidebar-section [title]="'nav.pinned' | t">
+            @for (p of pinnedPanes(); track p.id) {
+              <a
+                snSidebarItem
+                class="view"
+                [routerLink]="'/' + p.id"
+                routerLinkActive
+                #rlp="routerLinkActive"
+                [active]="rlp.isActive"
+                [icon]="p.icon"
+                >{{ p.label | t }}</a
+              >
+            }
+          </sn-sidebar-section>
+        }
+
+        <div class="days-list">
+          @for (g of dayGroups(); track g.id) {
+            <sn-sidebar-section [title]="g.title | t: { n: g.days.length }">
+              @for (d of g.days; track d.day) {
+                <a
+                  snSidebarItem
+                  class="day"
+                  [class.chip]="folded()"
+                  [routerLink]="['/days', d.day]"
+                  [active]="openDay() === d.day"
+                  [tooltip]="dayLabel(d)"
+                >
+                  @if (folded()) {
+                    <span class="chip-day tabular"
+                      >{{ dayNumber(d.day) }}<span class="chip-dot" [style.background]="triageColor[d.state]"></span
+                    ></span>
+                    <span class="sr-only">{{ dayLabel(d) }}</span>
+                  } @else {
+                    <span class="day-row">
+                      <span class="day-dot" [style.background]="triageColor[d.state]"></span>
+                      <span class="day-name">{{ dayName(d.day) }}</span>
+                      <span class="day-time small tabular"
+                        >{{ d.logged | duration }} / {{ d.expected | duration }}</span
+                      >
+                      <span class="day-note small" [class.needs-ticket]="d.state === 'noTicket'">{{ dayNote(d) }}</span>
+                    </span>
+                  }
+                </a>
+              }
+            </sn-sidebar-section>
+          }
+        </div>
+
+        <sn-sidebar-section class="bottom">
+          <button
+            snSidebarItem
+            class="view"
+            [active]="!!morePane()"
+            [icon]="morePane()?.icon ?? 'lucideLayoutGrid'"
+            popovertarget="wl-pages"
+          >
+            {{ morePane()?.label ?? 'nav.allPages' | t }}
+          </button>
+          <a
+            snSidebarItem
+            class="view"
+            routerLink="/settings"
+            routerLinkActive
+            #rls="routerLinkActive"
+            [active]="rls.isActive"
+            icon="lucideSettings"
+            >{{ 'pane.settings' | t }}</a
+          >
+        </sn-sidebar-section>
+      </sn-sidebar-nav>
+
+      <main class="sn-content content">
+        <!--
+          The header line, laid out like a Finder toolbar: the month and its navigation on the left (« » a month,
+          ‹ › the page's own day or week: ShellStore.pager), the page's title in the centre, then on the right the
+          month's commands (Log in Tempo, Export, ⋯), and Collect followed by the page's own commands
+          (<ng-template snPageCommands> in the page).
+        -->
+        <sn-command-bar
+          wlTitleFit
+          #fit="titleFit"
+          class="header"
+          [ariaLabel]="'toolbar.label' | t"
+          [overflowLabel]="'toolbar.more' | t"
+        >
+          <div snCommandBarStart class="month-nav">
+            <div class="group" role="group" [attr.aria-label]="'month.navigation' | t">
+              <button
+                snCommand
+                hideLabel
+                class="step"
+                icon="lucideChevronsLeft"
+                [label]="'month.previous' | t"
+                (click)="shift(-1)"
+              >
+                <span class="step-n tabular" aria-hidden="true">−{{ monthDays }}</span>
+              </button>
+              @if (store.pageHeader(); as p) {
+                <button
+                  snCommand
+                  hideLabel
+                  class="step"
+                  icon="lucideChevronLeft"
+                  [label]="p.previous | t"
+                  (click)="p.step(-1)"
+                >
+                  <span class="step-n tabular" aria-hidden="true">−{{ p.stepDays }}</span>
+                </button>
+              }
+              <button
+                snCommand
+                hideLabel
+                [icon]="today().icon"
+                [label]="today().label | t"
+                [disabled]="today().current"
+                (click)="today().go()"
+              ></button>
+              @if (store.pageHeader(); as p) {
+                <button
+                  snCommand
+                  hideLabel
+                  class="step"
+                  icon="lucideChevronRight"
+                  [label]="p.next | t"
+                  (click)="p.step(1)"
+                >
+                  <span class="step-n tabular" aria-hidden="true">+{{ p.stepDays }}</span>
+                </button>
+              }
+              <button
+                snCommand
+                hideLabel
+                class="step"
+                icon="lucideChevronsRight"
+                [label]="'month.next' | t"
+                (click)="shift(1)"
+              >
+                <span class="step-n tabular" aria-hidden="true">+{{ monthDays }}</span>
+              </button>
+            </div>
+            <button
+              snCommand
+              hideLabel
+              class="pick"
+              icon="lucideCalendar"
+              [label]="picker().label | t"
+              popovertarget="wl-pick"
+              (click)="placePicker($event)"
+            >
+              <ng-icon name="lucideSearch" class="pick-badge" aria-hidden="true" />
+            </button>
+          </div>
+          <!--
+            The week or the month on screen, its logged / expected time and a bar of it; Settings by name. To a
+            screen reader the heading is the page's name (aria-label); the period and hours are visual only.
+          -->
+          <h1
+            snCommandBarStart
+            class="center-title"
+            [attr.aria-label]="pageTitle() | t"
+            [class.crowded]="fit.room() < 48"
+            [style.max-inline-size.px]="fit.room()"
+          >
+            @if (heading(); as h) {
+              <span class="heading-title tabular">{{ h.title }}</span>
+              <span class="heading-sum tabular sn-text-muted">{{
+                'timesheet.loggedOf' | t: { logged: (h.logged | duration), expected: (h.expected | duration) }
+              }}</span>
+              <span class="heading-bar" aria-hidden="true"
+                ><span class="fill" [style.inline-size.%]="share(h)"></span
+              ></span>
+            } @else {
+              {{ pageTitle() | t }}
+            }
+          </h1>
+
+          <button
+            snCommand
+            hideLabel
+            icon="lucideListChecks"
+            [label]="'toolbar.logInTempo' | t"
+            (click)="go('by-ticket')"
+          ></button>
+          <button
+            snCommand
+            hideLabel
+            icon="lucideShare"
+            [label]="'toolbar.export' | t"
+            (click)="exportOpen.set(true)"
+          ></button>
+
+          <div snCommandBarEnd class="group end-group">
+            <button
+              snCommand
+              hideLabel
+              class="collect"
+              icon="lucideCircleArrowDown"
+              [label]="'toolbar.collect' | t"
+              [disabled]="store.busy()"
+              (click)="store.run('collect')"
+            ></button>
+            @if (pageCommands.template(); as commands) {
+              <ng-container [ngTemplateOutlet]="commands" />
+            }
+          </div>
+
+          <button
+            snCommand
+            snCommandBarEnd
+            hideLabel
+            icon="lucideCircleHelp"
+            [label]="'toolbar.guide' | t"
+            (click)="openGuide()"
+          ></button>
+        </sn-command-bar>
+
+        <div class="page"><router-outlet /></div>
+
+        @if (dock().length) {
+          <wl-source-dock [items]="dock()" [active]="pane()" (open)="openSource($event)" />
+        }
+
+        @if (consoleOpen()) {
+          <wl-activity-console class="console" [lines]="store.activity()" (closed)="consoleOpen.set(false)" />
+        }
+      </main>
+    </div>
+
+    <!--
+      The status message for screen readers: always in the page, so a new message is announced. The visible item
+      below is only there while there is something to show; an empty one would still count as an item, and macOS,
+      which joins items with commas, would start the line with one.
+    -->
+    <span class="sr-only" role="status">{{ store.status() }}</span>
+    <sn-status-bar [ariaLabel]="'status.label' | t">
+      @if (store.busy() || store.status()) {
+        <span snStatusItem class="status-message">
+          @if (store.busy()) {
+            <hlm-spinner aria-hidden="true" />
+          }
+          <button
+            type="button"
+            class="message"
+            aria-hidden="true"
+            tabindex="-1"
+            [snTooltip]="store.status()"
+            (click)="consoleOpen.set(true)"
+          >
+            {{ store.status() }}
+          </button>
+          @if (store.busy()) {
+            <button hlmBtn variant="link" size="xs" type="button" (click)="store.cancel()">
+              {{ 'status.cancel' | t }}
+            </button>
+          }
+        </span>
+      }
+      @if (store.needsTicket() > 0) {
+        <span snStatusItem class="needs-ticket tabular">{{
+          'status.needsTicket' | t: { n: store.needsTicket() }
+        }}</span>
+      }
+      @if (store.progress().total > 0) {
+        <span snStatusItem class="tabular">
+          {{ 'status.inTempo' | t: { entered: store.progress().entered, total: store.progress().total } }}
+        </span>
+      }
+      @if (store.tasks().length) {
+        <button
+          snStatusBarEnd
+          hlmBtn
+          variant="ghost"
+          size="xs"
+          type="button"
+          class="tasks-badge"
+          popovertarget="tasks-popup"
+          [class.failed]="failedTasks() > 0"
+        >
+          @if (runningTasks()) {
+            <hlm-spinner aria-hidden="true" />
+          } @else if (failedTasks()) {
+            <ng-icon name="lucideCircleX" aria-hidden="true" />
+          } @else {
+            <ng-icon name="lucideCircleCheck" aria-hidden="true" />
+          }
+          {{ 'status.tasks' | t }}
+          @if (failedTasks()) {
+            <span class="tabular">({{ 'status.tasksFailed' | t: { n: failedTasks() } }})</span>
+          }
+        </button>
+      }
+      <button
+        snStatusBarEnd
+        hlmBtn
+        variant="ghost"
+        size="xs"
+        type="button"
+        [attr.aria-pressed]="consoleOpen()"
+        (click)="consoleOpen.update((o) => !o)"
+      >
+        <ng-icon name="lucideTerminal" aria-hidden="true" /> {{ 'status.activity' | t }}
+      </button>
+    </sn-status-bar>
+    <wl-page-launcher
+      id="wl-pages"
+      popover
+      [groups]="moreGroups()"
+      [pinned]="pinned()"
+      [current]="pane()"
+      (open)="go($event)"
+      (togglePin)="togglePin($event)"
+    />
+    <div id="wl-pick" class="pick-popup" popover>
+      <wl-period-picker
+        [mode]="picker().mode"
+        [value]="picker().value"
+        [today]="store.today()"
+        [lang]="lang()"
+        (pick)="picked($event)"
+      />
+    </div>
+    <div id="tasks-popup" class="tasks-popup" popover>
+      <wl-task-list [tasks]="store.tasks()" (cleared)="store.clearTasks()" />
+    </div>
+
+    @if (store.settings(); as s) {
+      @if (!s.welcomed) {
+        <!-- Its forms come from Settings: loaded only on the first run. -->
+        @defer {
+          <wl-onboarding />
+        }
+      }
+      <wl-welcome-sheet
+        [open]="welcomeOpen()"
+        [modules]="s.modules"
+        [tempoByHand]="s.tempoByHand"
+        [steps]="setupSteps()"
+        [startPage]="welcomePage()"
+        (act)="openSetupStep($event)"
+        (modulesChange)="setModules($event)"
+        (tempoByHandChange)="store.saveSettings({ tempoByHand: $event })"
+        (openChange)="!$event && finishWelcome()"
+      />
+    }
+    <wl-export-flow [(open)]="exportOpen" />
+  }
+</div>

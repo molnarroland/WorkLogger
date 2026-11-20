@@ -1,0 +1,98 @@
+@if (setupLeft() && !only()) {
+  <sn-settings-group [title]="'setup.title' | t" [description]="'setup.help' | t">
+    <wl-setup-checklist class="pad" [steps]="setup()" (act)="act($event)" />
+  </sn-settings-group>
+}
+
+@if (!only()) {
+  <sn-settings-group [title]="'profiles.title' | t" [description]="'profiles.help' | t">
+    @if (items().length) {
+      <div
+        class="list"
+        snSelectable
+        [multiple]="false"
+        [selection]="shownSelection()"
+        (selectionChange)="select($event)"
+        [attr.aria-label]="'profiles.title' | t"
+      >
+        @for (it of items(); track it.key) {
+          <div class="item" snSelectableItem [value]="it.key" [snSelectableLabel]="it.title">
+            <ng-icon [name]="icon[it.kind]" aria-hidden="true" />
+            <span class="stack grow">
+              <span class="truncate">{{ it.title }}</span>
+              <span class="secondary small truncate"
+                >{{ 'profiles.kind.' + it.kind | t }}{{ it.detail ? ' · ' + it.detail : '' }}</span
+              >
+            </span>
+            @if (it.account && it.account.id === defaultId()) {
+              <span hlmBadge variant="outline">{{ 'jira.default' | t }}</span>
+            }
+            @if (it.profile && (it.profile.kind === 'googleChat' || it.profile.kind === 'hrmaster')) {
+              <wl-sign-in-badge [state]="signIns.value()?.[it.profile.id] ?? null" />
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="pad sn-text-muted">{{ 'profiles.empty' | t }}</p>
+    }
+    <div class="pad row">
+      <button hlmBtn variant="outline" size="sm" type="button" [hlmDropdownMenuTrigger]="addMenu">
+        <ng-icon name="lucidePlus" aria-hidden="true" /> {{ 'profiles.add' | t }}
+      </button>
+      <ng-template #addMenu>
+        <div hlmDropdownMenu>
+          @for (k of kinds; track k) {
+            <button hlmDropdownMenuItem (triggered)="add(k)">
+              <ng-icon [name]="icon[k]" aria-hidden="true" /> {{ 'profiles.kind.' + k | t }}
+            </button>
+          }
+        </div>
+      </ng-template>
+      @if (current(); as c) {
+        @if (c.account && c.account.id !== defaultId()) {
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="makeDefault(c.account)">
+            {{ 'jira.makeDefault' | t }}
+          </button>
+        }
+        <button hlmBtn variant="destructive" size="sm" type="button" (click)="remove(c)">
+          <ng-icon name="lucideTrash2" aria-hidden="true" /> {{ 'jira.remove' | t }}
+        </button>
+      }
+    </div>
+    @if (tempoNeedsJira()) {
+      <p class="pad sn-text-muted small">{{ 'profiles.tempoNeedsJira' | t }}</p>
+    }
+  </sn-settings-group>
+}
+
+@if (current(); as c) {
+  @if (c.account; as a) {
+    <wl-jira-account-form
+      [account]="a"
+      [tempo]="tempoFor(a)"
+      [hasJiraToken]="tokens.value()?.kind === 'jira' && tokens.value()!.saved"
+      [checkLines]="checkLines()"
+      [checking]="checking()"
+      [loadingProjects]="loadingProjects()"
+      (changed)="updateAccount($event)"
+      (token)="setToken($event.kind, a.id, $event.value)"
+      (readProjects)="readProjects(a.id)"
+      (check)="check(a.id, $event)"
+    />
+  } @else if (c.profile; as p) {
+    <wl-profile-editor
+      [profile]="p"
+      [signedIn]="signIns.value()?.[p.id] ?? null"
+      [jiraAccounts]="jiraChoices(p)"
+      [hasToken]="!!tokens.value()?.saved"
+      [checkLines]="checkLines()"
+      [checking]="checking()"
+      (changed)="updateProfile($event)"
+      (signIn)="signIn(p)"
+      (signOut)="signOut(p)"
+      (token)="setToken(secretOf(p).kind, secretOf(p).id, $event)"
+      (check)="check(secretOf(p).id, secretOf(p).kind)"
+    />
+  }
+}

@@ -1,0 +1,20 @@
+<div class="weekdays sn-text-muted small" aria-hidden="true">
+  @for (name of weekdays(); track $index) {
+    <span>{{ name }}</span>
+  }
+</div>
+<div class="grid" [style.grid-template-rows]="'repeat(' + weeks().length + ', minmax(6rem, 1fr))'">
+  @for (week of weeks(); track $index) {
+    @for (day of week; track day) {
+      <wl-day-card
+        [day]="day"
+        [info]="days().get(day)"
+        [logs]="logsByDay().get(day) ?? []"
+        [today]="today()"
+        [selected]="day === selected()"
+        (daySelect)="daySelect.emit($event)"
+        (dropped)="dropped.emit($event)"
+      />
+    }
+  }
+</div>

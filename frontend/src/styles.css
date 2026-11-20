@@ -1,0 +1,105 @@
+/* Tailwind 4 + the spartan/ui preset. The Spartan Native skins are the next entry in angular.json "styles"
+   (src/theme.scss): they own every visual value of the components. Don't add component colours here. */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+/* Behind the window's materials (translucent on macOS 26 and Windows 11). */
+body {
+  background: var(--sn-color-wall, var(--sn-color-bg));
+  color: var(--sn-color-fg);
+}
+
+/*
+ * WorkLogger's data-visualisation colours: day states and work sources in the Timesheet, Totals and Periods.
+ * Where a meaning matches a theme token (done = success, needs a ticket = warning, coding = the accent) it uses
+ * that token; the other series use the theme's categorical colours (the OS's own purple, teal, pink), which
+ * follow the skin and the colour scheme. Orange always means "needs a ticket".
+ */
+:root {
+  --wl-state-complete: var(--sn-color-success);
+  --wl-state-partial: var(--sn-color-warning);
+  --wl-state-empty: var(--sn-color-danger);
+  --wl-state-extra: var(--sn-color-primary);
+  --wl-state-idle: var(--sn-color-fg-muted);
+  --wl-state-leave: var(--sn-color-category-4);
+
+  --wl-source-coding: var(--sn-color-primary);
+  --wl-source-jira: var(--sn-color-category-2);
+  --wl-source-confluence: var(--sn-color-category-3);
+  --wl-source-email: var(--sn-color-category-7);
+  --wl-source-meeting: var(--sn-color-category-4);
+  --wl-source-chat: var(--sn-color-category-5);
+  --wl-source-leave: var(--sn-color-category-6);
+  /* Indigo: no theme category is close enough, so it stays a fixed colour (lighter in dark mode, below). */
+  --wl-source-period: #5856d6;
+  --wl-source-manual: var(--sn-color-fg-muted);
+  --wl-needs-ticket: var(--sn-color-warning);
+}
+
+:root.dark {
+  --wl-source-period: #5e5ce6;
+}
+
+/* Durations line up in columns. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* An issue key: mono, upper case; "No issue" in needs-a-ticket orange. */
+.issue-key {
+  font-family: var(--sn-font-mono);
+  font-weight: var(--sn-font-weight-strong);
+  white-space: nowrap;
+}
+.issue-key.missing,
+.needs-ticket {
+  color: var(--wl-needs-ticket);
+}
+
+/* Issue-key fields upper-case what you type, not their hint text. */
+.key-field {
+  font-family: var(--sn-font-mono);
+  text-transform: uppercase;
+}
+.key-field::placeholder {
+  text-transform: none;
+}
+
+/* Page heading text sizes from the theme, so they grow with the OS text size. */
+.page-title {
+  margin: 0;
+  font-size: var(--sn-font-size-title);
+  font-weight: var(--sn-font-weight-strong);
+}
+.section-title {
+  margin: 0;
+  font-size: var(--sn-font-size);
+  font-weight: var(--sn-font-weight-strong);
+}
+.small {
+  font-size: var(--sn-font-size-small);
+}
+
+/* The item a link from another page points at (?focus=…, shared/focus.ts): tinted, with an accent edge. */
+.wl-focused,
+tr.wl-focused > td {
+  background: color-mix(in srgb, var(--sn-color-primary) 12%, transparent);
+}
+.wl-focused:not(tr),
+tr.wl-focused > td:first-child {
+  box-shadow: inset 3px 0 0 var(--sn-color-primary);
+}
+
+/* The onboarding sheet holds Settings' profile forms: wider and taller than a confirmation sheet (desktop-ui sizes
+   those; the sheet is in an overlay, so this can't live in the component's own styles). */
+.cdk-overlay-pane [data-slot='sn-modal-sheet-panel'].sheet:has(.wl-onboarding) {
+  width: min(52rem, calc(100vw - 2rem));
+  min-block-size: min(40rem, calc(100vh - 8rem));
+}

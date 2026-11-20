@@ -1,0 +1,24 @@
+@for (v of values(); track v) {
+  <span hlmBadge [variant]="highlighted() ? 'secondary' : 'outline'" class="chip">
+    {{ v }}
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon-xs"
+      type="button"
+      [attr.aria-label]="'chips.remove' | t: { value: v }"
+      (click)="remove(v)"
+    >
+      <ng-icon name="lucideX" aria-hidden="true" />
+    </button>
+  </span>
+}
+<input
+  #field
+  hlmInput
+  class="field"
+  [attr.aria-label]="label()"
+  [placeholder]="placeholder()"
+  (keydown.enter)="$event.preventDefault(); add(field)"
+  (blur)="add(field)"
+/>

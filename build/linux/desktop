@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=WorkLogger
+Comment=Month-end worklogs from git, calendars and chats
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/worklogger %u
+Terminal=false
+Type=Application
+Icon=worklogger
+Categories=Utility;
+StartupWMClass=worklogger
+
+ 

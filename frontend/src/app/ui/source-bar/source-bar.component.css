@@ -1,0 +1,13 @@
+/* A data-visualisation track: its fills are the part colours (tokens), the track a theme token. */
+:host {
+  display: flex;
+  block-size: var(--bar-height);
+  overflow: hidden;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-track);
+}
+
+.part {
+  flex: none;
+  block-size: 100%;
+}

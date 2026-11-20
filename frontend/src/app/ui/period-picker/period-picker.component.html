@@ -1,0 +1,59 @@
+<div class="head">
+  <button
+    hlmBtn
+    variant="ghost"
+    size="icon-sm"
+    type="button"
+    [attr.aria-label]="'picker.previous' | t"
+    (click)="step(-1)"
+  >
+    <ng-icon name="lucideChevronLeft" aria-hidden="true" />
+  </button>
+  <span class="title tabular" aria-live="polite">{{ title() }}</span>
+  <button hlmBtn variant="ghost" size="icon-sm" type="button" [attr.aria-label]="'picker.next' | t" (click)="step(1)">
+    <ng-icon name="lucideChevronRight" aria-hidden="true" />
+  </button>
+</div>
+
+@if (mode() === 'month') {
+  <div class="months">
+    @for (m of months(); track m.key) {
+      <button
+        type="button"
+        class="cell"
+        [class.selected]="m.key === value()"
+        [class.today]="m.key === today().slice(0, 7)"
+        [attr.aria-pressed]="m.key === value()"
+        (click)="pick.emit(m.key)"
+      >
+        {{ m.name }}
+      </button>
+    }
+  </div>
+} @else {
+  <div class="days" [class.weeks]="mode() === 'week'" role="grid" [attr.aria-label]="title()">
+    <div class="row" role="row">
+      @for (w of weekdays(); track $index) {
+        <span class="weekday small sn-text-muted" role="columnheader">{{ w }}</span>
+      }
+    </div>
+    @for (week of weeks(); track week[0].key) {
+      <div class="row" role="row" [class.selected]="week[0].key === selectedWeek()">
+        @for (d of week; track d.key) {
+          <button
+            type="button"
+            role="gridcell"
+            class="cell tabular"
+            [class.out]="d.out"
+            [class.today]="d.key === today()"
+            [class.selected]="mode() === 'day' && d.key === value()"
+            [attr.aria-selected]="mode() === 'day' ? d.key === value() : week[0].key === selectedWeek()"
+            (click)="pick.emit(d.key)"
+          >
+            {{ d.n }}
+          </button>
+        }
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,21 @@
+# Build output
+/worklogger
+bin/
+.task/
+.wails/
+frontend/dist/
+storybook-static/
+coverage/
+
+# Dependencies and tool caches
+frontend/node_modules/
+frontend/.angular/
+frontend/.nx/
+
+# Editors and OS files
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

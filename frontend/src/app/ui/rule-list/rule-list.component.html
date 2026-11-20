@@ -1,0 +1,46 @@
+@if (items().length) {
+  <ul class="rules">
+    @for (r of items(); track $index) {
+      <li class="rule">
+        <span class="label" [class.issue-key]="mono()">{{ quoted() ? '“' + r.label + '”' : r.label }}</span>
+        <ng-icon name="lucideArrowRight" class="sn-text-muted" aria-hidden="true" />
+        <span class="issue-key" [class.missing]="!r.issueKey">{{ r.issueKey ?? ('issue.none' | t) }}</span>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          class="end"
+          [attr.aria-label]="'rules.remove' | t: { label: r.label }"
+          (click)="remove.emit($index)"
+        >
+          <ng-icon name="lucideTrash2" aria-hidden="true" />
+        </button>
+      </li>
+    }
+  </ul>
+}
+@if (addLabel()) {
+  <div class="add" snActionScope>
+    <input
+      hlmInput
+      class="grow"
+      [class.key-field]="mono()"
+      [attr.aria-label]="labelPlaceholder()"
+      [placeholder]="labelPlaceholder()"
+      [value]="newLabel()"
+      (input)="newLabel.set($any($event.target).value)"
+    />
+    <input
+      hlmInput
+      class="key-field issue"
+      [attr.aria-label]="issuePlaceholder()"
+      [placeholder]="issuePlaceholder()"
+      [value]="newIssue()"
+      (input)="newIssue.set($any($event.target).value)"
+    />
+    <button hlmBtn variant="outline" size="sm" snDefaultAction type="button" [disabled]="!valid()" (click)="submit()">
+      {{ addLabel() }}
+    </button>
+  </div>
+}

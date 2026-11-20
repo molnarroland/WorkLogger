@@ -1,0 +1,216 @@
+<sn-inspector-layout class="layout">
+  <section class="main" [attr.aria-label]="'pane.review' | t">
+    <div class="header">
+      <span class="sn-text-muted grow">{{ 'review.entries' | t: { n: store.worklogs().length } }}</span>
+      <hlm-toggle-group
+        type="single"
+        variant="outline"
+        size="sm"
+        [nullable]="false"
+        [value]="filter()"
+        [attr.aria-label]="'review.filter' | t"
+        (valueChange)="setFilter($event)"
+      >
+        @for (f of filters; track f) {
+          <button hlmToggleGroupItem [value]="f" [class.needs-ticket]="f === 'noTicket' && missing() > 0">
+            {{ f === 'noTicket' ? ('review.noTicket' | t: { n: missing() }) : ('review.' + f | t) }}
+          </button>
+        }
+      </hlm-toggle-group>
+    </div>
+
+    @if (selection().length > 1) {
+      <div
+        class="bulk"
+        snActionScope
+        role="region"
+        [attr.aria-label]="'review.selected' | t: { n: selection().length }"
+      >
+        <span class="section-title">{{ 'review.selected' | t: { n: selection().length } }}</span>
+        <input
+          hlmInput
+          class="key-field bulk-key"
+          [attr.aria-label]="'review.ticketPlaceholder' | t"
+          [placeholder]="'review.ticketPlaceholder' | t"
+          [value]="bulkKey()"
+          (input)="bulkKey.set($any($event.target).value)"
+        />
+        <button hlmBtn size="sm" snDefaultAction type="button" [disabled]="!normalizedBulk()" (click)="applyIssue()">
+          {{ 'review.setTicket' | t }}
+        </button>
+        <input
+          hlmInput
+          class="bulk-comment"
+          [attr.aria-label]="'worklog.comment' | t"
+          [placeholder]="'worklog.comment' | t"
+          [value]="bulkComment()"
+          (input)="bulkComment.set($any($event.target).value)"
+        />
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [disabled]="!bulkComment().trim()"
+          (click)="applyComment()"
+        >
+          {{ 'review.setComment' | t }}
+        </button>
+        <button hlmBtn variant="outline" size="sm" type="button" (click)="setStatus(selection(), 'reviewed')">
+          {{ 'day.markReviewed' | t }}
+        </button>
+        <button hlmBtn variant="ghost" size="sm" snCancelAction type="button" (click)="selection.set([])">
+          {{ 'review.clearSelection' | t }}
+        </button>
+      </div>
+    }
+
+    @if (!store.worklogs().length) {
+      <sn-status-page
+        class="fill"
+        icon="lucideInbox"
+        [title]="'review.emptyTitle' | t"
+        [description]="'review.emptyBody' | t"
+      />
+    } @else if (!sections().length) {
+      <sn-status-page class="fill" icon="lucideInbox" [title]="'review.noneMatch' | t" />
+    } @else {
+      <div class="table">
+        <table hlmTable snSelectable="grid" [(selection)]="selection" [attr.aria-label]="'pane.review' | t">
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh>
+                <span class="sr-only">{{ 'worklog.source' | t }}</span>
+              </th>
+              <th hlmTh>{{ 'worklog.start' | t }}</th>
+              <th hlmTh class="num">{{ 'worklog.duration' | t }}</th>
+              <th hlmTh>{{ 'worklog.issue' | t }}</th>
+              <th hlmTh class="half truncate" [title]="'worklog.comment' | t">{{ 'worklog.comment' | t }}</th>
+              <th hlmTh class="half truncate">{{ 'worklog.description' | t }}</th>
+              <th hlmTh>{{ 'worklog.status' | t }}</th>
+              <th hlmTh>
+                <span class="sr-only">{{ 'worklog.lock' | t }}</span>
+              </th>
+            </tr>
+          </thead>
+          @for (s of sections(); track s.day) {
+            <tbody hlmTBody>
+              <tr class="day">
+                <th colspan="8" scope="rowgroup" class="day-cell">
+                  <div class="day-row">
+                    <span class="section-title">{{ s.title }}</span>
+                    @if (s.label) {
+                      <span class="sn-text-muted">{{ s.label }}</span>
+                    }
+                    <span class="tabular">{{ s.total | duration }}</span>
+                    @if (s.expected) {
+                      <span
+                        class="tabular"
+                        [class.needs-ticket]="s.total !== s.expected"
+                        [class.sn-text-muted]="s.total === s.expected"
+                      >
+                        {{ 'day.of' | t: { expected: (s.expected | duration) } }}
+                      </span>
+                    }
+                    @if (s.missing) {
+                      <span class="needs-ticket">{{ 'day.withoutIssue' | t: { n: s.missing } }}</span>
+                    }
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      class="add"
+                      (click)="store.addWorklog(s.day)"
+                    >
+                      <ng-icon name="lucidePlus" aria-hidden="true" /> {{ 'day.addEntry' | t }}
+                    </button>
+                  </div>
+                </th>
+              </tr>
+              @for (w of s.rows; track w.id) {
+                <tr
+                  hlmTr
+                  snSelectableItem
+                  [value]="w.id"
+                  [snSelectableLabel]="w.issueKey ?? ''"
+                  [snContextMenu]="rowMenu(w)"
+                >
+                  <td hlmTd>
+                    <ng-icon
+                      [name]="icon[w.source]"
+                      [style.color]="w.issueKey ? color[w.source] : 'var(--wl-needs-ticket)'"
+                      role="img"
+                      [attr.aria-label]="'source.' + w.source | t"
+                    />
+                  </td>
+                  <td hlmTd class="tabular">{{ hm(w.start) }}</td>
+                  <td hlmTd class="tabular num">{{ w.duration | duration }}</td>
+                  <td hlmTd>
+                    <span class="issue-key" [class.missing]="!w.issueKey">{{ w.issueKey ?? ('issue.none' | t) }}</span>
+                  </td>
+                  <td hlmTd class="half truncate" [title]="w.comment">
+                    @if (w.comment) {
+                      {{ w.comment }}
+                    } @else {
+                      <span class="sn-text-muted">—</span>
+                    }
+                  </td>
+                  <td hlmTd class="half truncate sn-text-muted" [title]="w.description">{{ w.description }}</td>
+                  <td hlmTd>
+                    @switch (w.effectiveStatus) {
+                      @case ('reviewed') {
+                        <span hlmBadge class="sn-tone-success">{{ 'status.reviewed' | t }}</span>
+                      }
+                      @case ('exported') {
+                        <span hlmBadge class="sn-tone-accent">{{ 'status.exported' | t }}</span>
+                      }
+                      @default {
+                        <span hlmBadge variant="outline">{{ 'status.draft' | t }}</span>
+                      }
+                    }
+                  </td>
+                  <td hlmTd>
+                    @if (w.locked) {
+                      <ng-icon
+                        name="lucideLock"
+                        class="sn-text-muted"
+                        role="img"
+                        [attr.aria-label]="'review.locked' | t"
+                      />
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          }
+        </table>
+      </div>
+      <p class="sn-text-muted small hint">{{ 'review.selectHint' | t }}</p>
+    }
+  </section>
+
+  <sn-inspector
+    snResizable="inspector"
+    [resizeRatio]="0.3"
+    [resizeMin]="224"
+    [resizeMaxRatio]="0.6"
+    [resizeLabel]="'panel.resizeInspector' | t"
+    [open]="!!inspected()"
+    (openChange)="!$event && selection.set([])"
+    [title]="inspected()?.issueKey ?? ('issue.none' | t)"
+    icon="lucidePencil"
+  >
+    @if (inspected(); as w) {
+      <wl-worklog-inspector
+        [worklog]="w"
+        (changed)="store.updateWorklog($event)"
+        (duration)="store.setDuration($event.id, $event.text)"
+        (remove)="remove([$event])"
+        [panes]="store.paneIds()"
+        (open)="open($event)"
+        (always)="store.alwaysForMeeting($event.title, $event.issueKey)"
+      />
+    }
+  </sn-inspector>
+</sn-inspector-layout>

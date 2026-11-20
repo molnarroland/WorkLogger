@@ -1,0 +1,11 @@
+<div hlmAlert class="sn-tone-warning">
+  <ng-icon name="lucideTriangleAlert" aria-hidden="true" />
+  <p hlmAlertTitle>{{ title() | t }}</p>
+  <div hlmAlertDescription>
+    <ol class="steps">
+      @for (k of steps(); track k) {
+        <li>{{ k | t }}</li>
+      }
+    </ol>
+  </div>
+</div>

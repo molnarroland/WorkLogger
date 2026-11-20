@@ -1,0 +1,36 @@
+/* What the Confluence feed adds to the Jira feed's layout: the changes of a version. Colours are theme tokens. */
+/* hlmBtn link, kept inline in the text (the theme gives buttons a control height) */
+.link {
+  height: auto;
+  padding: 0;
+  border: 0;
+}
+
+/* The page title: may shrink and truncate, unlike a button */
+.key.truncate {
+  display: block;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+
+/* Added and removed: a tint behind text in the normal colour, so it reads in every theme and contrast. */
+.plus,
+.minus {
+  border-radius: 2px;
+  padding-inline: 0.125rem;
+}
+
+.plus {
+  background: color-mix(in srgb, var(--sn-color-success) 18%, transparent);
+}
+
+.minus {
+  background: color-mix(in srgb, var(--sn-color-danger) 18%, transparent);
+}
+
+.diff {
+  margin: 0.125rem 0 0.25rem;
+  padding-inline-start: 3.25rem;
+  list-style: none;
+  font-family: var(--sn-font-mono, ui-monospace, monospace);
+}

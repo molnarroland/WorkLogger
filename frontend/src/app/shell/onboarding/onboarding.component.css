@@ -1,0 +1,17 @@
+/* Layout only: the sheet, its rows and buttons are drawn per OS by desktop-ui. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.body p,
+.group > h3 {
+  margin: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

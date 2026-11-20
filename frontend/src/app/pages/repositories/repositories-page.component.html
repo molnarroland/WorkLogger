@@ -1,0 +1,196 @@
+<ng-template snPageCommands>
+  <button snCommand hideLabel icon="lucideFolderPlus" [label]="'repos.addFolder' | t" (click)="choose()"></button>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideRefreshCw"
+    [label]="'repos.scan' | t"
+    [disabled]="!store.settings()?.workspaceRoots?.length"
+    (click)="scan()"
+  ></button>
+</ng-template>
+
+<div class="body">
+  @if (store.settings(); as s) {
+    <sn-settings-group [title]="'repos.folders' | t" [description]="'repos.foldersHelp' | t">
+      @for (root of s.workspaceRoots; track root) {
+        <sn-settings-row [title]="root">
+          <ng-icon snSettingsIcon name="lucideFolderOpen" />
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon-sm"
+            type="button"
+            [attr.aria-label]="'repos.removeFolder' | t: { path: root }"
+            (click)="removeRoot(root)"
+          >
+            <ng-icon name="lucideTrash2" aria-hidden="true" />
+          </button>
+        </sn-settings-row>
+      } @empty {
+        <sn-settings-row [title]="'repos.noFolder' | t">
+          <ng-icon snSettingsIcon name="lucideFolderOpen" />
+        </sn-settings-row>
+      }
+      <div class="pad">
+        <button hlmBtn variant="outline" size="sm" type="button" (click)="choose()">
+          <ng-icon name="lucideFolderPlus" aria-hidden="true" /> {{ 'repos.addFolder' | t }}
+        </button>
+      </div>
+    </sn-settings-group>
+
+    <sn-settings-group [title]="'repos.setup' | t">
+      <div class="pad stack">
+        <span class="section-title">{{ 'repos.emails' | t }}</span>
+        <wl-chip-list
+          [highlighted]="true"
+          [label]="'repos.emailsAdd' | t"
+          placeholder="you@company.com"
+          [values]="s.authorEmails"
+          (valuesChange)="store.saveSettings({ authorEmails: $event })"
+        />
+      </div>
+      <div class="pad stack">
+        <span class="section-title">{{ 'repos.skipped' | t }}</span>
+        <wl-chip-list
+          [label]="'repos.skippedAdd' | t"
+          [placeholder]="'repos.skippedPlaceholder' | t"
+          [values]="s.excludedFolders"
+          (valuesChange)="store.saveSettings({ excludedFolders: $event })"
+        />
+        <span class="sn-text-muted small">{{ 'repos.skippedHelp' | t }}</span>
+      </div>
+    </sn-settings-group>
+  }
+
+  <hlm-accordion>
+    <hlm-accordion-item>
+      <hlm-accordion-trigger>{{ 'repos.projects' | t: { n: projects.value()?.length ?? 0 } }}</hlm-accordion-trigger>
+      <hlm-accordion-content>
+        <div class="stack">
+          <wl-rule-list
+            [items]="projectItems()"
+            [mono]="true"
+            [quoted]="false"
+            [issueOptional]="true"
+            [addLabel]="'repos.addProject' | t"
+            [labelPlaceholder]="'repos.projectKey' | t"
+            [issuePlaceholder]="'repos.catchAll' | t"
+            (add)="addProject($event)"
+            (remove)="removeProject($event)"
+          />
+          <span class="sn-text-muted small">{{ 'repos.projectsHelp' | t }}</span>
+        </div>
+      </hlm-accordion-content>
+    </hlm-accordion-item>
+  </hlm-accordion>
+
+  <div class="list-head">
+    <h2 class="section-title">{{ 'pane.repositories' | t }}</h2>
+    <span class="sn-text-muted small">{{ 'repos.order' | t }}</span>
+    @if (hiddenCount() > 0 || showAll()) {
+      <button hlmBtn variant="link" size="sm" type="button" class="show-all" (click)="showAll.set(!showAll())">
+        {{ showAll() ? ('repos.onlyWithCommits' | t) : ('repos.showAll' | t: { n: hiddenCount() }) }}
+      </button>
+    }
+  </div>
+  @if (repos.value()?.length) {
+    <wl-list-filter
+      [query]="query()"
+      (queryChange)="query.set($event)"
+      [day]="day() ?? null"
+      (dayChange)="setDay($event)"
+      [min]="store.range().from"
+      [max]="store.range().to"
+      [placeholder]="'repos.search' | t"
+    />
+  }
+  @if (!repos.value()?.length) {
+    <sn-status-page icon="lucideHardDrive" [title]="'repos.emptyTitle' | t" [description]="'repos.emptyBody' | t">
+      <button hlmBtn type="button" (click)="choose()">{{ 'repos.addFolder' | t }}</button>
+    </sn-status-page>
+  } @else if (!shown().length && !query()) {
+    <sn-status-page
+      icon="lucideGitBranch"
+      [title]="'repos.noCommitsTitle' | t"
+      [description]="'repos.noCommitsBody' | t"
+    >
+      <button hlmBtn variant="outline" type="button" (click)="showAll.set(true)">
+        {{ 'repos.showAll' | t: { n: hiddenCount() } }}
+      </button>
+    </sn-status-page>
+  } @else if (!shown().length) {
+    <sn-status-page icon="lucideSearchX" [title]="'filter.noMatch' | t" [description]="'filter.noMatchBody' | t">
+      <button hlmBtn variant="outline" type="button" (click)="clearFilter()">{{ 'filter.clear' | t }}</button>
+    </sn-status-page>
+  } @else {
+    <table hlmTable [attr.aria-label]="'pane.repositories' | t">
+      <tbody hlmTBody>
+        @for (r of shown(); track r.id) {
+          <tr
+            hlmTr
+            [class.wl-focused]="'' + r.id === focus()"
+            [attr.aria-current]="'' + r.id === focus() ? 'true' : null"
+            [wlScrollIntoView]="'' + r.id === focus()"
+          >
+            <td hlmTd>
+              <hlm-switch
+                [checked]="r.enabled"
+                [aria-label]="'repos.include' | t: { name: r.name }"
+                (checkedChange)="update(r, { enabled: $event })"
+              />
+            </td>
+            <td hlmTd class="wide" [class.off]="!r.enabled">
+              <span class="stack">
+                <span class="section-title">{{ r.name }}</span>
+                <span class="sn-text-muted small path" [title]="r.path">{{ r.path }}</span>
+              </span>
+            </td>
+            <td hlmTd>
+              <input
+                hlmInput
+                class="key-field issue"
+                [attr.aria-label]="'repos.defaultIssueFor' | t: { name: r.name }"
+                [placeholder]="'repos.defaultIssue' | t"
+                [value]="r.issueKey ?? ''"
+                (change)="update(r, { issueKey: key($event) })"
+              />
+            </td>
+            <td hlmTd>
+              <input
+                hlmInput
+                class="key-field project"
+                [attr.aria-label]="'repos.projectFor' | t: { name: r.name }"
+                [placeholder]="'repos.project' | t"
+                [value]="r.projectKey ?? ''"
+                (change)="update(r, { projectKey: key($event) })"
+              />
+            </td>
+            <td hlmTd class="tabular num sn-text-muted">
+              @if (!r.enabled) {
+                —
+              } @else if (day(); as d) {
+                {{ 'repos.commitsOnDay' | t: { n: dayCommits(r, d), total: r.commits } }}
+              } @else {
+                {{ 'repos.commits' | t: { n: r.commits } }}
+              }
+            </td>
+            <td hlmTd>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon-sm"
+                type="button"
+                [attr.aria-label]="'repos.remove' | t: { name: r.name }"
+                [title]="'repos.removeHelp' | t"
+                (click)="remove(r)"
+              >
+                <ng-icon name="lucideTrash2" aria-hidden="true" />
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

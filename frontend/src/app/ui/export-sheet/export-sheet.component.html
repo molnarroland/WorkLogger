@@ -1,0 +1,87 @@
+<sn-modal-sheet [(open)]="open" [title]="'export.title' | t: { from: from(), to: to() }">
+  <div class="body">
+    <div class="summary">
+      <span class="tabular">{{ 'export.count' | t: { n: ids().length, d: (seconds() | duration) } }}</span>
+      @if (missing()) {
+        <span class="needs-ticket small skipped">
+          <ng-icon name="lucideTriangleAlert" aria-hidden="true" /> {{ 'export.skipped' | t: { n: missing() } }}
+        </span>
+      }
+    </div>
+
+    <div class="checks">
+      <label hlmLabel class="check">
+        <hlm-checkbox [checked]="onlyReviewed()" (checkedChange)="onlyReviewed.set($event)" />
+        {{ 'export.onlyReviewed' | t }}
+      </label>
+      <label hlmLabel class="check">
+        <hlm-checkbox [checked]="includeExported()" (checkedChange)="includeExported.set($event)" />
+        {{ 'export.includeExported' | t }}
+      </label>
+    </div>
+
+    <section class="group" aria-labelledby="export-group-1">
+      <h3 id="export-group-1" class="section-title">Claude in Chrome</h3>
+      <p class="sn-text-muted small">{{ 'export.claudeHelp' | t }}</p>
+      <sn-settings-row [title]="'export.markdown' | t">
+        <span class="buttons">
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            type="button"
+            [disabled]="!ids().length"
+            (click)="save.emit({ ids: ids(), format: 'markdown' })"
+          >
+            <ng-icon name="lucideFileText" aria-hidden="true" /> {{ 'export.saveMd' | t }}
+          </button>
+          <button hlmBtn size="sm" type="button" [disabled]="!ids().length" (click)="copyMarkdown.emit(ids())">
+            <ng-icon name="lucideCopy" aria-hidden="true" /> {{ 'export.copyMarkdown' | t }}
+          </button>
+        </span>
+      </sn-settings-row>
+    </section>
+
+    <section class="group" aria-labelledby="export-group-2">
+      <h3 id="export-group-2" class="section-title">Tempo API</h3>
+      <p class="sn-text-muted small">{{ 'export.pushByDay' | t }}</p>
+      <p class="sn-text-muted small">{{ 'export.footer' | t }}</p>
+      <sn-settings-row [title]="'export.markExported' | t">
+        <span class="buttons">
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            type="button"
+            [disabled]="!ids().length"
+            (click)="markExported.emit(ids())"
+          >
+            {{ 'export.markExported' | t }}
+          </button>
+        </span>
+      </sn-settings-row>
+    </section>
+
+    <section class="group" aria-labelledby="export-group-3">
+      <h3 id="export-group-3" class="section-title">{{ 'export.files' | t }}</h3>
+      <sn-settings-row [title]="'export.fileFormats' | t">
+        <span class="buttons">
+          @for (f of files; track f) {
+            <button
+              hlmBtn
+              variant="outline"
+              size="sm"
+              type="button"
+              [disabled]="!ids().length"
+              (click)="save.emit({ ids: ids(), format: f })"
+            >
+              {{ f.toUpperCase() }}…
+            </button>
+          }
+        </span>
+      </sn-settings-row>
+    </section>
+  </div>
+
+  <button hlmBtn variant="outline" snSheetCancel type="button">{{ 'export.done' | t }}</button>
+</sn-modal-sheet>

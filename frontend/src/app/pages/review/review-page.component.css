@@ -1,0 +1,89 @@
+/* Layout only (the one separator above the day rows uses a theme token). */
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.layout {
+  flex: 1;
+  min-block-size: 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  block-size: 100%;
+  min-block-size: 0;
+  padding: 1rem 1rem 0.5rem;
+  box-sizing: border-box;
+}
+
+.header,
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.grow {
+  flex: 1;
+}
+
+.bulk-key {
+  inline-size: 11rem;
+}
+
+.bulk-comment {
+  inline-size: 16rem;
+}
+
+.fill {
+  flex: 1;
+}
+
+.table {
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+}
+
+.day-cell {
+  padding: 0.75rem 0.5rem 0.375rem;
+  text-align: start;
+  font-weight: normal;
+}
+
+.day-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.add {
+  margin-inline-start: auto;
+}
+
+.num {
+  text-align: end;
+}
+
+/* The two text columns share what's left. */
+.half {
+  inline-size: 50%;
+  max-inline-size: 0;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hint {
+  margin: 0;
+}

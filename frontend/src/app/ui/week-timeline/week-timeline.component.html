@@ -1,0 +1,52 @@
+<div class="grid" [style.--columns]="columns().length" [style.--hour.rem]="HOUR">
+  <div class="corner" aria-hidden="true"></div>
+  @for (c of columns(); track c.day) {
+    <button type="button" class="day-head" [class.today]="c.isToday" (click)="open.emit(c.day)">
+      <span class="weekday small sn-text-muted">{{ c.weekday }}</span>
+      <span class="date tabular">{{ c.date }}</span>
+      <span class="sum small tabular" [class.needs-ticket]="c.missing > 0" [class.short]="c.empty">
+        <span class="dot" [style.background]="c.color" aria-hidden="true"></span>
+        {{ 'timesheet.loggedOf' | t: { logged: (c.logged | duration), expected: (c.expected | duration) } }}
+        @if (c.missing) {
+          · {{ 'day.withoutIssue' | t: { n: c.missing } }}
+        }
+      </span>
+    </button>
+  }
+
+  <div class="hours" [style.height.rem]="height()" aria-hidden="true">
+    @for (h of hours(); track h; let i = $index) {
+      <span class="hour small sn-text-muted tabular" [style.top.rem]="i * HOUR">{{ h < 10 ? '0' + h : h }}:00</span>
+    }
+  </div>
+  @for (c of columns(); track c.day) {
+    <div class="column" [style.height.rem]="height()" role="group" [attr.aria-label]="c.weekday + ' ' + c.date">
+      @for (b of c.blocks; track b.id) {
+        <button
+          type="button"
+          class="block"
+          [class.missing]="b.missing"
+          [class.short]="b.short"
+          [style.top.rem]="b.top"
+          [style.height.rem]="b.height"
+          [style.--block]="b.color"
+          (click)="openEntry.emit({ day: c.day, id: b.id })"
+        >
+          <span class="issue-key" [class.missing]="b.missing">{{ b.key ?? ('issue.none' | t) }}</span>
+          @if (b.short) {
+            <span class="sr-only">{{ b.text }}, {{ b.range }}</span>
+          } @else {
+            <span class="text">{{ b.text }}</span>
+            <span class="range tabular">{{ b.range }}</span>
+          }
+        </button>
+      }
+      @if (c.empty) {
+        <div class="slot" [style.top.rem]="slotTop()" [style.height.rem]="(c.expected / 3600) * HOUR">
+          <strong>{{ 'week.toFill' | t: { d: (c.expected | duration) } }}</strong>
+          <button type="button" class="slot-open" (click)="open.emit(c.day)">{{ 'week.openDay' | t }}</button>
+        </div>
+      }
+    </div>
+  }
+</div>

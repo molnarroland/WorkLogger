@@ -1,0 +1,126 @@
+<ng-template snPageCommands>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideCircleArrowDown"
+    [label]="'sessions.fetch' | t"
+    [disabled]="store.busy()"
+    (click)="fetch()"
+  ></button>
+  <button snCommand hideLabel icon="lucideClipboardPaste" [label]="'chats.paste' | t" (click)="openPaste()"></button>
+  <button snCommand hideLabel icon="lucideUserCog" [label]="'profiles.manage' | t" (click)="openProfiles()"></button>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideTrash2"
+    [label]="'chats.clear' | t"
+    [disabled]="!list().length"
+    (click)="clear()"
+  ></button>
+</ng-template>
+
+@if (!hasAny()) {
+  <sn-status-page
+    class="fill"
+    icon="lucideMessagesSquare"
+    [title]="'chats.emptyTitle' | t"
+    [description]="'chats.emptyBody' | t"
+  >
+    <button hlmBtn type="button" (click)="openPaste()">{{ 'chats.paste' | t }}</button>
+  </sn-status-page>
+} @else {
+  <div class="head">
+    <wl-list-filter
+      [query]="query()"
+      (queryChange)="query.set($event)"
+      [day]="day() ?? null"
+      (dayChange)="setDay($event)"
+      [min]="store.range().from"
+      [max]="store.range().to"
+      [placeholder]="'chats.search' | t"
+    />
+    <p class="summary sn-text-muted small tabular">
+      @if (filtered()) {
+        {{ 'chats.matches' | t: { n: list().length, total: total() } }}
+      } @else {
+        {{ 'chats.summary' | t: { n: list().length, d: (active() | duration) } }}
+      }
+    </p>
+  </div>
+  @if (!list().length) {
+    <sn-status-page
+      class="fill"
+      icon="lucideSearchX"
+      [title]="'filter.noMatch' | t"
+      [description]="'filter.noMatchBody' | t"
+    >
+      <button hlmBtn variant="outline" type="button" (click)="clearFilter()">{{ 'filter.clear' | t }}</button>
+    </sn-status-page>
+  } @else {
+    <div class="panes">
+      <div class="list" snSelectable [multiple]="false" [(selection)]="selection" [attr.aria-label]="'pane.chats' | t">
+        @for (g of byDay(); track g.day) {
+          <div class="day-head small sn-text-muted tabular" role="presentation">
+            <span class="section-title">{{ g.title }}</span
+            ><span>{{ g.seconds | duration }}</span>
+          </div>
+          @for (c of g.chats; track c.id) {
+            <div
+              class="chat"
+              snSelectableItem
+              [value]="c.id"
+              [snSelectableLabel]="c.name"
+              [wlScrollIntoView]="c.id === focus()"
+              [title]="'chats.stretchHelp' | t: { from: time(c.first), to: time(c.last) }"
+            >
+              <ng-icon [name]="c.type === 'dm' ? 'lucideUser' : 'lucideUsers'" aria-hidden="true" />
+              <span class="name">{{ c.name }}</span>
+              @if (c.issueKey) {
+                <span class="issue-key">{{ c.issueKey }}</span>
+              }
+              <span class="secondary tabular">{{ 'chats.messages' | t: { n: c.count } }}</span>
+              <span class="tabular duration">{{ c.activeSeconds | duration }}</span>
+            </div>
+          }
+        }
+      </div>
+      @if (selected(); as c) {
+        <wl-chat-messages
+          class="messages"
+          [chat]="c"
+          [messages]="messages.value() ?? []"
+          [ruleIssue]="ruleIssue()"
+          (log)="log(c, $event)"
+          (always)="always(c, $event)"
+        />
+      } @else {
+        <sn-status-page
+          class="messages"
+          icon="lucideMessagesSquare"
+          [title]="'chats.selectTitle' | t"
+          [description]="'chats.selectBody' | t"
+        />
+      }
+    </div>
+  }
+}
+
+<sn-modal-sheet [(open)]="pasting" [title]="'chats.pasteTitle' | t">
+  <form class="paste" id="chat-paste" novalidate (submit)="$event.preventDefault(); importText()">
+    <p class="sn-text-muted">{{ 'chats.pasteBody' | t }}</p>
+    <textarea
+      hlmTextarea
+      class="paste-text"
+      [attr.aria-label]="'chats.pasteTitle' | t"
+      [value]="pasteText()"
+      (input)="pasteText.set($any($event.target).value); pasteError.set('')"
+    ></textarea>
+    @if (pasteError()) {
+      <p class="error small" role="alert">{{ pasteError() }}</p>
+    }
+  </form>
+  <button hlmBtn variant="outline" snSheetCancel type="button">{{ 'status.cancel' | t }}</button>
+  <button hlmBtn snSheetPrimary type="submit" form="chat-paste" [disabled]="!pasteText().trim()">
+    {{ 'chats.import' | t }}
+  </button>
+</sn-modal-sheet>

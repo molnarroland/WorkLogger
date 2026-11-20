@@ -1,0 +1,128 @@
+<ng-template snPageCommands>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideRefreshCw"
+    [label]="'plans.read' | t"
+    [disabled]="reading() || store.locked()"
+    (click)="refresh()"
+  ></button>
+</ng-template>
+
+@if (!read()) {
+  <sn-status-page
+    class="fill"
+    icon="lucideCalendarClock"
+    [title]="'plans.notReadTitle' | t"
+    [description]="'plans.notReadBody' | t"
+  >
+    <button hlmBtn type="button" [disabled]="reading()" (click)="refresh()">{{ 'plans.read' | t }}</button>
+    <button hlmBtn variant="outline" type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
+  </sn-status-page>
+} @else if (!total()) {
+  <sn-status-page
+    class="fill"
+    icon="lucideCalendarClock"
+    [title]="'plans.emptyTitle' | t"
+    [description]="'plans.emptyBody' | t"
+  />
+} @else {
+  <div class="head">
+    <wl-list-filter
+      [query]="query()"
+      (queryChange)="query.set($event)"
+      [day]="day() ?? null"
+      (dayChange)="setDay($event)"
+      [min]="store.range().from"
+      [max]="store.range().to"
+      [placeholder]="'plans.search' | t"
+    />
+    <p class="summary sn-text-muted small tabular">
+      @if (filtered()) {
+        {{ 'plans.matches' | t: { n: count(), total: total() } }}
+      } @else {
+        {{ 'plans.summary' | t: { n: total(), d: (planned() | duration) } }}
+      }
+    </p>
+  </div>
+  @if (!days().length) {
+    <sn-status-page
+      class="fill"
+      icon="lucideSearchX"
+      [title]="'filter.noMatch' | t"
+      [description]="'filter.noMatchBody' | t"
+    >
+      <button hlmBtn variant="outline" type="button" (click)="clearFilter()">{{ 'filter.clear' | t }}</button>
+    </sn-status-page>
+  } @else {
+    <div class="list">
+      @for (d of days(); track d.day) {
+        <section class="day" [attr.aria-label]="d.title">
+          <h2 class="day-head small sn-text-muted tabular">
+            <span class="section-title">{{ d.title }}</span>
+            @if (d.planned) {
+              <span>{{ 'plans.plannedShort' | t: { d: (d.planned | duration) } }}</span>
+            }
+          </h2>
+          @for (it of d.items; track trackItem(it)) {
+            <article class="plan" [class.outside]="it.kind === 'tempo'">
+              <div class="plan-top">
+                <span class="issue-key">{{ it.key }}</span>
+                @if (it.kind === 'plan') {
+                  <span hlmBadge variant="outline">{{ 'plans.kindPlan' | t }}</span>
+                } @else {
+                  <span hlmBadge variant="outline" [snTooltip]="'plans.kindTempoHelp' | t">{{
+                    'plans.kindTempo' | t
+                  }}</span>
+                }
+                <span class="description truncate secondary small" [title]="it.description">{{ it.description }}</span>
+                <span class="tabular times">
+                  <span [title]="(it.kind === 'plan' ? 'plans.kindPlan' : 'plans.kindTempo') | t">{{
+                    it.seconds | duration
+                  }}</span>
+                  <span class="sn-text-muted small">{{ 'plans.logged' | t: { d: (it.logged | duration) } }}</span>
+                </span>
+              </div>
+              @if (it.entries.length) {
+                <ul class="entries" [attr.aria-label]="'plans.entriesFor' | t: { key: it.key }">
+                  @for (e of it.entries; track e.id) {
+                    <li class="entry small">
+                      <ng-icon [name]="icon[e.source]" aria-hidden="true" [title]="'source.' + e.source | t" />
+                      <span class="truncate" [title]="e.description">{{ e.description }}</span>
+                      <span class="tabular sn-text-muted">{{ e.seconds | duration }}</span>
+                      @if (e.focus && panes().includes(e.focus.pane)) {
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="icon-xs"
+                          type="button"
+                          [attr.aria-label]="
+                            'focus.showItemIn' | t: { title: e.description, page: ('pane.' + e.focus.pane | t) }
+                          "
+                          [snTooltip]="'focus.showIn' | t: { page: ('pane.' + e.focus.pane | t) }"
+                          (click)="open(e.focus)"
+                        >
+                          <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+                        </button>
+                      }
+                    </li>
+                  }
+                </ul>
+              } @else if (it.kind === 'plan') {
+                <p class="none small sn-text-muted">{{ 'plans.nothingLogged' | t }}</p>
+              }
+            </article>
+          }
+          @if (d.suggest && d.untagged.length) {
+            <div class="untagged small">
+              <span>{{ 'plans.untagged' | t: { n: d.untagged.length } }}</span>
+              <button hlmBtn size="sm" variant="outline" type="button" (click)="useForUntagged(d)">
+                {{ 'plans.useForAll' | t: { key: d.suggest } }}
+              </button>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  }
+}

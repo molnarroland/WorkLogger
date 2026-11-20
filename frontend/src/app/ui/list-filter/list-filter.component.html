@@ -1,0 +1,23 @@
+<div class="filter" role="search" [attr.aria-label]="'filter.label' | t">
+  <sn-search-field
+    class="search"
+    [(value)]="query"
+    [placeholder]="placeholder()"
+    [clearLabel]="'filter.clearText' | t"
+  />
+  <input
+    hlmInput
+    type="date"
+    class="day tabular"
+    [attr.aria-label]="'filter.day' | t"
+    [attr.min]="min() || null"
+    [attr.max]="max() || null"
+    [value]="day() ?? ''"
+    (change)="setDay($event)"
+  />
+  @if (active()) {
+    <button hlmBtn variant="ghost" size="sm" type="button" (click)="clear()">
+      <ng-icon name="lucideX" aria-hidden="true" /> {{ 'filter.clear' | t }}
+    </button>
+  }
+</div>

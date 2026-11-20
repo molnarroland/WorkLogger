@@ -1,0 +1,44 @@
+/* Layout only. */
+:host {
+  display: block;
+}
+
+/* The inspector is narrow: each label sits above its field. */
+.fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+}
+
+.fields > label:not(:first-child) {
+  margin-block-start: 0.5rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-block-start: 0.75rem;
+}
+
+.hint {
+  margin: 0.375rem 0 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-block: 0.75rem;
+}
+
+.show {
+  margin-inline-end: auto;
+}

@@ -1,0 +1,369 @@
+@if (store.settings(); as s) {
+  <hlm-tabs class="tabs" [tab]="tab()" (tabActivated)="setTab($event)">
+    <hlm-tabs-list [attr.aria-label]="'pane.settings' | t">
+      @for (t of tabs; track t) {
+        <button [hlmTabsTrigger]="t">{{ 'settings.tab.' + t | t }}</button>
+      }
+    </hlm-tabs-list>
+
+    <!-- General -->
+    <div hlmTabsContent="general" class="panel">
+      <sn-settings-group [title]="'settings.general' | t">
+        <sn-settings-row [title]="'settings.language' | t">
+          <ng-icon snSettingsIcon name="lucideLanguages" />
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            size="sm"
+            [nullable]="false"
+            [value]="s.language"
+            [attr.aria-label]="'settings.language' | t"
+            (valueChange)="setLanguage($event)"
+          >
+            @for (l of languages; track l) {
+              <button hlmToggleGroupItem [value]="l" [attr.lang]="l === 'system' ? null : l">
+                {{ 'settings.language.' + l | t }}
+              </button>
+            }
+          </hlm-toggle-group>
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.appearance' | t">
+          <ng-icon snSettingsIcon name="lucideSunMoon" />
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            size="sm"
+            [nullable]="false"
+            [value]="s.appearance"
+            [attr.aria-label]="'settings.appearance' | t"
+            (valueChange)="setAppearance($event)"
+          >
+            @for (a of appearances; track a) {
+              <button hlmToggleGroupItem [value]="a">{{ 'settings.appearance.' + a | t }}</button>
+            }
+          </hlm-toggle-group>
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.accent' | t">
+          <ng-icon snSettingsIcon name="lucidePalette" />
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            size="sm"
+            [nullable]="false"
+            [value]="s.accentColor"
+            [attr.aria-label]="'settings.accent' | t"
+            (valueChange)="setAccent($event)"
+          >
+            @for (c of accents; track c) {
+              <button
+                hlmToggleGroupItem
+                [value]="c"
+                [attr.aria-label]="'settings.accent.' + c | t"
+                [title]="'settings.accent.' + c | t"
+              >
+                @if (c === 'system') {
+                  {{ 'settings.accent.system' | t }}
+                } @else {
+                  <span class="swatch" [style.--swatch]="accentHex[c]" aria-hidden="true"></span>
+                }
+              </button>
+            }
+          </hlm-toggle-group>
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.skin' | t" [subtitle]="'settings.skinHelp' | t">
+          <ng-icon snSettingsIcon name="lucideAppWindow" />
+          <label hlmLabel class="sr-only" for="set-skin">{{ 'settings.skin' | t }}</label>
+          <hlm-select [value]="look().skin" [itemToString]="skinLabel" (valueChange)="setLook('skin', $event)">
+            <hlm-select-trigger class="select" buttonId="set-skin"><hlm-select-value /></hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              @for (k of skins; track k) {
+                <hlm-select-item [value]="k">{{ skinLabel(k) }}</hlm-select-item>
+              }
+            </hlm-select-content>
+          </hlm-select>
+        </sn-settings-row>
+      </sn-settings-group>
+
+      <sn-settings-group [title]="'settings.display' | t" [description]="'settings.displayHelp' | t">
+        <sn-settings-row [title]="'settings.transparency' | t">
+          <ng-icon snSettingsIcon name="lucideBlend" />
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            size="sm"
+            [nullable]="false"
+            [value]="look().transparency"
+            [attr.aria-label]="'settings.transparency' | t"
+            (valueChange)="setLook('transparency', $event)"
+          >
+            @for (v of transparencies; track v) {
+              <button hlmToggleGroupItem [value]="v">{{ 'settings.transparency.' + v | t }}</button>
+            }
+          </hlm-toggle-group>
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.contrast' | t">
+          <ng-icon snSettingsIcon name="lucideContrast" />
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            size="sm"
+            [nullable]="false"
+            [value]="look().contrast"
+            [attr.aria-label]="'settings.contrast' | t"
+            (valueChange)="setLook('contrast', $event)"
+          >
+            @for (v of contrasts; track v) {
+              <button hlmToggleGroupItem [value]="v">{{ 'settings.contrast.' + v | t }}</button>
+            }
+          </hlm-toggle-group>
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.motion' | t">
+          <ng-icon snSettingsIcon name="lucideWind" />
+          <hlm-toggle-group
+            type="single"
+            variant="outline"
+            size="sm"
+            [nullable]="false"
+            [value]="look().motion"
+            [attr.aria-label]="'settings.motion' | t"
+            (valueChange)="setLook('motion', $event)"
+          >
+            @for (v of motions; track v) {
+              <button hlmToggleGroupItem [value]="v">{{ 'settings.motion.' + v | t }}</button>
+            }
+          </hlm-toggle-group>
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.textScale' | t">
+          <ng-icon snSettingsIcon name="lucideType" />
+          <label hlmLabel class="sr-only" for="set-textScale">{{ 'settings.textScale' | t }}</label>
+          <hlm-select
+            [value]="look().textScale"
+            [itemToString]="textScaleLabel"
+            (valueChange)="setLook('textScale', $event)"
+          >
+            <hlm-select-trigger class="select" buttonId="set-textScale"><hlm-select-value /></hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              @for (v of textScales; track v) {
+                <hlm-select-item [value]="v">{{ textScaleLabel(v) }}</hlm-select-item>
+              }
+            </hlm-select-content>
+          </hlm-select>
+        </sn-settings-row>
+      </sn-settings-group>
+
+      <sn-settings-group [title]="'settings.storage' | t">
+        <sn-settings-row [title]="'settings.database' | t" [subtitle]="dbPath.value() ?? ''">
+          <ng-icon snSettingsIcon name="lucideDatabase" />
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="api.revealPath(dbPath.value() ?? '')">
+            {{ 'settings.showFolder' | t }}
+          </button>
+        </sn-settings-row>
+      </sn-settings-group>
+    </div>
+
+    <!-- Timesheet -->
+    <div hlmTabsContent="timesheet" class="panel">
+      <sn-settings-group [title]="'settings.dailyTotals' | t" [description]="'settings.dailyHelp' | t">
+        <sn-settings-row [title]="'settings.dailyTotal' | t">
+          <label hlmLabel class="sr-only" [for]="'set-dailyTotal'">{{ 'settings.dailyTotal' | t }}</label>
+          <hlm-select
+            [value]="s.roundingMode === 'estimate' ? 'estimate' : 'fixedHours'"
+            [itemToString]="roundingLabel"
+            (valueChange)="setRounding($event)"
+          >
+            <hlm-select-trigger class="select" [buttonId]="'set-dailyTotal'"><hlm-select-value /></hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              <hlm-select-item value="fixedHours">{{ 'settings.rounding.fixedHours' | t }}</hlm-select-item>
+              <hlm-select-item value="estimate">{{ 'settings.rounding.estimate' | t }}</hlm-select-item>
+            </hlm-select-content>
+          </hlm-select>
+        </sn-settings-row>
+        @if (s.roundingMode !== 'estimate') {
+          <sn-settings-row [title]="'settings.roundUp' | t">
+            <label hlmLabel class="sr-only" [for]="'set-roundUp'">{{ 'settings.roundUp' | t }}</label>
+            <hlm-select
+              [value]="s.dayRoundUpMinutes"
+              [itemToString]="roundUpLabel"
+              (valueChange)="save({ dayRoundUpMinutes: +$any($event) })"
+            >
+              <hlm-select-trigger class="select" [buttonId]="'set-roundUp'"><hlm-select-value /></hlm-select-trigger>
+              <hlm-select-content *hlmSelectPortal>
+                @for (m of roundUps; track m) {
+                  <hlm-select-item [value]="m">{{ roundUpLabel(m) }}</hlm-select-item>
+                }
+              </hlm-select-content>
+            </hlm-select>
+          </sn-settings-row>
+          <sn-settings-row [title]="'settings.hoursPerDay' | t">
+            <sn-number-box
+              [ariaLabel]="'settings.hoursPerDay' | t"
+              [value]="s.fixedDailyHours"
+              [min]="1"
+              [max]="12"
+              [step]="0.5"
+              [decimals]="1"
+              (valueChange)="saveNumber('fixedDailyHours', $event, 1, 12)"
+            />
+          </sn-settings-row>
+        }
+        <sn-settings-row [title]="'settings.roundTo' | t">
+          <label hlmLabel class="sr-only" [for]="'set-roundTo'">{{ 'settings.roundTo' | t }}</label>
+          <hlm-select
+            [value]="s.granularityMinutes"
+            [itemToString]="minutesLabel"
+            (valueChange)="save({ granularityMinutes: +$any($event) })"
+          >
+            <hlm-select-trigger class="select" [buttonId]="'set-roundTo'"><hlm-select-value /></hlm-select-trigger>
+            <hlm-select-content *hlmSelectPortal>
+              @for (m of granularities; track m) {
+                <hlm-select-item [value]="m">{{ minutesLabel(m) }}</hlm-select-item>
+              }
+            </hlm-select-content>
+          </hlm-select>
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.dayStart' | t">
+          <ng-icon snSettingsIcon name="lucideCalendarClock" />
+          <input
+            hlmInput
+            type="time"
+            class="tabular time"
+            [attr.aria-label]="'settings.dayStart' | t"
+            [value]="s.defaultDayStart"
+            (change)="save({ defaultDayStart: value($event) })"
+          />
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.dayEnd' | t">
+          <input
+            hlmInput
+            type="time"
+            class="tabular time"
+            [attr.aria-label]="'settings.dayEnd' | t"
+            [value]="s.defaultDayEnd"
+            (change)="save({ defaultDayEnd: value($event) })"
+          />
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.weekends' | t">
+          <hlm-switch
+            [checked]="s.includeWeekends"
+            [aria-label]="'settings.weekends' | t"
+            (checkedChange)="save({ includeWeekends: $event })"
+          />
+        </sn-settings-row>
+      </sn-settings-group>
+
+      <sn-settings-group [title]="'settings.absences' | t" [description]="'settings.absencesHelp' | t">
+        <sn-settings-row [title]="'settings.absenceIssue' | t">
+          <input
+            hlmInput
+            class="key-field key"
+            placeholder="LEAVE-1"
+            [attr.aria-label]="'settings.absenceIssue' | t"
+            [value]="s.absenceIssueKey"
+            (change)="save({ absenceIssueKey: value($event).trim().toUpperCase() })"
+          />
+        </sn-settings-row>
+        <div class="pad">
+          <wl-rule-list
+            [items]="absenceRules()"
+            [addLabel]="'rules.add' | t"
+            [labelPlaceholder]="'settings.labelContains' | t"
+            [issuePlaceholder]="'worklog.issue' | t"
+            (add)="addAbsenceRule($event)"
+            (remove)="removeAbsenceRule($event)"
+          />
+        </div>
+      </sn-settings-group>
+    </div>
+
+    <!-- Coding -->
+    <div hlmTabsContent="coding" class="panel">
+      <sn-settings-group [title]="'settings.commitEstimates' | t" [description]="'settings.estimatesHelp' | t">
+        <sn-settings-row [title]="'settings.minCommit' | t">
+          <sn-number-box
+            [ariaLabel]="'settings.minCommit' | t"
+            [value]="s.minCommitMinutes"
+            [min]="5"
+            [max]="60"
+            [step]="5"
+            (valueChange)="saveNumber('minCommitMinutes', $event, 5, 60)"
+          />
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.maxCommit' | t">
+          <sn-number-box
+            [ariaLabel]="'settings.maxCommit' | t"
+            [value]="s.maxCommitMinutes"
+            [min]="30"
+            [max]="480"
+            [step]="15"
+            (valueChange)="saveNumber('maxCommitMinutes', $event, 30, 480)"
+          />
+        </sn-settings-row>
+        <sn-settings-row [title]="'settings.maxGap' | t">
+          <sn-number-box
+            [ariaLabel]="'settings.maxGap' | t"
+            [value]="s.maxCommitGapMinutes"
+            [min]="30"
+            [max]="480"
+            [step]="15"
+            (valueChange)="saveNumber('maxCommitGapMinutes', $event, 30, 480)"
+          />
+        </sn-settings-row>
+        <div class="pad stack">
+          <span class="section-title">{{ 'settings.ignoredPaths' | t }}</span>
+          <wl-chip-list
+            [label]="'settings.ignoredPathsAdd' | t"
+            placeholder=".min.js"
+            [values]="s.ignoredPathPatterns"
+            (valuesChange)="save({ ignoredPathPatterns: $event })"
+          />
+        </div>
+      </sn-settings-group>
+    </div>
+
+    <!-- Modules: the data sources (the guide's sources page, also here) -->
+    <div hlmTabsContent="modules" class="panel">
+      <sn-settings-group [title]="'welcome.sources' | t" [description]="'welcome.body' | t">
+        @for (m of modules; track m.id) {
+          <sn-settings-row [title]="'module.' + m.id | t" [subtitle]="'module.' + m.id + '.summary' | t">
+            <ng-icon snSettingsIcon [name]="m.icon" />
+            <hlm-switch
+              [checked]="store.modules().includes(m.id)"
+              [aria-label]="'module.' + m.id | t"
+              (checkedChange)="toggleModule(m.id, $event)"
+            />
+          </sn-settings-row>
+        }
+      </sn-settings-group>
+    </div>
+
+    <!-- Chats -->
+    <div hlmTabsContent="chats" class="panel">
+      <sn-settings-group [title]="'pane.chats' | t" [description]="'settings.chatsHelp' | t">
+        <sn-settings-row [title]="'settings.chatGap' | t">
+          <sn-number-box
+            [ariaLabel]="'settings.chatGap' | t"
+            [value]="s.chatGapMinutes"
+            [min]="1"
+            [max]="60"
+            (valueChange)="saveNumber('chatGapMinutes', $event, 1, 60)"
+          />
+        </sn-settings-row>
+        @if (chatRules().length) {
+          <div class="pad">
+            <wl-rule-list [items]="chatRules()" [quoted]="false" (remove)="removeChatRule($event)" />
+          </div>
+        }
+      </sn-settings-group>
+    </div>
+
+    <!-- Profiles -->
+    <div hlmTabsContent="profiles" class="panel">
+      <wl-profiles-settings [focusKind]="focusKind()" [addKind]="addProfile()" />
+    </div>
+
+    <!-- Calendars -->
+    <div hlmTabsContent="calendars" class="panel">
+      <wl-calendar-settings />
+    </div>
+  </hlm-tabs>
+}

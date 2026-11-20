@@ -1,0 +1,164 @@
+<ng-template snPageCommands>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideRefreshCw"
+    [label]="'jira.refresh' | t"
+    [disabled]="feed.isLoading()"
+    (click)="refresh()"
+  ></button>
+</ng-template>
+
+@if (feed.isLoading() && !tickets()) {
+  <div class="fill loading sn-text-muted" role="status"><hlm-spinner aria-hidden="true" />{{ 'jira.reading' | t }}</div>
+} @else if (error()) {
+  <sn-status-page class="fill" icon="lucideActivity" [title]="'jira.failedTitle' | t" [description]="error()">
+    <button hlmBtn type="button" (click)="refresh()">{{ 'jira.refresh' | t }}</button>
+    <button hlmBtn variant="outline" type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
+  </sn-status-page>
+} @else if (accounts() === 0) {
+  <sn-status-page
+    class="fill"
+    icon="lucideActivity"
+    [title]="'jira.noAccountTitle' | t"
+    [description]="'jira.noAccountBody' | t"
+  >
+    <button hlmBtn type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
+  </sn-status-page>
+} @else if (!tickets()) {
+  <sn-status-page
+    class="fill"
+    icon="lucideActivity"
+    [title]="'jira.emptyTitle' | t"
+    [description]="'jira.emptyBody' | t"
+  />
+} @else {
+  <div class="head">
+    <wl-list-filter
+      [query]="query()"
+      (queryChange)="query.set($event)"
+      [day]="day() ?? null"
+      (dayChange)="setDay($event)"
+      [min]="store.range().from"
+      [max]="store.range().to"
+      [placeholder]="'jira.search' | t"
+    />
+    <p class="summary sn-text-muted small tabular">
+      @if (filtered()) {
+        {{ 'jira.matches' | t: { n: count(), total: tickets() } }}
+      } @else {
+        {{ 'jira.summary' | t: { n: entries(), t: tickets() } }}
+      }
+    </p>
+  </div>
+  @if (!days().length) {
+    <sn-status-page
+      class="fill"
+      icon="lucideSearchX"
+      [title]="'filter.noMatch' | t"
+      [description]="'filter.noMatchBody' | t"
+    >
+      <button hlmBtn variant="outline" type="button" (click)="clearFilter()">{{ 'filter.clear' | t }}</button>
+    </sn-status-page>
+  } @else {
+    <div class="list">
+      @for (d of days(); track d.day) {
+        <section class="day" [attr.aria-label]="d.title">
+          <h2 class="day-head small sn-text-muted section-title">{{ d.title }}</h2>
+          <ol class="feed">
+            @for (t of d.tickets; track t.account + t.issueKey) {
+              <li class="ticket">
+                <!-- The line: when, the ticket, its attachments, then where its status went. -->
+                <div class="line">
+                  <span class="time small sn-text-muted tabular">{{
+                    t.first === t.last ? t.first : t.first + '–' + t.last
+                  }}</span>
+                  <span class="title">
+                    <button
+                      hlmBtn
+                      variant="link"
+                      type="button"
+                      class="issue-key key"
+                      [snTooltip]="'jira.open' | t: { key: t.issueKey }"
+                      [attr.aria-description]="'jira.open' | t: { key: t.issueKey }"
+                      (click)="openIssue(t)"
+                    >
+                      {{ t.issueKey }}
+                    </button>
+                    <span class="truncate" [title]="t.summary">{{ t.summary }}</span>
+                    @if (t.created) {
+                      <span hlmBadge variant="outline">{{ 'jira.created' | t }}</span>
+                    }
+                    @if (t.accountTitle) {
+                      <span class="small sn-text-muted">{{ t.accountTitle }}</span>
+                    }
+                  </span>
+                  <span
+                    class="files small"
+                    [attr.role]="t.attachments.length ? 'group' : null"
+                    [attr.aria-label]="t.attachments.length ? ('jira.attachments' | t) : null"
+                  >
+                    @for (a of t.attachments; track $index) {
+                      <span class="file" [title]="a.time + ' · ' + a.text">
+                        <ng-icon name="lucidePaperclip" aria-hidden="true" /><span class="truncate">{{ a.text }}</span>
+                      </span>
+                    }
+                  </span>
+                  <span class="status small">
+                    @for (s of statusChain(t); track $index; let last = $last) {
+                      @if (last) {
+                        <strong>{{ s }}</strong>
+                      } @else {
+                        <span class="sn-text-muted">{{ s }} →</span>
+                      }
+                    }
+                  </span>
+                </div>
+                @if (t.comments.length || t.changes.length || t.suggested.length) {
+                  <div class="under">
+                    @for (c of t.changes; track $index) {
+                      <p class="note small sn-text-muted">
+                        <span class="tabular">{{ c.time }}</span>
+                        {{ fieldLabel(c.field) }}: {{ c.from || ('jira.none' | t) }} → {{ c.to || ('jira.none' | t) }}
+                      </p>
+                    }
+                    @for (c of t.comments; track $index) {
+                      <p class="note small">
+                        <span class="tabular sn-text-muted">{{ c.time }}</span>
+                        <span class="comment">{{ c.text }}</span>
+                      </p>
+                    }
+                    @if (t.suggested.length) {
+                      <div class="suggest small">
+                        <ng-icon name="lucideLightbulb" aria-hidden="true" />
+                        <div class="suggest-body">
+                          <span>{{ 'jira.suggest' | t: { n: t.suggested.length, key: t.issueKey } }}</span>
+                          <ul class="entries">
+                            @for (e of t.suggested; track e.id) {
+                              <li class="entry">
+                                <ng-icon
+                                  [name]="icon[e.source]"
+                                  aria-hidden="true"
+                                  [title]="'source.' + e.source | t"
+                                />
+                                <span class="truncate" [title]="e.description">{{ e.description }}</span>
+                                <span class="tabular sn-text-muted">{{ e.seconds | duration }}</span>
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                        <button hlmBtn size="sm" variant="outline" type="button" (click)="use(t)">
+                          {{ 'jira.use' | t: { key: t.issueKey } }}
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </li>
+            }
+          </ol>
+        </section>
+      }
+    </div>
+  }
+}

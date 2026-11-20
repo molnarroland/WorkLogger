@@ -1,0 +1,26 @@
+@if (iconOnly()) {
+  <!-- Icon only: the label is the tooltip and (unless ariaLabel says more) the accessible name. -->
+  <button
+    hlmBtn
+    type="button"
+    variant="ghost"
+    [size]="small() ? 'icon-xs' : 'icon-sm'"
+    [title]="copied() ? ('ticket.copied' | t) : label()"
+    [attr.aria-label]="ariaLabel() || label()"
+    (click)="copy()"
+  >
+    <ng-icon [name]="copied() ? 'lucideCheck' : 'lucideCopy'" aria-hidden="true" />
+  </button>
+  <span class="sr-only" aria-live="polite">{{ copied() ? ('ticket.copied' | t) : '' }}</span>
+} @else {
+  <button
+    hlmBtn
+    type="button"
+    [variant]="prominent() ? 'default' : 'outline'"
+    [size]="small() ? 'xs' : 'sm'"
+    [attr.aria-label]="ariaLabel() || null"
+    (click)="copy()"
+  >
+    {{ copied() ? ('ticket.copied' | t) : label() }}
+  </button>
+}

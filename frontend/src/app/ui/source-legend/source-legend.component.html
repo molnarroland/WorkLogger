@@ -1,0 +1,19 @@
+<div class="group" role="group" [attr.aria-label]="title() ? (title() | t) : null">
+  @if (title()) {
+    <span class="title section-title small">{{ title() | t }}</span>
+  }
+  <ul class="list sn-text-muted small">
+    @for (p of parts(); track p.label) {
+      <li class="item">
+        @if (p.icon) {
+          <ng-icon class="icon" [name]="p.icon" aria-hidden="true" />
+        }
+        <span class="swatch" [class.round]="round()" [style.background]="p.color" aria-hidden="true"></span>
+        {{ p.label | t }}
+        @if (showTime()) {
+          <span class="tabular">{{ p.seconds | duration }}</span>
+        }
+      </li>
+    }
+  </ul>
+</div>

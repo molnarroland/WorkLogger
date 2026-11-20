@@ -1,0 +1,205 @@
+<ng-template snPageCommands>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideRefreshCw"
+    [label]="'confluence.refresh' | t"
+    [disabled]="feed.isLoading()"
+    (click)="refresh()"
+  ></button>
+</ng-template>
+
+@if (feed.isLoading() && !pages()) {
+  <div class="fill loading sn-text-muted" role="status">
+    <hlm-spinner aria-hidden="true" />{{ 'msg.progress.confluence' | t }}
+  </div>
+} @else if (error()) {
+  <sn-status-page class="fill" icon="lucideBookOpen" [title]="'confluence.failedTitle' | t" [description]="error()">
+    <button hlmBtn type="button" (click)="refresh()">{{ 'confluence.refresh' | t }}</button>
+    <button hlmBtn variant="outline" type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
+  </sn-status-page>
+} @else if (profiles() === 0) {
+  <sn-status-page
+    class="fill"
+    icon="lucideBookOpen"
+    [title]="'confluence.noProfileTitle' | t"
+    [description]="'msg.confluence.needProfile' | t"
+  >
+    <button hlmBtn type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
+  </sn-status-page>
+} @else if (!pages()) {
+  <sn-status-page
+    class="fill"
+    icon="lucideBookOpen"
+    [title]="'confluence.emptyTitle' | t"
+    [description]="'confluence.emptyBody' | t"
+  />
+} @else {
+  <div class="head">
+    <wl-list-filter
+      [query]="query()"
+      (queryChange)="query.set($event)"
+      [day]="day() ?? null"
+      (dayChange)="setDay($event)"
+      [min]="store.range().from"
+      [max]="store.range().to"
+      [placeholder]="'confluence.search' | t"
+    />
+    <p class="summary sn-text-muted small tabular">
+      @if (filtered()) {
+        {{ 'jira.matches' | t: { n: count(), total: pages() } }}
+      } @else {
+        {{ 'confluence.summary' | t: { n: entries(), p: pages() } }}
+      }
+    </p>
+  </div>
+  @if (!days().length) {
+    <sn-status-page
+      class="fill"
+      icon="lucideSearchX"
+      [title]="'filter.noMatch' | t"
+      [description]="'filter.noMatchBody' | t"
+    >
+      <button hlmBtn variant="outline" type="button" (click)="clearFilter()">{{ 'filter.clear' | t }}</button>
+    </sn-status-page>
+  } @else {
+    <div class="list">
+      @for (d of days(); track d.day) {
+        <section class="day" [attr.aria-label]="d.title">
+          <h2 class="day-head small sn-text-muted section-title">{{ d.title }}</h2>
+          <ol class="feed">
+            @for (p of d.pages; track p.profile + p.pageId) {
+              <li class="ticket">
+                <!-- The line: when, the page, what you did on it, then the time its draft suggests. -->
+                <div class="line">
+                  <span class="time small sn-text-muted tabular">{{
+                    p.first === p.last ? p.first : p.first + '–' + p.last
+                  }}</span>
+                  <span class="title">
+                    <button
+                      hlmBtn
+                      variant="link"
+                      type="button"
+                      class="key truncate"
+                      [snTooltip]="'confluence.open' | t: { title: p.title }"
+                      [attr.aria-description]="'confluence.open' | t: { title: p.title }"
+                      (click)="openPage(p)"
+                    >
+                      {{ p.title }}
+                    </button>
+                    @if (p.space) {
+                      <span class="small sn-text-muted truncate">{{ p.space }}</span>
+                    }
+                    @if (p.profileTitle) {
+                      <span class="small sn-text-muted">{{ p.profileTitle }}</span>
+                    }
+                  </span>
+                  <span class="files small sn-text-muted">
+                    @if (p.edits.length) {
+                      <span>{{ 'confluence.edits' | t: { n: p.edits.length } }}</span>
+                    }
+                    @if (p.comments.length) {
+                      <span>{{ 'confluence.comments' | t: { n: p.comments.length } }}</span>
+                    }
+                  </span>
+                  <span class="status small">
+                    @if (p.entry; as e) {
+                      <span class="tabular" [title]="e.description">{{ e.seconds | duration }}</span>
+                    }
+                    @if (p.issueKey) {
+                      <span hlmBadge variant="outline">{{ p.issueKey }}</span>
+                    } @else if (p.entry) {
+                      <span class="sn-text-muted">{{ 'source.noTicket' | t }}</span>
+                    } @else {
+                      <span class="sn-text-muted">{{ 'confluence.notCollected' | t }}</span>
+                    }
+                  </span>
+                </div>
+                <div class="under">
+                  @if (p.edits.length) {
+                    @let ch = changes()[changeKey(d.day, p)];
+                    @if (!ch) {
+                      <p class="note small">
+                        <span class="tabular sn-text-muted"
+                          >{{ 'confluence.editedAt' | t }} {{ p.edits.join(', ') }}</span
+                        >
+                        <button hlmBtn variant="link" type="button" class="link" (click)="loadChanges(d.day, p)">
+                          {{ 'confluence.showChanges' | t }}
+                        </button>
+                      </p>
+                    } @else if (ch === 'loading') {
+                      <p class="note small sn-text-muted" role="status">
+                        <hlm-spinner aria-hidden="true" />{{ 'confluence.readingChanges' | t }}
+                      </p>
+                    } @else {
+                      @for (c of ch; track c.number) {
+                        <div class="change small">
+                          <p class="note">
+                            <span class="tabular sn-text-muted">{{ c.time }}</span>
+                            <span class="tabular">
+                              <span class="plus">+{{ c.added }}</span> <span class="minus">−{{ c.removed }}</span>
+                              {{ 'confluence.lines' | t: { n: c.added + c.removed } }}
+                            </span>
+                            @if (c.message) {
+                              <span class="sn-text-muted">· {{ c.message }}</span>
+                            }
+                          </p>
+                          @if (c.addedText.length || c.removedText.length) {
+                            <ul class="diff">
+                              @for (l of c.removedText; track $index) {
+                                <li class="minus truncate" [title]="l">− {{ l }}</li>
+                              }
+                              @for (l of c.addedText; track $index) {
+                                <li class="plus truncate" [title]="l">+ {{ l }}</li>
+                              }
+                              @if (c.added + c.removed > c.addedText.length + c.removedText.length) {
+                                <li class="sn-text-muted">
+                                  {{
+                                    'confluence.moreLines'
+                                      | t: { n: c.added + c.removed - c.addedText.length - c.removedText.length }
+                                  }}
+                                </li>
+                              }
+                            </ul>
+                          }
+                        </div>
+                      } @empty {
+                        <p class="note small sn-text-muted">{{ 'confluence.noChanges' | t }}</p>
+                      }
+                    }
+                  }
+                  @for (c of p.comments; track $index) {
+                    <p class="note small">
+                      <span class="tabular sn-text-muted">{{ c.time }}</span>
+                      <span class="comment">{{ c.text || ('confluence.commented' | t) }}</span>
+                    </p>
+                  }
+                  @if (p.suggested.length) {
+                    <div class="suggest small">
+                      <ng-icon name="lucideLightbulb" aria-hidden="true" />
+                      <div class="suggest-body">
+                        <span>{{ 'jira.suggest' | t: { n: p.suggested.length, key: p.issueKey } }}</span>
+                        <ul class="entries">
+                          @for (e of p.suggested; track e.id) {
+                            <li class="entry">
+                              <ng-icon [name]="icon[e.source]" aria-hidden="true" [title]="'source.' + e.source | t" />
+                              <span class="truncate" [title]="e.description">{{ e.description }}</span>
+                              <span class="tabular sn-text-muted">{{ e.seconds | duration }}</span>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                      <button hlmBtn size="sm" variant="outline" type="button" (click)="use(p)">
+                        {{ 'jira.use' | t: { key: p.issueKey } }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+        </section>
+      }
+    </div>
+  }
+}

@@ -1,0 +1,20 @@
+<h2 class="section-title">{{ title() }}</h2>
+<div class="grid sn-text-muted small" aria-hidden="true">
+  @for (w of weekdays(); track $index) {
+    <span>{{ w }}</span>
+  }
+</div>
+<ol class="grid days">
+  @for (d of cells(); track d.day) {
+    <li
+      class="day tabular"
+      [class.outside]="!d.inMonth"
+      [attr.aria-hidden]="!d.inMonth || null"
+      [style.--period]="d.color"
+      [title]="d.label"
+      [attr.aria-label]="d.label ? d.number + ': ' + d.label : null"
+    >
+      {{ d.number }}
+    </li>
+  }
+</ol>

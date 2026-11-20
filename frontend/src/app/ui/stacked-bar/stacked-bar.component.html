@@ -1,0 +1,24 @@
+<div class="chart" aria-hidden="true">
+  <div class="axis tabular sn-text-muted small">
+    @for (t of ticks(); track t) {
+      <span>{{ t }}</span>
+    }
+  </div>
+  <div class="plot">
+    @for (t of ticks(); track t) {
+      <span class="gridline" [style.bottom.%]="(t / top()) * 100"></span>
+    }
+    @for (c of columns(); track c.label) {
+      <div class="column" [title]="c.label + ': ' + total(c)">
+        @for (p of c.parts; track p.label) {
+          <span class="segment" [style.background]="p.color" [style.height.%]="(p.seconds / 3600 / top()) * 100"></span>
+        }
+      </div>
+    }
+  </div>
+</div>
+<div class="labels sn-text-muted small" aria-hidden="true">
+  @for (c of columns(); track c.label) {
+    <span>{{ c.label }}</span>
+  }
+</div>

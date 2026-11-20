@@ -1,0 +1,94 @@
+@if (feed.isLoading() && !threads()) {
+  <div class="fill loading sn-text-muted" role="status"><hlm-spinner aria-hidden="true" /></div>
+} @else if (error()) {
+  <sn-status-page class="fill" icon="lucideMail" [title]="'email.failedTitle' | t" [description]="error()" />
+} @else if (profiles() === 0) {
+  <sn-status-page
+    class="fill"
+    icon="lucideMail"
+    [title]="'email.noProfileTitle' | t"
+    [description]="'msg.email.needProfile' | t"
+  >
+    <button hlmBtn type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
+  </sn-status-page>
+} @else if (!threads()) {
+  <sn-status-page
+    class="fill"
+    icon="lucideMail"
+    [title]="'email.emptyTitle' | t"
+    [description]="'email.emptyBody' | t"
+  />
+} @else {
+  <div class="head">
+    <wl-list-filter
+      [query]="query()"
+      (queryChange)="query.set($event)"
+      [day]="day() ?? null"
+      (dayChange)="setDay($event)"
+      [min]="store.range().from"
+      [max]="store.range().to"
+      [placeholder]="'email.search' | t"
+    />
+    <p class="summary sn-text-muted small tabular">
+      @if (filtered()) {
+        {{ 'jira.matches' | t: { n: count(), total: threads() } }}
+      } @else {
+        {{ 'email.summary' | t: { n: mails(), t: threads() } }}
+      }
+    </p>
+  </div>
+  @if (!days().length) {
+    <sn-status-page
+      class="fill"
+      icon="lucideSearchX"
+      [title]="'filter.noMatch' | t"
+      [description]="'filter.noMatchBody' | t"
+    >
+      <button hlmBtn variant="outline" type="button" (click)="clearFilter()">{{ 'filter.clear' | t }}</button>
+    </sn-status-page>
+  } @else {
+    <div class="list">
+      @for (d of days(); track d.day) {
+        <section class="day" [attr.aria-label]="d.title">
+          <h2 class="day-head small sn-text-muted section-title">{{ d.title }}</h2>
+          <ol class="feed">
+            @for (th of d.threads; track th.subject) {
+              <li class="ticket">
+                <!-- The line: when, the subject, how many you sent, then the time its draft suggests. -->
+                <div class="line">
+                  <span class="time small sn-text-muted tabular">{{
+                    th.times.length === 1 ? th.times[0] : th.times[0] + '–' + th.times[th.times.length - 1]
+                  }}</span>
+                  <span class="title"
+                    ><span class="truncate" [title]="th.subject">{{ th.subject }}</span></span
+                  >
+                  <span class="files small sn-text-muted">{{ 'email.mails' | t: { n: th.times.length } }}</span>
+                  <span class="status small">
+                    @if (th.entry; as e) {
+                      <span class="tabular" [title]="e.description">{{ e.seconds | duration }}</span>
+                    }
+                    @if (th.issueKey) {
+                      <span hlmBadge variant="outline">{{ th.issueKey }}</span>
+                    } @else if (th.entry) {
+                      <span class="sn-text-muted">{{ 'source.noTicket' | t }}</span>
+                    }
+                  </span>
+                </div>
+                @if (th.times.length > 1) {
+                  <div class="under">
+                    @for (s of th.subjects; track $index) {
+                      <p class="note small">
+                        <span class="tabular sn-text-muted">{{ th.times[$index] }}</span>
+                        <span class="truncate" [title]="s">{{ s }}</span>
+                      </p>
+                    }
+                  </div>
+                }
+              </li>
+            }
+          </ol>
+        </section>
+      }
+    </div>
+  }
+}

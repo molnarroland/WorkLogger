@@ -1,0 +1,119 @@
+name: Release
+
+# Push a tag like v0.1.0 (it must match `info.version` in build/config.yml). Each OS packages the app, and the last
+# job publishes them, with SHA-256 checksums, as a draft GitHub Release to check and publish by hand.
+# The packages are not code-signed (README: Install); signing can be added here once there are certificates.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: '1.27'
+  WAILS_VERSION: v3.1.0
+
+jobs:
+  package:
+    name: Package (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macos, os: macos-latest }
+          - { name: windows, os: windows-latest }
+          - { name: linux, os: ubuntu-24.04 }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: The tag matches build/config.yml
+        run: |
+          version="$(sed -n 's/^ *version: *"\([^"]*\)".*/\1/p' build/config.yml | head -1)"
+          echo "config: $version, tag: ${GITHUB_REF_NAME}"
+          test "v$version" = "$GITHUB_REF_NAME" || {
+            echo "::error::Tag $GITHUB_REF_NAME does not match version $version in build/config.yml"
+            exit 1
+          }
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: go install github.com/wailsapp/wails/v3/cmd/wails3@${{ env.WAILS_VERSION }}
+
+      - name: Linux packaging tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-4-dev libwebkitgtk-6.0-dev file
+
+      # Each package task builds the frontend and the production binary first.
+      - name: Package (macOS, universal)
+        if: runner.os == 'macOS'
+        run: |
+          wails3 task darwin:package:universal
+          mkdir -p out
+          mv bin/worklogger.app bin/WorkLogger.app
+          ditto -c -k --keepParent bin/WorkLogger.app "out/WorkLogger-$VERSION-macos-universal.zip"
+
+      - name: Package (Windows installer)
+        if: runner.os == 'Windows'
+        run: |
+          wails3 task windows:package
+          mkdir -p out
+          name="WorkLogger-$VERSION-windows-amd64-setup"
+          cp bin/*-installer.exe "$name.exe"
+          # A plain zip holding only the installer (Compress-Archive adds no __MACOSX or other metadata).
+          pwsh -NoProfile -Command "Compress-Archive -Path '$name.exe' -DestinationPath 'out/$name.zip' -CompressionLevel Optimal"
+
+      - name: Package (Linux AppImage, deb, rpm)
+        if: runner.os == 'Linux'
+        run: |
+          wails3 task linux:create:appimage
+          wails3 task linux:create:deb
+          wails3 task linux:create:rpm
+          mkdir -p out
+          cp bin/*.AppImage "out/WorkLogger-$VERSION-linux-x86_64.AppImage"
+          cp bin/*.deb "out/WorkLogger-$VERSION-linux-amd64.deb"
+          cp bin/*.rpm "out/WorkLogger-$VERSION-linux-x86_64.rpm"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: out/*
+          if-no-files-found: error
+
+  release:
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Checksums
+        working-directory: out
+        run: sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" out/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --title "WorkLogger ${GITHUB_REF_NAME#v}" \
+            --notes "See CHANGELOG.md. The packages are not code-signed; README › Install explains how to open them."

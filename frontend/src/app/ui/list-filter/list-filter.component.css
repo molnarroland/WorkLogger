@@ -1,0 +1,22 @@
+/* Layout only. */
+:host {
+  display: block;
+}
+
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+  max-inline-size: 22rem;
+}
+
+.day {
+  flex: none;
+  inline-size: auto;
+}

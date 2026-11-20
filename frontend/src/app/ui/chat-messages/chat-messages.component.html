@@ -1,0 +1,50 @@
+<div class="head" snActionScope>
+  <h2 class="section-title grow truncate">{{ chat().name }}</h2>
+  @if (chat().activeSeconds > minLoggable) {
+    <input
+      hlmInput
+      class="key-field key"
+      [attr.aria-label]="'review.ticketPlaceholder' | t"
+      [placeholder]="'review.ticketPlaceholder' | t"
+      [value]="issue()"
+      (input)="issue.set($any($event.target).value)"
+    />
+    <button
+      hlmBtn
+      variant="outline"
+      size="sm"
+      snDefaultAction
+      type="button"
+      [disabled]="!key() || chat().exported"
+      (click)="submit()"
+    >
+      {{
+        chat().issueKey ? ('chats.changeIssue' | t) : ('chats.logTime' | t: { d: (chat().activeSeconds | duration) })
+      }}
+    </button>
+  }
+  <label hlmLabel class="check" [snTooltip]="'chats.alwaysHelp' | t: { issue: ruleIssue() ?? key() ?? '…' }">
+    <hlm-checkbox
+      [checked]="!!ruleIssue()"
+      [disabled]="!ruleIssue() && !key()"
+      (checkedChange)="always.emit($event ? key() : null)"
+    />
+    {{ 'chats.always' | t }}
+  </label>
+</div>
+<ol class="messages small">
+  @for (m of messages(); track $index) {
+    <li class="message">
+      <span class="tabular sn-text-muted">{{ time(m.time) }}</span>
+      <span class="sender" [class.me]="m.me">{{ m.me ? ('chats.me' | t) : who(m) }}</span>
+      <span class="text">
+        @if (m.text) {
+          <span>{{ m.text }}</span>
+        }
+        @for (f of m.files; track f) {
+          <em class="file">{{ 'chats.sentFile' | t: { who: m.me ? ('chats.me' | t) : who(m), file: f } }}</em>
+        }
+      </span>
+    </li>
+  }
+</ol>

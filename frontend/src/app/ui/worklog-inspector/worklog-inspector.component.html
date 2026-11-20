@@ -1,0 +1,123 @@
+<sn-inspector-section [title]="day()">
+  <div class="fields">
+    <label hlmLabel [for]="id() + '-start'">{{ 'worklog.start' | t }}</label>
+    <input
+      hlmInput
+      type="time"
+      class="tabular"
+      [id]="id() + '-start'"
+      [value]="time()"
+      [disabled]="sent()"
+      (change)="setStart($any($event.target).value)"
+    />
+
+    <label hlmLabel [for]="id() + '-duration'">{{ 'worklog.duration' | t }}</label>
+    <div class="stack">
+      <input
+        #dur
+        hlmInput
+        class="tabular"
+        placeholder="1h 30m"
+        [id]="id() + '-duration'"
+        [value]="durationText()"
+        [disabled]="sent()"
+        (keydown.enter)="setDuration(dur)"
+        (blur)="setDuration(dur)"
+      />
+      @if (w().source === 'git' && w().estimated !== w().duration) {
+        <span class="sn-text-muted small" [snTooltip]="'worklog.estimateHelp' | t">{{
+          'worklog.estimate' | t: { d: (w().estimated | duration) }
+        }}</span>
+      }
+    </div>
+
+    <label hlmLabel [for]="id() + '-issue'">{{ 'worklog.issue' | t }}</label>
+    <div class="stack">
+      <input
+        #issue
+        hlmInput
+        class="key-field"
+        [class.needs-ticket]="!w().issueKey"
+        [id]="id() + '-issue'"
+        [placeholder]="'issue.placeholder' | t"
+        [value]="w().issueKey ?? ''"
+        [disabled]="sent()"
+        (keydown.enter)="setIssue(issue)"
+        (blur)="setIssue(issue)"
+      />
+      @if (meetingRule(); as r) {
+        <div>
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="always.emit(r)">
+            {{ 'worklog.alwaysForMeeting' | t: { title: r.title } }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <label hlmLabel [for]="id() + '-comment'">{{ 'worklog.comment' | t }}</label>
+    <div class="stack">
+      <textarea
+        #comment
+        hlmTextarea
+        rows="2"
+        [id]="id() + '-comment'"
+        [placeholder]="'worklog.commentPlaceholder' | t"
+        [value]="w().comment"
+        [disabled]="sent()"
+        (blur)="setComment(comment.value)"
+      ></textarea>
+      <span class="sn-text-muted small">{{ 'worklog.commentHelp' | t }}</span>
+    </div>
+
+    <label hlmLabel [for]="id() + '-description'">{{ 'worklog.description' | t }}</label>
+    <textarea
+      #desc
+      hlmTextarea
+      rows="3"
+      [id]="id() + '-description'"
+      [value]="w().description"
+      (blur)="setDescription(desc.value)"
+    ></textarea>
+  </div>
+</sn-inspector-section>
+
+<sn-inspector-section [title]="'worklog.status' | t">
+  <hlm-toggle-group
+    type="single"
+    variant="outline"
+    size="sm"
+    [nullable]="false"
+    [value]="status()"
+    [disabled]="sent()"
+    [attr.aria-label]="'worklog.status' | t"
+    (valueChange)="setStatus($event)"
+  >
+    @for (s of statuses; track s) {
+      <button hlmToggleGroupItem [value]="s" [disabled]="s === 'reviewed' && noComment()">
+        {{ 'status.' + s | t }}
+      </button>
+    }
+  </hlm-toggle-group>
+  @if (noComment()) {
+    <p class="needs-ticket small hint">{{ 'worklog.reviewNeedsComment' | t }}</p>
+  }
+  <label hlmLabel class="row">
+    <hlm-switch [checked]="w().locked" (checkedChange)="emit({ locked: $event })" />
+    <span class="stack">
+      {{ 'worklog.lock' | t }}
+      <span class="sn-text-muted small">{{ (w().locked ? 'worklog.lockedHelp' : 'worklog.unlockedHelp') | t }}</span>
+    </span>
+  </label>
+</sn-inspector-section>
+
+<div class="actions">
+  @if (focus(); as f) {
+    <button hlmBtn variant="outline" size="sm" type="button" class="show" (click)="open.emit(f)">
+      <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+      {{ 'focus.showIn' | t: { page: ('pane.' + f.pane | t) } }}
+    </button>
+  }
+  <button hlmBtn variant="destructive" size="sm" type="button" [disabled]="sent()" (click)="remove.emit(w().id)">
+    <ng-icon name="lucideTrash2" aria-hidden="true" /> {{ 'worklog.delete' | t }}
+  </button>
+</div>

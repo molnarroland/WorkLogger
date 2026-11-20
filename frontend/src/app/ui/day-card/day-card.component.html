@@ -1,0 +1,45 @@
+@if (info(); as d) {
+  <!-- The card is the button; the lines above it are only for dragging. -->
+  <button
+    type="button"
+    class="hit"
+    [attr.aria-label]="ariaLabel()"
+    [attr.aria-pressed]="selected()"
+    (click)="daySelect.emit(day())"
+  ></button>
+  <div class="face small" aria-hidden="true">
+    <div class="top">
+      <span class="number" [class.today]="isToday()">{{ dayNumber() }}</span>
+      @if (missing()) {
+        <ng-icon name="lucideTriangleAlert" class="needs-ticket" />
+      }
+      @if (hrLabel()) {
+        <span class="label">{{ hrLabel() }}</span>
+      }
+    </div>
+    @for (s of sources(); track s.source) {
+      <div
+        class="line tabular"
+        draggable="true"
+        [title]="('source.' + s.source | t) + ' — ' + ('timesheet.dragHint' | t)"
+        (dragstart)="onDragStart($event, s.source)"
+      >
+        <ng-icon [name]="icon[s.source]" class="sn-text-muted" />
+        <span class="end">{{ s.seconds | duration }}</span>
+      </div>
+    }
+    @if (d.expected > 0 || logged() > 0) {
+      <div class="foot">
+        <wl-source-bar [parts]="parts()" [scale]="d.expected" />
+        <span class="tabular sn-text-muted truncate"
+          >{{ logged() | duration }}
+          @if (d.expected > 0) {
+            / {{ d.expected | duration }}
+          }
+        </span>
+      </div>
+    }
+  </div>
+} @else {
+  <span class="number face sn-text-muted" aria-hidden="true">{{ dayNumber() }}</span>
+}

@@ -1,0 +1,5 @@
+@if (state() !== null) {
+  <span hlmBadge role="status" [class.sn-tone-success]="state()" [class.sn-tone-warning]="!state()">
+    {{ (state() ? 'sites.signedIn' : 'sites.signedOut') | t }}
+  </span>
+}

@@ -1,0 +1,103 @@
+/*
+ * The card is the app's own surface: tinted with its day state (a --wl token, set as --state on the host), the
+ * radius and focus ring from the theme.
+ */
+:host {
+  position: relative;
+  display: block;
+  min-block-size: 3.5rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--state, var(--sn-color-border)) 45%, transparent);
+  border-radius: var(--sn-radius-surface);
+  background: color-mix(in srgb, var(--state, transparent) 10%, transparent);
+}
+
+:host(.outside) {
+  border-color: var(--sn-color-border);
+}
+
+:host(.selected) {
+  outline: 2px solid var(--sn-color-primary);
+  outline-offset: -2px;
+}
+
+:host(.drop) {
+  outline: 2px dashed var(--sn-color-primary);
+  outline-offset: -2px;
+}
+
+.hit {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+}
+
+.hit:focus-visible {
+  outline: var(--sn-focus-outline);
+  outline-offset: -2px;
+}
+
+.face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  block-size: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.top,
+.line {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.number {
+  font-size: var(--sn-font-size);
+  font-weight: var(--sn-font-weight-strong);
+}
+
+.number.today {
+  color: var(--sn-color-accent-text);
+}
+
+.label {
+  margin-inline-start: auto;
+  overflow: hidden;
+  color: var(--wl-state-leave);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line {
+  pointer-events: auto;
+  cursor: grab;
+  border-radius: var(--sn-radius-control);
+}
+
+.line:hover {
+  background: var(--sn-color-hover);
+}
+
+.end {
+  margin-inline-start: auto;
+  white-space: nowrap;
+}
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-block-start: auto;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

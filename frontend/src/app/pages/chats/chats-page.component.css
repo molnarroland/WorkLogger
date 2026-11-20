@@ -1,0 +1,93 @@
+/* Layout only (the pane separator uses the theme's border token). */
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.fill {
+  flex: 1;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 1rem 0;
+}
+
+.summary {
+  margin: 0;
+}
+
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  flex: 1;
+  min-block-size: 0;
+}
+
+.list {
+  min-block-size: 0;
+  padding: 0.25rem 1rem 0.5rem;
+  overflow: auto;
+  border-block-end: 1px solid var(--sn-color-border);
+}
+
+.day-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0.5rem 0.25rem;
+}
+
+.chat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.name {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Derived from currentColor, so it stays readable on the macOS accent selection. */
+.secondary {
+  opacity: 0.7;
+}
+
+.duration {
+  inline-size: 3.5rem;
+  text-align: end;
+}
+
+.messages {
+  min-block-size: 0;
+}
+
+.paste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-inline-size: 0;
+}
+
+.paste p {
+  margin: 0;
+}
+
+.paste-text {
+  block-size: 16rem;
+  font-family: var(--sn-font-mono);
+}
+
+.error {
+  color: var(--sn-color-danger);
+}

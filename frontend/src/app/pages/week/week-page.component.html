@@ -1,0 +1,24 @@
+<ng-template snPageCommands>
+  @if (store.modules().includes('chats') && days().length) {
+    <button
+      snCommand
+      hideLabel
+      icon="lucideMessagesSquare"
+      [label]="'week.fetchChat' | t"
+      [disabled]="store.busy() || days()[0].day > store.today()"
+      (click)="store.run('fetchGoogleChat', { from: days()[0].day, to: days()[6].day })"
+    ></button>
+  }
+</ng-template>
+
+<!-- The week's title and hours are on the header line (providePageHeader). -->
+<section class="page" [attr.aria-label]="title()">
+  <wl-week-timeline
+    class="timeline"
+    [days]="days()"
+    [logs]="logs()"
+    [today]="store.today()"
+    (open)="open($event)"
+    (openEntry)="open($event.day, $event.id)"
+  />
+</section>

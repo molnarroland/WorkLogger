@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-block-size: 0;
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.weekdays {
+  text-align: center;
+}
+
+.grid {
+  flex: 1;
+}

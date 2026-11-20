@@ -1,0 +1,211 @@
+<sn-settings-group [title]="profile().name || kindTitle()" [description]="'profiles.help.' + profile().kind | t">
+  <div class="fields">
+    <label hlmLabel [for]="id() + '-name'">{{ 'jira.name' | t }}</label>
+    <input
+      hlmInput
+      [id]="id() + '-name'"
+      [placeholder]="kindTitle()"
+      [value]="profile().name"
+      (change)="emit({ name: val($event) })"
+    />
+
+    @switch (profile().kind) {
+      @case ('googleChat') {
+        <label hlmLabel [for]="id() + '-email'">{{ 'profiles.googleEmail' | t }}</label>
+        <input
+          hlmInput
+          type="email"
+          [id]="id() + '-email'"
+          placeholder="you@company.com"
+          [value]="profile().email"
+          (change)="emit({ email: val($event) })"
+        />
+      }
+      @case ('hrmaster') {
+        <label hlmLabel [for]="id() + '-url'">{{ 'sessions.hrmasterUrl' | t }}</label>
+        <input
+          hlmInput
+          type="url"
+          [id]="id() + '-url'"
+          placeholder="https://yourcompany.hrmaster.hu"
+          [value]="profile().url"
+          (change)="emit({ url: val($event) })"
+        />
+      }
+      @case ('tempo') {
+        <label hlmLabel class="sr-only" [for]="id() + '-jira'">{{ 'profiles.tempoJira' | t }}</label>
+        <span hlmLabel aria-hidden="true">{{ 'profiles.tempoJira' | t }}</span>
+        <hlm-select [value]="profile().jiraAccountId" [itemToString]="jiraTitle" (valueChange)="setJira($event)">
+          <hlm-select-trigger class="select" [buttonId]="id() + '-jira'"><hlm-select-value /></hlm-select-trigger>
+          <hlm-select-content *hlmSelectPortal>
+            @for (a of jiraAccounts(); track a.id) {
+              <hlm-select-item [value]="a.id">{{ a.title }}</hlm-select-item>
+            }
+          </hlm-select-content>
+        </hlm-select>
+
+        <label hlmLabel [for]="id() + '-token'">{{ 'jira.tempoToken' | t }}</label>
+        <input
+          hlmInput
+          type="password"
+          autocomplete="off"
+          [id]="id() + '-token'"
+          [placeholder]="hasToken() ? ('token.saved' | t) : ''"
+          (change)="token.emit(val($event)); $any($event.target).value = ''"
+        />
+
+        <label hlmLabel [for]="id() + '-url'">{{ 'jira.tempoUrl' | t }}</label>
+        <input
+          hlmInput
+          type="url"
+          [id]="id() + '-url'"
+          placeholder="https://api.tempo.io/4"
+          [value]="profile().url"
+          (change)="emit({ url: val($event) })"
+        />
+      }
+      @case ('confluence') {
+        <label hlmLabel class="sr-only" [for]="id() + '-jira'">{{ 'confluence.jira' | t }}</label>
+        <span hlmLabel aria-hidden="true">{{ 'confluence.jira' | t }}</span>
+        <hlm-select
+          [value]="profile().jiraAccountId || noJira"
+          [itemToString]="jiraTitle"
+          (valueChange)="setJira($event)"
+        >
+          <hlm-select-trigger class="select" [buttonId]="id() + '-jira'"><hlm-select-value /></hlm-select-trigger>
+          <hlm-select-content *hlmSelectPortal>
+            <hlm-select-item [value]="noJira">{{ 'confluence.noJira' | t }}</hlm-select-item>
+            @for (a of jiraAccounts(); track a.id) {
+              <hlm-select-item [value]="a.id">{{ a.title }}</hlm-select-item>
+            }
+          </hlm-select-content>
+        </hlm-select>
+
+        <label hlmLabel [for]="id() + '-url'">{{ 'confluence.site' | t }}</label>
+        <input
+          hlmInput
+          type="url"
+          [id]="id() + '-url'"
+          [placeholder]="linked() ? ('confluence.fromJira' | t) : 'https://yourcompany.atlassian.net'"
+          [value]="profile().url"
+          (change)="emit({ url: val($event) })"
+        />
+
+        <label hlmLabel [for]="id() + '-email'">{{ 'confluence.email' | t }}</label>
+        <input
+          hlmInput
+          type="email"
+          [id]="id() + '-email'"
+          [placeholder]="linked() ? ('confluence.fromJira' | t) : 'you@company.com'"
+          [value]="profile().email"
+          (change)="emit({ email: val($event) })"
+        />
+
+        <label hlmLabel [for]="id() + '-token'">{{ 'confluence.token' | t }}</label>
+        <input
+          hlmInput
+          type="password"
+          autocomplete="off"
+          [id]="id() + '-token'"
+          [placeholder]="hasToken() ? ('token.saved' | t) : linked() ? ('confluence.jiraToken' | t) : ''"
+          (change)="token.emit(val($event)); $any($event.target).value = ''"
+        />
+      }
+      @case ('email') {
+        <label hlmLabel [for]="id() + '-url'">{{ 'email.server' | t }}</label>
+        <input
+          hlmInput
+          [id]="id() + '-url'"
+          placeholder="imap.gmail.com"
+          [value]="profile().url"
+          (change)="emit({ url: val($event) })"
+        />
+
+        <label hlmLabel [for]="id() + '-email'">{{ 'email.user' | t }}</label>
+        <input
+          hlmInput
+          type="email"
+          [id]="id() + '-email'"
+          placeholder="you@company.com"
+          [value]="profile().email"
+          (change)="emit({ email: val($event) })"
+        />
+
+        <label hlmLabel [for]="id() + '-token'">{{ 'email.password' | t }}</label>
+        <input
+          hlmInput
+          type="password"
+          autocomplete="off"
+          [id]="id() + '-token'"
+          [placeholder]="hasToken() ? ('token.saved' | t) : ''"
+          (change)="token.emit(val($event)); $any($event.target).value = ''"
+        />
+      }
+    }
+  </div>
+
+  @if (profile().kind === 'tempo' || profile().kind === 'confluence' || profile().kind === 'email') {
+    <div class="actions">
+      @switch (profile().kind) {
+        @case ('tempo') {
+          <wl-token-help title="tempo.tokenTitle" [steps]="tokenSteps" />
+        }
+        @case ('confluence') {
+          <wl-token-help title="confluence.tokenTitle" [steps]="confluenceSteps" />
+        }
+        @default {
+          <wl-token-help title="email.passwordTitle" [steps]="emailSteps" />
+        }
+      }
+      <span class="row">
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [disabled]="checking() || (profile().kind === 'tempo' && !profile().jiraAccountId)"
+          (click)="check.emit()"
+        >
+          {{ (profile().kind === 'tempo' ? 'jira.checkTempo' : profile().kind + '.check') | t }}
+        </button>
+        @if (checking()) {
+          <hlm-spinner />
+        }
+      </span>
+      @if (checkLines().length) {
+        <div role="status">
+          <ul class="lines">
+            @for (l of checkLines(); track $index) {
+              <li class="line">
+                <ng-icon
+                  [name]="l.ok === true ? 'lucideCircleCheck' : l.ok === false ? 'lucideCircleX' : 'lucideCircleMinus'"
+                  [class.ok]="l.ok === true"
+                  [class.bad]="l.ok === false"
+                  [class.sn-text-muted]="l.ok === null"
+                  aria-hidden="true"
+                />
+                <span class="stack">
+                  <span class="section-title">{{ l.title }}</span>
+                  @if (l.detail) {
+                    <span class="sn-text-muted small">{{ l.detail }}</span>
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="actions row">
+      <wl-sign-in-badge [state]="signedIn()" />
+      <span class="grow"></span>
+      <button hlmBtn variant="outline" size="sm" type="button" [disabled]="!ready()" (click)="signIn.emit()">
+        {{ (signedIn() ? 'sites.open' : 'sites.signIn') | t }}
+      </button>
+      <button hlmBtn variant="outline" size="sm" type="button" [disabled]="!signedIn()" (click)="signOut.emit()">
+        {{ 'sites.signOut' | t }}
+      </button>
+    </div>
+  }
+</sn-settings-group>

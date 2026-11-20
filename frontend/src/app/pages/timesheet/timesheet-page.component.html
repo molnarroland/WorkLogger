@@ -1,0 +1,134 @@
+<sn-inspector-layout class="layout">
+  <section class="main" [attr.aria-label]="'pane.timesheet' | t">
+    <div class="header">
+      <div class="totals">
+        <span class="tabular section-title">
+          {{ 'timesheet.loggedOf' | t: { logged: (logged() | duration), expected: (expected() | duration) } }}
+        </span>
+        <span class="small" [class.needs-ticket]="gap() > 0 || missing() > 0">
+          {{
+            gap() > 0 ? ('timesheet.stillToLog' | t: { gap: (gap() | duration) }) : ('timesheet.everythingLogged' | t)
+          }}
+          @if (missing() > 0) {
+            · {{ 'status.needsTicket' | t: { n: missing() } }}
+          }
+        </span>
+      </div>
+    </div>
+
+    <wl-month-grid
+      class="grid"
+      [weeks]="store.data()?.weeks ?? []"
+      [days]="store.days()"
+      [worklogs]="store.worklogs()"
+      [today]="store.today()"
+      [selected]="selected()"
+      (daySelect)="toggle($event)"
+      (dropped)="move($event)"
+    />
+
+    <footer class="legends">
+      <div class="legend-groups">
+        <wl-source-legend title="legend.days" [parts]="states" [showTime]="false" [round]="true" />
+        @for (g of legendGroups; track g.title) {
+          <wl-source-legend [title]="g.title" [parts]="g.parts" [showTime]="false" />
+        }
+      </div>
+      <p class="sn-text-muted small help">{{ 'timesheet.help' | t }}</p>
+    </footer>
+  </section>
+
+  <sn-inspector
+    snResizable="inspector"
+    [resizeRatio]="0.3"
+    [resizeMin]="224"
+    [resizeMaxRatio]="0.6"
+    [resizeLabel]="'panel.resizeInspector' | t"
+    [open]="!!selectedDay()"
+    (openChange)="!$event && selected.set(null)"
+    [title]="selectedTitle()"
+    icon="lucideCalendarDays"
+  >
+    @if (selectedDay(); as d) {
+      <sn-inspector-section [title]="'timesheet.summary' | t">
+        @if (d.label) {
+          <sn-inspector-property [label]="'timesheet.hrDay' | t">{{ d.label }}</sn-inspector-property>
+        }
+        <sn-inspector-property [label]="'timesheet.logged' | t">
+          <span class="tabular" [class.needs-ticket]="d.short > 0">
+            {{ 'timesheet.loggedOf' | t: { logged: (d.logged | duration), expected: (d.expected | duration) } }}
+          </span>
+        </sn-inspector-property>
+      </sn-inspector-section>
+
+      <sn-inspector-section [title]="'timesheet.entries' | t">
+        @if (!selectedLogs().length) {
+          <p class="sn-text-muted small">{{ 'timesheet.nothingYet' | t }}</p>
+        }
+        <ul class="entries">
+          @for (w of selectedLogs(); track w.id) {
+            <li
+              class="entry"
+              [attr.draggable]="w.canMove"
+              [title]="'timesheet.dragHint' | t"
+              [snContextMenu]="entryMenu(w)"
+              (dragstart)="onDragStart($event, w)"
+            >
+              <ng-icon [name]="icon[w.source]" class="sn-text-muted" aria-hidden="true" />
+              <div class="entry-body">
+                <div class="entry-top">
+                  <span class="issue-key" [class.missing]="!w.issueKey">{{ w.issueKey ?? ('issue.none' | t) }}</span>
+                  <span class="tabular sn-text-muted">{{ hm(w.start) }} · {{ w.duration | duration }}</span>
+                </div>
+                @if (w.description) {
+                  <span class="sn-text-muted small description">{{ w.description }}</span>
+                }
+                @if (w.canMove && moveTargets().length) {
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="xs"
+                    type="button"
+                    class="move"
+                    [attr.aria-label]="
+                      'timesheet.moveToLabel'
+                        | t: { issue: w.issueKey ?? ('issue.none' | t), duration: (w.duration | duration) }
+                    "
+                    [hlmDropdownMenuTrigger]="moveMenu"
+                  >
+                    {{ 'timesheet.moveTo' | t }}
+                  </button>
+                  <ng-template #moveMenu>
+                    <div hlmDropdownMenu class="move-menu">
+                      @for (t of moveTargets(); track t.day) {
+                        <button hlmDropdownMenuItem (triggered)="move({ ids: [w.id], day: t.day })">
+                          {{ dayTitle(t.day) }}
+                        </button>
+                      }
+                    </div>
+                  </ng-template>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </sn-inspector-section>
+
+      <div class="actions">
+        <button hlmBtn variant="outline" size="sm" type="button" (click)="store.addWorklog(d.day)">
+          <ng-icon name="lucidePlus" aria-hidden="true" /> {{ 'day.addEntry' | t }}
+        </button>
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [disabled]="!selectedLogs().length"
+          (click)="markReviewed()"
+        >
+          {{ 'day.markReviewed' | t }}
+        </button>
+      </div>
+    }
+  </sn-inspector>
+</sn-inspector-layout>

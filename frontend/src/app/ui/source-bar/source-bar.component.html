@@ -1,0 +1,3 @@
+@for (p of parts(); track $index) {
+  <span class="part" [style.background]="p.color" [style.width.%]="(p.seconds / full()) * 100"></span>
+}

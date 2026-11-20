@@ -1,0 +1,65 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-block-size: 0;
+  padding: 0.75rem 1rem;
+}
+
+.head,
+.check {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grow {
+  flex: 1;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key {
+  inline-size: 9rem;
+}
+
+.messages {
+  flex: 1;
+  min-block-size: 0;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.message {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-block: 0.125rem;
+}
+
+.sender {
+  flex: none;
+  font-weight: var(--sn-font-weight-strong);
+}
+
+.sender.me {
+  color: var(--sn-color-accent-text);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  user-select: text;
+}
+
+.file {
+  color: var(--wl-source-chat);
+}

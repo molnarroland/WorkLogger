@@ -1,0 +1,38 @@
+<div class="header">
+  <h2 class="section-title grow">{{ 'tasks.title' | t }}</h2>
+  @if (finished()) {
+    <button hlmBtn variant="link" size="xs" type="button" (click)="cleared.emit()">{{ 'tasks.clear' | t }}</button>
+  }
+</div>
+<ol class="list small">
+  @for (t of newestFirst(); track t.id) {
+    <li class="task" [class.failed]="t.state === 'failed'">
+      <span class="icon" aria-hidden="true">
+        @switch (t.state) {
+          @case ('running') {
+            <hlm-spinner />
+          }
+          @case ('done') {
+            <ng-icon name="lucideCircleCheck" class="ok" />
+          }
+          @case ('failed') {
+            <ng-icon name="lucideCircleX" />
+          }
+          @case ('cancelled') {
+            <ng-icon name="lucideCircleSlash" class="sn-text-muted" />
+          }
+        }
+      </span>
+      <span class="body">
+        <span class="label">{{ t.label }}</span>
+        <span class="sr-only">{{ 'tasks.' + t.state | t }}</span>
+        @if (t.message) {
+          <span class="message" [class.sn-text-muted]="t.state !== 'failed'">{{ t.message }}</span>
+        }
+      </span>
+      <span class="sn-text-muted tabular">{{ time(t.started) }}</span>
+    </li>
+  } @empty {
+    <li class="sn-text-muted">{{ 'tasks.empty' | t }}</li>
+  }
+</ol>

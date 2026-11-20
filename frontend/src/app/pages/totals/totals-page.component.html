@@ -1,0 +1,87 @@
+<ng-template snPageCommands>
+  <hlm-toggle-group
+    type="single"
+    variant="outline"
+    size="sm"
+    [nullable]="false"
+    [value]="period()"
+    [attr.aria-label]="'totals.period' | t"
+    (valueChange)="setPeriod($event)"
+  >
+    @for (p of periods; track p) {
+      <button hlmToggleGroupItem [value]="p">{{ 'totals.' + p | t }}</button>
+    }
+  </hlm-toggle-group>
+</ng-template>
+
+@if (!store.worklogs().length) {
+  <sn-status-page
+    class="fill"
+    icon="lucideChartBar"
+    [title]="'totals.emptyTitle' | t"
+    [description]="'totals.emptyBody' | t"
+  />
+} @else {
+  <div class="body">
+    <p class="figure">
+      <span class="page-title tabular">{{ total() | duration }}</span>
+      <span class="sn-text-muted">{{ 'totals.range' | t: range() }}</span>
+    </p>
+
+    <section class="section" [attr.aria-labelledby]="'totals-tickets'">
+      <h2 id="totals-tickets" class="section-title">{{ 'totals.byTicket' | t }}</h2>
+      @for (t of ticketRows(); track t.key) {
+        <div class="ticket">
+          <span class="issue-key small" [class.missing]="!t.key">{{ t.key ?? ('issue.none' | t) }}</span>
+          <wl-source-bar [parts]="t.parts" [scale]="ticketTop()" [height]="0.75" />
+          <span class="tabular num">{{ t.seconds | duration }}</span>
+        </div>
+      }
+      <wl-source-legend [parts]="ticketLegend" [showTime]="false" />
+    </section>
+
+    <section class="section" [attr.aria-labelledby]="'totals-sources'">
+      <h2 id="totals-sources" class="section-title">{{ 'totals.bySource' | t }}</h2>
+      <wl-source-bar [parts]="sourceParts()" [height]="1.125" />
+      <wl-source-legend [parts]="sourceParts()" />
+    </section>
+
+    <wl-stacked-bar [columns]="columns()" />
+
+    <hlm-accordion>
+      @for (g of groups(); track g.id; let i = $index) {
+        <hlm-accordion-item>
+          <hlm-accordion-trigger>
+            <span class="group-title">
+              <span>{{ labels()[i] }}</span>
+              <span class="tabular">{{ g.total | duration }}</span>
+              <span class="tabular sn-text-muted num">{{ hours(g.total) }}</span>
+            </span>
+          </hlm-accordion-trigger>
+          <hlm-accordion-content>
+            <table hlmTable [attr.aria-label]="labels()[i]">
+              <thead hlmTHead>
+                <tr hlmTr>
+                  <th hlmTh>{{ 'totals.issue' | t }}</th>
+                  <th hlmTh class="num">{{ 'totals.duration' | t }}</th>
+                  <th hlmTh class="num">{{ 'totals.hoursCol' | t }}</th>
+                </tr>
+              </thead>
+              <tbody hlmTBody>
+                @for (b of g.byIssue; track b.issue) {
+                  <tr hlmTr>
+                    <td hlmTd>
+                      <span class="issue-key" [class.missing]="!b.issue">{{ b.issue ?? ('issue.none' | t) }}</span>
+                    </td>
+                    <td hlmTd class="tabular num">{{ b.seconds | duration }}</td>
+                    <td hlmTd class="tabular num sn-text-muted">{{ hours(b.seconds) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </hlm-accordion-content>
+        </hlm-accordion-item>
+      }
+    </hlm-accordion>
+  </div>
+}

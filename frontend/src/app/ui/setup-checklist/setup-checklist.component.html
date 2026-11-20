@@ -1,0 +1,30 @@
+@if (steps().length) {
+  <p class="progress sn-text-muted small" role="status">
+    {{ 'setup.progress' | t: { done: doneCount(), total: steps().length } }}
+  </p>
+  <sn-checklist [attr.aria-label]="'setup.title' | t">
+    @for (s of steps(); track s.id) {
+      <sn-checklist-item [title]="'setup.' + s.id | t" [done]="s.done" keepAction [doneLabel]="'setup.done' | t">
+        {{ 'setup.' + s.id + '.help' | t }}
+        @if (s.done) {
+          <button hlmBtn snChecklistAction variant="ghost" size="sm" type="button" (click)="act.emit(s)">
+            {{ 'setup.open' | t }}
+          </button>
+        } @else {
+          <button
+            hlmBtn
+            snChecklistAction
+            [variant]="s === next() ? 'default' : 'outline'"
+            size="sm"
+            type="button"
+            (click)="act.emit(s)"
+          >
+            {{ (s.action.kind === 'profile' ? 'setup.add' : 'setup.open') | t }}
+          </button>
+        }
+      </sn-checklist-item>
+    }
+  </sn-checklist>
+} @else {
+  <p class="sn-text-muted">{{ 'setup.nothing' | t }}</p>
+}

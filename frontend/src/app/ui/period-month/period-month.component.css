@@ -1,0 +1,30 @@
+/* A mini calendar: each day tinted with its period colour (a --wl token, set as --period). */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: 2rem;
+  border: 1px solid var(--sn-color-border);
+  border-radius: var(--sn-radius-control);
+  background: color-mix(in srgb, var(--period, transparent) 30%, transparent);
+}
+
+.outside {
+  visibility: hidden;
+}

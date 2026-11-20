@@ -1,0 +1,75 @@
+/* A row of icon buttons; the count sits on each icon's bottom-right corner so the buttons keep their size. */
+.dock {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-block-start: 1px solid var(--sn-color-border);
+}
+
+.group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* The finishing pages, at the right end in a frosted pill. */
+.glass {
+  margin-inline-start: auto;
+  padding: 0.125rem;
+  border: 1px solid var(--sn-color-glass-border);
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-glass);
+  box-shadow: inset 0 1px 0 var(--sn-color-glass-highlight);
+  -webkit-backdrop-filter: blur(var(--sn-material-blur)) saturate(var(--sn-material-saturate));
+  backdrop-filter: blur(var(--sn-material-blur)) saturate(var(--sn-material-saturate));
+}
+
+.glass .item {
+  border-radius: var(--sn-radius-pill);
+}
+
+.item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.25rem;
+  block-size: 2rem;
+  border: 0;
+  border-radius: var(--sn-radius-control);
+  background: transparent;
+  color: var(--sn-color-fg-muted);
+  font-size: 1.125rem;
+  cursor: default;
+}
+
+.item:hover {
+  background: var(--sn-color-hover);
+  color: var(--sn-color-fg);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--sn-color-primary);
+  outline-offset: 1px;
+}
+
+.item.active {
+  color: var(--sn-color-primary);
+}
+
+.count {
+  position: absolute;
+  inset-inline-end: 0.125rem;
+  inset-block-end: 0.125rem;
+  min-inline-size: 0.875rem;
+  block-size: 0.875rem;
+  padding-inline: 0.1875rem;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-primary);
+  color: var(--sn-color-primary-fg);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  line-height: 0.875rem;
+  text-align: center;
+  pointer-events: none;
+}

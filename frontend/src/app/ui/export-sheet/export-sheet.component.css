@@ -1,0 +1,38 @@
+/* Layout only. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-inline-size: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.group > h3,
+.group > p {
+  margin: 0;
+}
+
+.summary,
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.check,
+.skipped,
+.buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buttons {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

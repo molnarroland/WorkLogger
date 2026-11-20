@@ -1,0 +1,82 @@
+<ul class="entries">
+  @for (w of logs(); track w.id) {
+    @let status = w.effectiveStatus;
+    @let missing = w.needsIssue;
+    <!-- The row click is for the pointer: the keyboard selects by focusing a field (focusin) or the text button. -->
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+    <li
+      class="entry"
+      [class.missing]="missing"
+      [class.selected]="w.id === selected()"
+      (click)="select(w, $event)"
+      (focusin)="select(w, $event)"
+    >
+      <span class="swatch" [style.background]="color(w)" aria-hidden="true"></span>
+      <span class="time tabular sn-text-muted">{{ hm(w.start) }}</span>
+      <span class="issue">
+        @if (missing && status !== 'exported') {
+          <input
+            hlmInput
+            class="key-field ticket"
+            [attr.aria-label]="'days.ticketFor' | t: { what: w.description }"
+            [placeholder]="'days.addTicket' | t"
+            (change)="setIssue(w, $any($event.target))"
+            (keydown.enter)="commit($event)"
+          />
+          @if (w.planIssue; as key) {
+            <button
+              hlmBtn
+              variant="link"
+              type="button"
+              class="plan small"
+              [snTooltip]="'plans.useHelp' | t: { key }"
+              [attr.aria-description]="'plans.useHelp' | t: { key }"
+              (click)="issue.emit({ id: w.id, key })"
+            >
+              {{ 'plans.use' | t: { key } }}
+            </button>
+          }
+        } @else {
+          <span class="issue-key" [class.missing]="!w.issueKey">{{ w.issueKey ?? ('issue.none' | t) }}</span>
+        }
+      </span>
+      <span class="text">
+        <button type="button" class="describe" [attr.aria-pressed]="w.id === selected()" (click)="toggle(w)">
+          {{ w.description || ('days.noDescription' | t) }}
+        </button>
+        @if (w.needsComment && status === 'draft') {
+          <input
+            hlmInput
+            class="comment"
+            [attr.aria-label]="'days.commentFor' | t: { what: w.description }"
+            [placeholder]="'days.commentPlaceholder' | t"
+            (change)="setComment(w, $any($event.target))"
+            (keydown.enter)="commit($event)"
+          />
+        } @else {
+          <span class="meta small sn-text-muted">
+            <ng-icon [name]="icon[w.source]" aria-hidden="true" />
+            {{ 'source.' + w.source | t }}
+            @if (w.comment) {
+              · <span class="quote" [title]="w.comment">{{ w.comment }}</span>
+            }
+          </span>
+        }
+      </span>
+      <span class="status">
+        @switch (status) {
+          @case ('reviewed') {
+            <span hlmBadge class="sn-tone-success">{{ 'status.reviewed' | t }}</span>
+          }
+          @case ('exported') {
+            <span hlmBadge class="sn-tone-accent">{{ 'status.exported' | t }}</span>
+          }
+          @default {
+            <span hlmBadge variant="outline">{{ 'status.draft' | t }}</span>
+          }
+        }
+      </span>
+      <span class="duration tabular">{{ w.duration | duration }}</span>
+    </li>
+  }
+</ul>

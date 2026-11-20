@@ -1,0 +1,98 @@
+@if (summary(); as s) {
+  <div class="page">
+    <section class="card" aria-labelledby="overview-progress">
+      <h2 id="overview-progress" class="sr-only">{{ 'overview.progress' | t }}</h2>
+      <div class="headline">
+        <span class="big tabular">{{ s.logged | duration }}</span>
+        <span class="sn-text-muted tabular">{{
+          'overview.ofExpected' | t: { expected: (s.expected | duration) }
+        }}</span>
+        @if (s.behind > 0) {
+          <span class="behind tabular">{{ 'overview.behind' | t: { d: (s.behind | duration) } }}</span>
+        }
+      </div>
+      <wl-source-bar class="bar" [parts]="parts()" [scale]="s.expected" [height]="0.75" />
+      <wl-source-legend [parts]="parts()" />
+      <dl class="tiles">
+        <div class="tile">
+          <dt class="small sn-text-muted">{{ 'overview.inTempo' | t }}</dt>
+          <dd class="value tabular">{{ s.inTempo | duration }}</dd>
+          <dd class="small sn-text-muted">{{ 'overview.days' | t: { n: s.inTempoDays } }}</dd>
+        </div>
+        <div class="tile">
+          <dt class="small sn-text-muted">{{ 'overview.toLog' | t }}</dt>
+          <dd class="value tabular">{{ s.toLog | duration }}</dd>
+          <dd class="small sn-text-muted">{{ 'overview.draftDays' | t: { n: s.draftDays.length } }}</dd>
+        </div>
+        <div class="tile" [class.late]="s.behind > 0">
+          <dt class="small sn-text-muted">{{ 'overview.stillEmpty' | t }}</dt>
+          <dd class="value tabular">{{ s.behind | duration }}</dd>
+          <dd class="small sn-text-muted">{{ 'overview.days' | t: { n: s.behindDays.length } }}</dd>
+        </div>
+      </dl>
+      @if (settled(); as n) {
+        <div class="cleanup">
+          <span class="small sn-text-muted">{{ 'cleanup.hint' | t: { n } }}</span>
+          <button
+            hlmBtn
+            variant="outline"
+            size="sm"
+            type="button"
+            [disabled]="store.busy()"
+            (click)="store.cleanUpSettled()"
+          >
+            {{ 'cleanup.button' | t }}
+          </button>
+        </div>
+      }
+    </section>
+
+    <section class="card" aria-labelledby="overview-todos">
+      <h2 id="overview-todos" class="section-title">{{ 'overview.todosTitle' | t: { month: monthName() } }}</h2>
+      @if (empty()) {
+        <sn-status-page
+          icon="lucideCalendarX"
+          [title]="'overview.emptyTitle' | t"
+          [description]="'overview.emptyBody' | t"
+        >
+          <button hlmBtn type="button" [disabled]="store.busy()" (click)="store.run('collect')">
+            {{ 'toolbar.collect' | t }}
+          </button>
+        </sn-status-page>
+      } @else if (!todos().length) {
+        <sn-status-page
+          icon="lucideCircleCheck"
+          [title]="'overview.doneTitle' | t"
+          [description]="'overview.doneBody' | t"
+        />
+      } @else {
+        <ol class="todos">
+          @for (t of todos(); track t.kind) {
+            <li
+              class="todo"
+              [class.attention]="t.kind === 'fillDays' || t.kind === 'addTickets'"
+              [class.missing]="t.kind === 'addTickets'"
+            >
+              <span class="todo-icon" aria-hidden="true"><ng-icon [name]="icon[t.kind]" /></span>
+              <div class="todo-text">
+                <span class="todo-title">{{
+                  'overview.todo.' + t.kind | t: { n: t.count, d: (t.seconds | duration) }
+                }}</span>
+                <span class="small sn-text-muted">{{ detail(t) }}</span>
+              </div>
+              <button
+                hlmBtn
+                [variant]="t.kind === 'logInTempo' ? 'default' : 'outline'"
+                size="sm"
+                type="button"
+                (click)="open(t)"
+              >
+                {{ 'overview.action.' + t.kind | t }}
+              </button>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  </div>
+}

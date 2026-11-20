@@ -1,0 +1,14 @@
+:host {
+  display: block;
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.25rem 0.25rem 0.25rem 0.625rem;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-secondary);
+  color: var(--sn-color-secondary-fg);
+}

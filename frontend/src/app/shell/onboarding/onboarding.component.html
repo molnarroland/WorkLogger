@@ -1,0 +1,82 @@
+<sn-modal-sheet [(open)]="open" [title]="'welcome.title' | t">
+  <div class="body wl-onboarding">
+    @switch (page()) {
+      @case ('ask') {
+        <p>{{ 'onboard.intro' | t }}</p>
+        <section class="group" aria-labelledby="onboard-ask">
+          <h3 id="onboard-ask" class="section-title">{{ 'onboard.ask' | t }}</h3>
+          @for (q of questions; track q.id) {
+            <sn-settings-row [title]="'onboard.q.' + q.id | t" [subtitle]="'onboard.q.' + q.id + '.help' | t">
+              <ng-icon snSettingsIcon [name]="q.icon" />
+              <hlm-switch
+                [checked]="answers().includes(q.id)"
+                [aria-label]="'onboard.q.' + q.id | t"
+                (checkedChange)="answer(q.id, $event)"
+              />
+            </sn-settings-row>
+          }
+        </section>
+      }
+      @case ('git') {
+        @if (store.settings(); as s) {
+          <p class="sn-text-muted">{{ 'repos.foldersHelp' | t }}</p>
+          <section class="group" aria-labelledby="onboard-git">
+            <h3 id="onboard-git" class="section-title">{{ 'repos.folders' | t }}</h3>
+            @for (root of s.workspaceRoots; track root) {
+              <sn-settings-row [title]="root">
+                <ng-icon snSettingsIcon name="lucideFolderOpen" />
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'repos.removeFolder' | t: { path: root }"
+                  (click)="removeFolder(root)"
+                >
+                  <ng-icon name="lucideTrash2" aria-hidden="true" />
+                </button>
+              </sn-settings-row>
+            }
+            <div>
+              <button hlmBtn variant="outline" size="sm" type="button" (click)="addFolder()">
+                <ng-icon name="lucideFolderPlus" aria-hidden="true" /> {{ 'repos.addFolder' | t }}
+              </button>
+            </div>
+          </section>
+          <section class="group">
+            <span class="section-title">{{ 'repos.emails' | t }}</span>
+            <wl-chip-list
+              [highlighted]="true"
+              [label]="'repos.emailsAdd' | t"
+              placeholder="you@company.com"
+              [values]="s.authorEmails"
+              (valuesChange)="store.saveSettings({ authorEmails: $event })"
+            />
+          </section>
+        }
+      }
+      @default {
+        <p class="sn-text-muted">{{ 'onboard.page.' + page() | t }}</p>
+        <wl-profiles-settings [only]="profileKind()" />
+      }
+    }
+    @if (last() && index() > 0 && !ready()) {
+      <p class="sn-text-muted" role="status">{{ 'onboard.needOne' | t }}</p>
+    }
+  </div>
+
+  @if (index() > 0) {
+    <button hlmBtn variant="outline" snSheetSecondary type="button" (click)="go(-1)">
+      {{ 'onboard.back' | t }}
+    </button>
+  }
+  @if (last() && index() > 0) {
+    <button hlmBtn snSheetPrimary type="button" [disabled]="!ready()" (click)="finish()">
+      {{ 'welcome.done' | t }}
+    </button>
+  } @else {
+    <button hlmBtn snSheetPrimary type="button" [disabled]="!answers().length" (click)="go(1)">
+      {{ 'welcome.next' | t }}
+    </button>
+  }
+</sn-modal-sheet>

@@ -1,0 +1,49 @@
+@if (items().length) {
+  <ul class="items">
+    @for (e of items(); track e.id) {
+      <li class="item" [class.skipped]="e.skipped">
+        <span class="head small">
+          <ng-icon [name]="e.kind === 'meeting' ? 'lucideUsers' : 'lucideMessagesSquare'" aria-hidden="true" />
+          <span class="kind">{{ (e.kind === 'meeting' ? 'days.meeting' : 'days.chat') | t }}</span>
+          <span class="tabular sn-text-muted when">{{ hm(e.from) }}–{{ hm(e.to) }}</span>
+          @if (panes().includes(e.focus.pane)) {
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon-xs"
+              type="button"
+              [attr.aria-label]="'focus.showItemIn' | t: { title: e.title, page: ('pane.' + e.focus.pane | t) }"
+              [snTooltip]="'focus.showIn' | t: { page: ('pane.' + e.focus.pane | t) }"
+              (click)="open.emit(e.focus)"
+            >
+              <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+            </button>
+          }
+        </span>
+        <span class="title">{{ e.title }}</span>
+        @if (e.count) {
+          <span class="small sn-text-muted">{{ 'days.messages' | t: { n: e.count } }}</span>
+        }
+        @if (e.skipped) {
+          <span class="small sn-text-muted">{{ 'days.skipped' | t }}</span>
+        }
+        @if (e.issueKey) {
+          @if (canUse()) {
+            <button
+              type="button"
+              class="chip issue-key"
+              [attr.aria-label]="'days.useTicket' | t: { key: e.issueKey }"
+              (click)="use.emit(e.issueKey)"
+            >
+              {{ e.issueKey }}
+            </button>
+          } @else {
+            <span class="chip issue-key">{{ e.issueKey }}</span>
+          }
+        }
+      </li>
+    }
+  </ul>
+} @else {
+  <p class="sn-text-muted">{{ 'days.nothingCollected' | t }}</p>
+}

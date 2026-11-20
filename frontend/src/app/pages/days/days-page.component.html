@@ -1,0 +1,142 @@
+<ng-template snPageCommands>
+  @if (store.modules().includes('chats')) {
+    <button
+      snCommand
+      hideLabel
+      icon="lucideMessagesSquare"
+      class="chat-command"
+      [label]="chatsCollected() ? ('days.openChats' | t: { n: chatCount() }) : ('days.fetchChat' | t)"
+      [disabled]="chatsCollected() ? false : store.busy() || current() > store.today()"
+      (click)="chatCommand()"
+    >
+      @if (chatCount()) {
+        <span class="chat-count tabular" aria-hidden="true">{{ chatCount() }}</span>
+      }
+    </button>
+  }
+</ng-template>
+
+<sn-inspector-layout class="layout">
+  <section class="main" [attr.aria-labelledby]="'day-title'">
+    <header class="day-head">
+      <span class="dot" [style.background]="color()" aria-hidden="true"></span>
+      <h2 id="day-title" class="day-title">{{ title() }}</h2>
+      @if (info(); as d) {
+        <span class="tabular sn-text-muted">{{
+          'timesheet.loggedOf' | t: { logged: (logged() | duration), expected: (d.expected | duration) }
+        }}</span>
+        <wl-source-bar class="bar" [parts]="parts()" [scale]="d.expected" />
+        @if (d.label) {
+          <span class="small sn-text-muted label">{{ d.label }}</span>
+        }
+      }
+    </header>
+
+    @if (logs().length) {
+      <wl-day-entries
+        [logs]="logs()"
+        [(selected)]="selected"
+        (issue)="setIssue($event)"
+        (comment)="setComment($event)"
+      />
+
+      @if (noComment().length) {
+        <p class="hint small" role="status">
+          {{ 'days.needComments' | t: { n: noComment().length } }}
+          <button hlmBtn variant="link" size="xs" type="button" (click)="useDescriptions()">
+            {{ 'days.useDescriptions' | t }}
+          </button>
+        </p>
+      }
+
+      <div class="actions">
+        <button hlmBtn variant="outline" size="sm" type="button" (click)="store.addWorklog(current())">
+          <ng-icon name="lucidePlus" aria-hidden="true" /> {{ 'day.addEntry' | t }}
+        </button>
+        @switch (mainAction()) {
+          @case ('review') {
+            <button
+              hlmBtn
+              size="sm"
+              type="button"
+              class="next"
+              [disabled]="noComment().length > 0"
+              [title]="'days.sendNeedsReview' | t"
+              (click)="main()"
+            >
+              <ng-icon name="lucideCheck" aria-hidden="true" /> {{ 'days.markReviewed' | t }}
+            </button>
+          }
+          @case ('send') {
+            <button
+              hlmBtn
+              size="sm"
+              type="button"
+              class="next"
+              [disabled]="!canSend()"
+              [title]="'days.sendHelp' | t"
+              (click)="main()"
+            >
+              <ng-icon name="lucideSend" aria-hidden="true" /> {{ 'days.send' | t }}
+            </button>
+          }
+          @default {
+            <button hlmBtn variant="outline" size="sm" type="button" class="next" [disabled]="!next()" (click)="main()">
+              <ng-icon name="lucideArrowRight" aria-hidden="true" /> {{ 'days.next' | t }}
+            </button>
+          }
+        }
+      </div>
+    } @else {
+      <sn-status-page
+        class="fill"
+        icon="lucideCalendarX"
+        [title]="
+          (info()?.expected ? 'days.emptyTitle' : 'days.freeTitle') | t: { d: (info()?.expected ?? 0 | duration) }
+        "
+        [description]="(info()?.expected ? 'days.emptyBody' : 'days.freeBody') | t"
+      >
+        <button hlmBtn type="button" [disabled]="store.busy()" (click)="store.run('collect')">
+          {{ 'toolbar.collect' | t }}
+        </button>
+        <button hlmBtn variant="outline" type="button" (click)="store.addWorklog(current())">
+          {{ 'day.addEntry' | t }}
+        </button>
+      </sn-status-page>
+    }
+  </section>
+
+  <sn-inspector
+    snResizable="inspector"
+    [resizeRatio]="0.3"
+    [resizeMin]="224"
+    [resizeMaxRatio]="0.6"
+    [resizeLabel]="'panel.resizeInspector' | t"
+    [open]="panelOpen()"
+    (openChange)="!$event && (inspected() ? selected.set(null) : panelOpen.set(false))"
+    [title]="inspected() ? (inspected()!.issueKey ?? ('issue.none' | t)) : ('days.happened' | t)"
+    icon="lucideCalendarDays"
+  >
+    @if (inspected(); as w) {
+      <wl-worklog-inspector
+        [worklog]="w"
+        (changed)="store.updateWorklog($event)"
+        (duration)="store.setDuration($event.id, $event.text)"
+        (remove)="store.deleteWorklogs([$event])"
+        [panes]="store.paneIds()"
+        (open)="open($event)"
+        (always)="store.alwaysForMeeting($event.title, $event.issueKey)"
+      />
+    } @else {
+      <p class="small sn-text-muted">{{ 'days.happenedHelp' | t }}</p>
+      <wl-day-evidence
+        [meetings]="evidence.value()?.meetings ?? []"
+        [chats]="evidence.value()?.chats ?? []"
+        [canUse]="ticketTargets().length > 0"
+        (use)="useTicket($event)"
+        [panes]="store.paneIds()"
+        (open)="open($event)"
+      />
+    }
+  </sn-inspector>
+</sn-inspector-layout>

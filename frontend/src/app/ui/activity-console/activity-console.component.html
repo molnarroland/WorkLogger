@@ -1,0 +1,25 @@
+<div class="header">
+  <h2 id="activity-title" class="section-title">{{ 'activity.title' | t }}</h2>
+  <span class="sn-text-muted small grow">{{ 'activity.masked' | t }}</span>
+  <button
+    hlmBtn
+    variant="ghost"
+    size="icon-sm"
+    type="button"
+    [attr.aria-label]="'timesheet.close' | t"
+    (click)="closed.emit()"
+  >
+    <ng-icon name="lucideX" aria-hidden="true" />
+  </button>
+</div>
+<ol #log class="log small" tabindex="0" [attr.aria-label]="'activity.title' | t" (scroll)="onScroll(log)">
+  @for (l of lines(); track $index) {
+    <li class="line" [class.error]="l.level === 'error'" [class.sn-text-muted]="l.level === 'progress'">
+      <span class="sn-text-muted tabular time">{{ time(l.time) }}</span>
+      <span class="sn-text-muted source">{{ l.source }}</span>
+      <span class="message">{{ l.message }}</span>
+    </li>
+  } @empty {
+    <li class="sn-text-muted">{{ 'activity.empty' | t }}</li>
+  }
+</ol>

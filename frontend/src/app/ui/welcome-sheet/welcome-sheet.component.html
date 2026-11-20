@@ -1,0 +1,73 @@
+<sn-modal-sheet [(open)]="open" [title]="'welcome.title' | t">
+  <sn-assistant
+    [(step)]="step"
+    [backLabel]="'welcome.back' | t"
+    [nextLabel]="'welcome.next' | t"
+    [finishLabel]="'welcome.done' | t"
+    [cancelLabel]="'welcome.skip' | t"
+    [progressLabel]="'welcome.progress' | t"
+    (finish)="open.set(false)"
+    (cancel)="open.set(false)"
+  >
+    <ng-template snAssistantPage [title]="'welcome.page.intro' | t">
+      <div class="body">
+        <p>{{ 'welcome.intro' | t }}</p>
+        <ol class="flow">
+          @for (f of flow; track f.step) {
+            <li class="flow-item">
+              <ng-icon [name]="f.icon" aria-hidden="true" />
+              <span class="text">
+                <span class="section-title">{{ 'step.' + f.step | t }}</span>
+                <span class="sn-text-muted">{{ 'welcome.flow.' + f.step | t }}</span>
+              </span>
+            </li>
+          }
+        </ol>
+      </div>
+    </ng-template>
+    <ng-template snAssistantPage [title]="'welcome.page.sources' | t">
+      <div class="body">
+        <p class="sn-text-muted">{{ 'welcome.body' | t }}</p>
+        <section class="group" aria-labelledby="welcome-sources">
+          <h3 id="welcome-sources" class="section-title">{{ 'welcome.sources' | t }}</h3>
+          @for (m of all; track m.id) {
+            <sn-settings-row [title]="'module.' + m.id | t" [subtitle]="'module.' + m.id + '.summary' | t">
+              <ng-icon snSettingsIcon [name]="m.icon" />
+              <hlm-switch
+                [checked]="modules().includes(m.id)"
+                [aria-label]="'module.' + m.id | t"
+                (checkedChange)="toggle(m.id, $event)"
+              />
+            </sn-settings-row>
+          }
+        </section>
+      </div>
+    </ng-template>
+    <ng-template snAssistantPage [title]="'welcome.page.tempo' | t">
+      <div class="body">
+        <section class="group" aria-labelledby="welcome-how">
+          <h3 id="welcome-how" class="section-title">{{ 'welcome.how' | t }}</h3>
+          <hlm-radio-group
+            class="how"
+            [value]="tempoByHand() ? 'hand' : 'api'"
+            [attr.aria-label]="'welcome.how' | t"
+            (valueChange)="setHow($event)"
+          >
+            <hlm-radio value="hand" inputId="welcome-hand" [aria-label]="'welcome.byHand' | t"
+              ><hlm-radio-indicator indicator />{{ 'welcome.byHand' | t }}</hlm-radio
+            >
+            <hlm-radio value="api" inputId="welcome-api" [aria-label]="'welcome.api' | t"
+              ><hlm-radio-indicator indicator />{{ 'welcome.api' | t }}</hlm-radio
+            >
+          </hlm-radio-group>
+        </section>
+      </div>
+    </ng-template>
+    <ng-template snAssistantPage [title]="'welcome.page.setup' | t">
+      <div class="body">
+        <p class="sn-text-muted">{{ 'welcome.setupBody' | t }}</p>
+        <wl-setup-checklist [steps]="steps()" (act)="act.emit($event)" />
+      </div>
+    </ng-template>
+  </sn-assistant>
+</sn-modal-sheet>

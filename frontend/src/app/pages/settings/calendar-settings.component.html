@@ -1,0 +1,123 @@
+@if (store.settings(); as s) {
+  <sn-settings-group [title]="'meetings.calendars' | t" [description]="'meetings.googleHelp' | t">
+    <sn-settings-row title="Google Calendar API" [subtitle]="'calendars.apiHelp' | t">
+      <ng-icon snSettingsIcon name="lucideCalendar" />
+      @if (status.value()?.googleConnected) {
+        <span class="row">
+          <span hlmBadge class="sn-tone-success">{{ 'meetings.connected' | t }}</span>
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="google(false)">
+            {{ 'meetings.disconnect' | t }}
+          </button>
+        </span>
+      } @else {
+        <button hlmBtn variant="outline" size="sm" type="button" (click)="google(true)">
+          {{ 'meetings.connect' | t }}
+        </button>
+      }
+    </sn-settings-row>
+    @if (!status.value()?.googleConnected) {
+      <sn-settings-row
+        [title]="'meetings.googleWeb' | t"
+        [subtitle]="
+          (googleProfiles().length
+            ? status.value()?.googleWeb
+              ? 'meetings.googleWebHelp'
+              : 'calendars.signInProfile'
+            : 'calendars.addProfile'
+          ) | t
+        "
+      >
+        <ng-icon snSettingsIcon name="lucideCalendar" />
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [disabled]="store.busy() || !googleProfiles().length"
+          (click)="readWeb()"
+        >
+          {{ 'meetings.googleWebRead' | t }}
+        </button>
+      </sn-settings-row>
+    }
+  </sn-settings-group>
+
+  <sn-settings-group [title]="'meetings.icsFeeds' | t" [description]="'meetings.icsHelp' | t">
+    <div class="pad">
+      <wl-chip-list
+        [label]="'meetings.icsAdd' | t"
+        placeholder="https://…/calendar.ics"
+        [values]="s.icsUrls"
+        (valuesChange)="save({ icsUrls: $event })"
+      />
+    </div>
+  </sn-settings-group>
+
+  <sn-settings-group [title]="'meetings.logging' | t">
+    <sn-settings-row [title]="'meetings.defaultIssue' | t">
+      <input
+        hlmInput
+        class="key-field key"
+        placeholder="TEAM-12"
+        [attr.aria-label]="'meetings.defaultIssue' | t"
+        [value]="s.defaultMeetingIssue"
+        (change)="save({ defaultMeetingIssue: value($event).toUpperCase() })"
+      />
+    </sn-settings-row>
+    <div class="pad stack">
+      <span class="section-title">{{ 'meetings.neverLog' | t }}</span>
+      <wl-chip-list
+        [label]="'meetings.neverLogAdd' | t"
+        [placeholder]="'meetings.keyword' | t"
+        [values]="s.skipMeetingKeywords"
+        (valuesChange)="save({ skipMeetingKeywords: $event })"
+      />
+    </div>
+  </sn-settings-group>
+
+  <sn-settings-group [title]="'meetings.rules' | t" [description]="'meetings.rulesHelp' | t">
+    <div class="pad">
+      <wl-rule-list
+        [items]="rules()"
+        [addLabel]="'rules.add' | t"
+        [labelPlaceholder]="'meetings.titleContains' | t"
+        [issuePlaceholder]="'worklog.issue' | t"
+        (add)="addRule($event)"
+        (remove)="removeRule($event)"
+      />
+    </div>
+  </sn-settings-group>
+
+  <hlm-accordion>
+    <hlm-accordion-item>
+      <hlm-accordion-trigger>{{ 'meetings.oauth' | t }}</hlm-accordion-trigger>
+      <hlm-accordion-content>
+        <div class="stack">
+          <input
+            hlmInput
+            [attr.aria-label]="'meetings.clientId' | t"
+            [placeholder]="'meetings.clientId' | t"
+            [value]="s.googleClientId"
+            (change)="save({ googleClientId: value($event) })"
+          />
+          <input
+            hlmInput
+            type="password"
+            autocomplete="off"
+            [attr.aria-label]="'meetings.clientSecret' | t"
+            [placeholder]="(secretSaved.value() ? 'token.saved' : 'meetings.clientSecret') | t"
+            (change)="setSecret($event)"
+          />
+          <input
+            hlmInput
+            [attr.aria-label]="'meetings.calendarId' | t"
+            [placeholder]="'meetings.calendarId' | t"
+            [value]="s.googleCalendarId"
+            (change)="save({ googleCalendarId: value($event) || 'primary' })"
+          />
+          <p class="sn-text-muted small">{{ 'meetings.oauthHelp' | t }}</p>
+        </div>
+      </hlm-accordion-content>
+    </hlm-accordion-item>
+  </hlm-accordion>
+}

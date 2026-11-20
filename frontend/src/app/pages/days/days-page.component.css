@@ -1,0 +1,103 @@
+/* Layout only. */
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.layout {
+  flex: 1;
+  min-block-size: 0;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  block-size: 100%;
+  min-block-size: 0;
+  overflow: auto;
+  padding: 0.5rem 1rem 1rem;
+  box-sizing: border-box;
+}
+
+.day-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.dot {
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  border-radius: 50%;
+}
+
+.day-title {
+  margin: 0;
+  font-size: var(--sn-font-size-title);
+  font-weight: var(--sn-font-weight-strong);
+}
+
+.bar {
+  display: flex;
+  flex: 1;
+  min-inline-size: 6rem;
+  max-inline-size: 16rem;
+}
+
+.label {
+  margin-inline-start: auto;
+}
+
+.hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.next {
+  margin-inline-start: auto;
+}
+
+.fill {
+  flex: 1;
+}
+
+@media (forced-colors: active) {
+  .dot {
+    border: 1px solid CanvasText;
+  }
+}
+
+/* The day's chat count, as a small dot on the chat command's icon (bottom right), so the button keeps its size. */
+[data-slot='sn-command'].chat-command {
+  position: relative;
+}
+
+.chat-count {
+  position: absolute;
+  inset-inline-end: 0.125rem;
+  inset-block-end: 0.125rem;
+  min-inline-size: 0.875rem;
+  block-size: 0.875rem;
+  padding-inline: 0.1875rem;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-primary);
+  color: var(--sn-color-primary-fg);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  line-height: 0.875rem;
+  text-align: center;
+  pointer-events: none;
+}

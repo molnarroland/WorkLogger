@@ -1,0 +1,149 @@
+@if (current(); as g) {
+  <div class="split">
+    <aside class="list-pane">
+      <div class="list-head">
+        <h1 class="section-title">{{ 'ticket.monthTitle' | t }}</h1>
+        <p class="sn-text-muted small tabular">
+          {{ 'ticket.entered' | t: { entered: store.progress().entered, total: store.progress().total } }}
+        </p>
+      </div>
+      <div
+        class="list"
+        snSelectable
+        [multiple]="false"
+        [selection]="selection()"
+        (selectionChange)="chosen.set($event)"
+        [attr.aria-label]="'ticket.monthTitle' | t"
+      >
+        @for (t of store.tickets(); track keyOf(t)) {
+          <div class="ticket" snSelectableItem [value]="keyOf(t)" [snSelectableLabel]="t.key ?? ''">
+            <span class="ticket-top">
+              <span class="issue-key" [class.missing]="!t.key">{{ t.key ?? ('issue.none' | t) }}</span>
+              <span class="tabular">{{ t.seconds | duration }}</span>
+            </span>
+            <span class="small truncate secondary">
+              @if (t.key) {
+                {{ 'ticket.daysAnd' | t: { n: t.days.length, text: t.days[0]?.description ?? '' } }}
+              } @else {
+                {{ 'ticket.daysNeedTicket' | t: { n: t.days.length } }}
+              }
+            </span>
+            @if (t.key) {
+              <wl-source-bar [parts]="progress(t)" [scale]="t.days.length" [height]="0.25" />
+            }
+          </div>
+        }
+      </div>
+    </aside>
+
+    <section class="detail" [attr.aria-label]="g.key ?? ('issue.none' | t)">
+      @if (g.key) {
+        <div class="detail-head">
+          <h2 class="page-title issue-key">{{ g.key }}</h2>
+          <span class="buttons">
+            <wl-copy-button [label]="'ticket.copyKey' | t" [text]="g.key" />
+            <wl-copy-button [prominent]="true" [label]="'ticket.copyAll' | t" [text]="text()" />
+          </span>
+        </div>
+        <div class="badges tabular">
+          <span hlmBadge variant="outline">{{ 'ticket.days' | t: { n: g.days.length } }}</span>
+          <span hlmBadge variant="outline">{{ 'ticket.total' | t: { d: (g.seconds | duration) } }}</span>
+          <span
+            hlmBadge
+            [class.sn-tone-success]="g.done"
+            [class.sn-tone-warning]="!g.done && g.enteredDays > 0"
+            [variant]="g.enteredDays ? 'default' : 'outline'"
+          >
+            {{ 'ticket.enteredOf' | t: { entered: g.enteredDays, total: g.days.length } }}
+          </span>
+        </div>
+        <table hlmTable [attr.aria-label]="g.key">
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh>{{ 'ticket.inTempo' | t }}</th>
+              <th hlmTh>{{ 'ticket.day' | t }}</th>
+              <th hlmTh>{{ 'ticket.duration' | t }}</th>
+              <th hlmTh class="wide">{{ 'ticket.description' | t }}</th>
+              <th hlmTh>{{ 'ticket.copy' | t }}</th>
+            </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (d of g.days; track d.day) {
+              <tr hlmTr [class.sn-text-muted]="d.entered">
+                <td hlmTd>
+                  @if (d.found) {
+                    <ng-icon
+                      name="lucideBadgeCheck"
+                      class="done"
+                      role="img"
+                      [attr.aria-label]="'ticket.foundInTempo' | t"
+                    />
+                  } @else {
+                    <hlm-checkbox
+                      [checked]="d.entered"
+                      [aria-label]="'ticket.enteredLabel' | t: { day: title(d.day) }"
+                      (checkedChange)="store.setEntered(d.ids, $event)"
+                    />
+                  }
+                </td>
+                <td hlmTd class="nowrap">{{ title(d.day) }}</td>
+                <td hlmTd class="issue-key tabular" [class.struck]="d.entered">
+                  {{ d.seconds | duration }}
+                  @if (d.planned) {
+                    <span class="planned small sn-text-muted" [snTooltip]="'plans.plannedHelp' | t">
+                      {{ 'plans.plannedShort' | t: { d: (d.planned | duration) } }}
+                    </span>
+                  }
+                </td>
+                <td hlmTd class="wide truncate" [title]="d.description">{{ d.description }}</td>
+                <td hlmTd>
+                  <wl-copy-button
+                    [small]="true"
+                    [iconOnly]="true"
+                    [label]="'ticket.copyText' | t"
+                    [ariaLabel]="'ticket.copyTextLabel' | t: { day: title(d.day) }"
+                    [text]="d.description"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p class="sn-text-muted small">{{ 'ticket.tickHelp' | t }}</p>
+      } @else {
+        <div class="detail-head">
+          <div>
+            <h2 class="page-title issue-key missing">{{ 'issue.none' | t }}</h2>
+            <p class="sn-text-muted">{{ 'ticket.noIssueBody' | t }}</p>
+          </div>
+          <button hlmBtn type="button" (click)="fix()">{{ 'ticket.fixInReview' | t }}</button>
+        </div>
+        <table hlmTable [attr.aria-label]="'issue.none' | t">
+          <thead hlmTHead>
+            <tr hlmTr>
+              <th hlmTh>{{ 'ticket.day' | t }}</th>
+              <th hlmTh>{{ 'ticket.duration' | t }}</th>
+              <th hlmTh class="wide">{{ 'ticket.entries' | t }}</th>
+            </tr>
+          </thead>
+          <tbody hlmTBody>
+            @for (d of g.days; track d.day) {
+              <tr hlmTr>
+                <td hlmTd class="nowrap">{{ title(d.day) }}</td>
+                <td hlmTd class="tabular">{{ d.seconds | duration }}</td>
+                <td hlmTd class="wide">{{ d.description }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  </div>
+} @else {
+  <sn-status-page
+    class="fill"
+    icon="lucideClipboardList"
+    [title]="'ticket.emptyTitle' | t"
+    [description]="'ticket.emptyBody' | t"
+  />
+}

@@ -1,0 +1,95 @@
+version: '3'
+
+vars:
+  APP_NAME: "WorkLogger"
+  BIN_DIR: "bin"
+  PACKAGE_MANAGER: "npm"
+  # Angular dev server port; `wails3 dev -port` points the window at it.
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 4200}}'
+  GOOS: '{{.GOOS | default OS}}'
+  # Our Go packages. Not `./...`: that walks into frontend/node_modules (some npm packages ship Go files).
+  GO_PKGS: . ./app/... ./internal/...
+
+includes:
+  common: ./build/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+
+tasks:
+  # A fresh clone can't compile Go until frontend/dist exists (main.go embeds it), so every Go task below
+  # builds the frontend first. `task check` is what CI runs.
+
+  check:
+    summary: Formatting check, lint and tests, in the order CI runs them
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: test
+
+  test:
+    summary: Go tests (with -race) and the frontend unit tests
+    deps: [common:build:frontend]
+    cmds:
+      - go test -race {{.GO_PKGS}}
+      - npm --prefix frontend run test:ci
+
+  lint:
+    summary: go vet, golangci-lint and ESLint
+    deps: [common:build:frontend]
+    cmds:
+      - go vet {{.GO_PKGS}}
+      - golangci-lint run {{.GO_PKGS}}
+      - npm --prefix frontend run lint
+
+  fmt:
+    summary: Formats Go (gofumpt) and the frontend (Prettier)
+    cmds:
+      - golangci-lint fmt
+      - npm --prefix frontend run format
+
+  fmt:check:
+    summary: Fails if anything is not formatted
+    cmds:
+      - golangci-lint fmt --diff
+      - npm --prefix frontend run format:check
+
+  fixtures:
+    summary: Regenerates the frontend's story data from the Go views (commit the result)
+    cmds:
+      - go test ./app -run TestStoryFixtures -update
+
+  bindings:
+    summary: Regenerates the TypeScript bindings in frontend/bindings (commit the result)
+    cmds:
+      - task: common:generate:bindings
+
+  build:
+    summary: Builds the application
+    cmds:
+      - task: "{{.GOOS}}:build"
+
+  package:
+    summary: Packages a production build of the application
+    cmds:
+      - task: "{{.GOOS}}:package"
+
+  run:
+    summary: Runs the application
+    cmds:
+      - task: "{{.GOOS}}:run"
+
+  dev:
+    summary: Runs the application in development mode
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
+  install:msix:tools:
+    summary: Installs tools required for Windows MSIX packaging
+    cmds:
+      - task: windows:install:msix:tools
+
+  setup:docker:
+    summary: Builds Docker image for cross-compilation (~800MB download)
+    cmds:
+      - task: common:setup:docker

@@ -1,0 +1,113 @@
+<section class="list" [attr.aria-label]="'meetings.inRange' | t">
+  <ng-template snPageCommands>
+    <button
+      snCommand
+      hideLabel
+      icon="lucideRefreshCw"
+      [label]="'meetings.read' | t"
+      (click)="meetings.reload()"
+    ></button>
+    <button
+      snCommand
+      hideLabel
+      icon="lucideCalendarCog"
+      [label]="'meetings.settings' | t"
+      (click)="openSettings()"
+    ></button>
+  </ng-template>
+
+  @if (suggestion(); as sug) {
+    <div hlmAlert class="sn-tone-warning suggestion" snActionScope>
+      <ng-icon name="lucideLightbulb" />
+      <p hlmAlertTitle>{{ 'meetings.suggestion' | t: { title: sug.title, n: sug.count } }}</p>
+      <div hlmAlertDescription class="suggestion-row">
+        <input
+          hlmInput
+          class="key-field key"
+          [attr.aria-label]="'meetings.ticket' | t"
+          [placeholder]="'meetings.ticket' | t"
+          [value]="suggestedKey()"
+          (input)="suggestedKey.set($any($event.target).value)"
+        />
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          snDefaultAction
+          type="button"
+          [disabled]="!suggestedKey().trim()"
+          (click)="makeRule(sug.title, suggestedKey())"
+        >
+          {{ 'meetings.makeRule' | t }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (day(); as d) {
+    <wl-day-filter class="day-filter" [day]="d" (cleared)="showAll()" />
+  }
+
+  @if (!list().length) {
+    <sn-status-page
+      class="fill"
+      icon="lucideUsers"
+      [title]="'meetings.emptyTitle' | t"
+      [description]="'meetings.emptyBody' | t"
+    >
+      <button hlmBtn type="button" (click)="openSettings()">{{ 'meetings.settings' | t }}</button>
+    </sn-status-page>
+  } @else {
+    <div class="table">
+      <table hlmTable [attr.aria-label]="'meetings.inRange' | t">
+        <tbody hlmTBody>
+          @for (m of list(); track m.id) {
+            <tr
+              hlmTr
+              [class.off]="m.skipped || m.skippedByKeyword"
+              [class.wl-focused]="m.id === focus()"
+              [attr.aria-current]="m.id === focus() ? 'true' : null"
+              [wlScrollIntoView]="m.id === focus()"
+            >
+              <td hlmTd>
+                <hlm-checkbox
+                  [checked]="!m.skipped"
+                  [disabled]="m.skippedByKeyword"
+                  [aria-label]="'meetings.log' | t: { title: m.title }"
+                  (checkedChange)="skip(m.id, !$event)"
+                />
+              </td>
+              <td hlmTd class="wide">
+                <span class="stack">
+                  <span class="truncate title">{{ m.title }}</span>
+                  <span class="sn-text-muted small tabular truncate">
+                    {{ when(m) }}
+                    @if (m.skippedByKeyword) {
+                      · {{ 'meetings.neverLogged' | t }}
+                    }
+                  </span>
+                </span>
+              </td>
+              <td hlmTd class="tabular num">{{ m.seconds | duration }}</td>
+              <td hlmTd class="num">
+                @if (m.issueKey) {
+                  <span class="issue-key sn-text-muted">{{ m.issueKey }}</span>
+                } @else {
+                  <input
+                    #field
+                    hlmInput
+                    class="key-field key"
+                    [attr.aria-label]="'meetings.ticketFor' | t: { title: m.title }"
+                    [placeholder]="'issue.none' | t"
+                    [title]="'meetings.ticketHelp' | t: { title: m.title }"
+                    (keydown.enter)="makeRule(m.title, field.value); field.value = ''"
+                  />
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

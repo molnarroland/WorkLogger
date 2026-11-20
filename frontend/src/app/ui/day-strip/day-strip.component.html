@@ -1,0 +1,10 @@
+<div class="track" aria-hidden="true">
+  @for (s of bars(); track $index) {
+    <span class="bar" [class.work]="s.work" [style.left.%]="s.left" [style.width.%]="s.width"></span>
+  }
+</div>
+<div class="ticks tabular sn-text-muted small" aria-hidden="true">
+  @for (h of ticks(); track h) {
+    <span>{{ h }}:00</span>
+  }
+</div>

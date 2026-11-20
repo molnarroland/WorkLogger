@@ -1,0 +1,65 @@
+<ng-template snPageCommands>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideCircleArrowDown"
+    [label]="'sessions.fetch' | t"
+    [disabled]="!hasUrl() || store.busy()"
+    (click)="fetch()"
+  ></button>
+  <button snCommand hideLabel icon="lucideUserCog" [label]="'profiles.manage' | t" (click)="openProfiles()"></button>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideTrash2"
+    [label]="'sessions.clear' | t"
+    [disabled]="!days().length"
+    (click)="clear()"
+  ></button>
+</ng-template>
+
+@if (!days().length) {
+  <sn-status-page
+    class="fill"
+    icon="lucideClock"
+    [title]="'sessions.emptyTitle' | t"
+    [description]="(hasUrl() ? 'sessions.emptyBody' : 'sessions.noProfile') | t"
+  >
+    @if (hasUrl()) {
+      <button hlmBtn type="button" [disabled]="store.busy()" (click)="fetch()">{{ 'sessions.fetch' | t }}</button>
+    } @else {
+      <button hlmBtn type="button" (click)="openProfiles()">{{ 'profiles.add' | t }}</button>
+    }
+  </sn-status-page>
+} @else {
+  <ul class="days">
+    @for (d of days(); track d.day) {
+      <li
+        class="day"
+        [class.wl-focused]="d.day === day()"
+        [attr.aria-current]="d.day === day() ? 'true' : null"
+        [wlScrollIntoView]="d.day === day()"
+      >
+        <div class="day-head">
+          <h2 class="section-title">{{ d.title }}</h2>
+          @if (d.label) {
+            <span [class.sn-text-muted]="d.status === 'workday'" [class.leave]="d.status !== 'workday'">{{
+              d.label
+            }}</span>
+          }
+          <span class="figures tabular">
+            @if (d.sessions.length) {
+              <span>{{ 'sessions.net' | t: { d: (d.net | duration) } }}</span>
+            }
+            @if (d.reported) {
+              <span [class.needs-ticket]="d.mismatch" [class.sn-text-muted]="!d.mismatch">{{
+                'sessions.hr' | t: { d: (d.reported | duration) }
+              }}</span>
+            }
+          </span>
+        </div>
+        <wl-day-strip [sessions]="d.sessions" />
+      </li>
+    }
+  </ul>
+}

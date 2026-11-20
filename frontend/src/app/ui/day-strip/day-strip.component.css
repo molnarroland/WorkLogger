@@ -1,0 +1,32 @@
+/* A timeline: track and bars from tokens (work = the success colour, breaks = muted text colour). */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.track {
+  position: relative;
+  block-size: 1rem;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-track);
+}
+
+.bar {
+  position: absolute;
+  inset-block-start: 50%;
+  block-size: 0.5rem;
+  translate: 0 -50%;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-fg-muted);
+}
+
+.bar.work {
+  block-size: 0.875rem;
+  background: color-mix(in srgb, var(--wl-state-complete) 75%, transparent);
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+}

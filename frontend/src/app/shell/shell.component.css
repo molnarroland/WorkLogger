@@ -1,0 +1,358 @@
+/* Layout only. Backgrounds, borders and the bars come from the theme's material classes and desktop-ui. */
+:host {
+  display: block;
+  block-size: 100dvh;
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+}
+
+/*
+ * macOS dressed as another system: the traffic lights still sit at the start of the title bar, where the other
+ * skins put the title. Repeated class: outranks the skin's own [data-family][data-controls] padding.
+ */
+.mac-lights.mac-lights.mac-lights {
+  min-block-size: 2.375rem;
+  padding-inline: 5rem 0.875rem;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-block-size: 0;
+}
+
+/*
+ * The side panel. Its items come from desktop-ui; folding only narrows it, hides the labels visually (they stay the
+ * items' accessible names) and swaps the day rows for numbered chips. Doubled class: outranks the nav's own width.
+ */
+.sidebar.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  inline-size: 16rem;
+  overflow: hidden;
+  transition: inline-size var(--sn-duration-fast) var(--sn-easing);
+}
+
+.sidebar.sidebar.folded {
+  inline-size: 3.75rem;
+}
+
+/* Dragged to a new width (snResizable): follow the pointer, don't animate after it. */
+.sidebar.sidebar[data-resizing] {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar.sidebar {
+    transition: none;
+  }
+}
+
+.fold {
+  flex: none;
+  align-self: flex-start;
+  margin: 0 0 0.25rem 0.25rem;
+}
+
+.folded .fold {
+  align-self: center;
+  margin-inline: 0;
+}
+
+.days-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  margin-block: 0.25rem;
+  padding-block-start: 0.25rem;
+  border-block-start: 1px solid var(--sn-color-stroke);
+}
+
+.bottom {
+  flex: none;
+  padding-block-start: 0.25rem;
+  border-block-start: 1px solid var(--sn-color-stroke);
+}
+
+/* A day: two lines, name and time, then what it still needs. */
+.day:not(.chip) {
+  padding-block: 0.3125rem;
+}
+
+.day-row {
+  display: grid;
+  grid-template-columns: 0.5rem 1fr auto;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+
+.day-dot,
+.chip-dot {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+}
+
+.day-name {
+  font-weight: var(--sn-font-weight-control);
+}
+
+.day-time {
+  opacity: 0.8;
+}
+
+.day-note {
+  grid-column: 2 / 4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.chip-day {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: var(--sn-font-weight-strong);
+  line-height: 1.1;
+}
+
+.chip-dot {
+  inline-size: 0.3125rem;
+  block-size: 0.3125rem;
+  margin-block-start: 0.125rem;
+}
+
+@media (forced-colors: active) {
+  .day-dot,
+  .chip-dot {
+    border: 1px solid CanvasText;
+  }
+}
+
+.content,
+.locked {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
+.locked {
+  justify-content: center;
+}
+
+.header {
+  position: relative;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-inline-size: max-content;
+}
+
+/* Centred on the whole line; shell.component.ts keeps it clear of both sides (max-inline-size). */
+.center-title {
+  position: absolute;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: calc(var(--sn-font-size) * 1.15);
+  font-weight: var(--sn-font-weight-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.center-title.crowded {
+  visibility: hidden;
+}
+
+/* The heading: period, logged / expected, a bar of it. */
+.center-title:has(.heading-title) {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.heading-sum {
+  flex: none;
+  font-size: var(--sn-font-size);
+  font-weight: normal;
+}
+
+.heading-bar {
+  flex: 0 1 5rem;
+  min-inline-size: 2rem;
+  block-size: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--sn-color-border);
+}
+
+.heading-bar .fill {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: var(--sn-color-accent);
+}
+
+/* A group of commands. */
+.group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Elsewhere a divider sets the groups on the right apart. */
+.end-group {
+  padding-inline-start: 0.5rem;
+  border-inline-start: 1px solid var(--sn-color-border);
+}
+
+/* macOS 26: each group is its own glass capsule, as the command bar draws its own commands. */
+.header[data-skin='mac'] .group {
+  gap: 0;
+  padding: 0.125rem;
+  border: 1px solid var(--sn-color-glass-border);
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-glass);
+  box-shadow:
+    inset 0 1px 0 var(--sn-color-glass-highlight),
+    var(--sn-shadow-card);
+  -webkit-backdrop-filter: blur(var(--sn-material-blur)) saturate(var(--sn-material-saturate));
+  backdrop-filter: blur(var(--sn-material-blur)) saturate(var(--sn-material-saturate));
+}
+
+/* Collect: a command like the others, its icon in the accent colour. */
+.header .collect {
+  color: var(--sn-color-accent-text);
+}
+
+@media (forced-colors: active) {
+  .header[data-skin='mac'] .group {
+    border-color: CanvasText;
+  }
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+}
+
+.console {
+  flex: none;
+  block-size: min(22rem, 40vh);
+}
+
+.status-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-inline-size: 0;
+  max-inline-size: min(50ch, 45vw);
+}
+
+.message {
+  all: unset;
+  display: block;
+  min-inline-size: 0;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The Tasks popup: a native popover (light dismiss, Esc), above the status bar's end. */
+.tasks-popup {
+  inset: auto 0.5rem 2.5rem auto;
+  margin: 0;
+  inline-size: min(26rem, calc(100vw - 1rem));
+  max-block-size: min(28rem, calc(100vh - 6rem));
+  padding: 0;
+  border: 1px solid var(--sn-color-border);
+  border-radius: 0.5rem;
+  background: var(--sn-color-surface-solid);
+  color: inherit;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.tasks-popup:popover-open {
+  display: flex;
+}
+
+.tasks-badge.failed {
+  color: var(--sn-color-danger);
+}
+
+/* The pager's steps: how many days the arrow moves (±1 a day, ±7 a week, ±30 a month), as a badge on its corner. */
+/* The command bar unsets its commands (all: unset), so these need [data-slot] to keep their own position. */
+[data-slot='sn-command'].step {
+  position: relative;
+}
+
+.step-n {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-end: 0;
+  padding: 0 0.125rem;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-fg-muted);
+  color: var(--sn-color-bg);
+  font-size: 0.5rem;
+  font-weight: 600;
+  line-height: 0.6875rem;
+  pointer-events: none;
+}
+
+/* The calendar after the pager, a magnifier on its corner; it opens the day, week or month picker. */
+[data-slot='sn-command'].pick {
+  position: relative;
+}
+
+[data-slot='sn-command'] > ng-icon.pick-badge {
+  position: absolute;
+  inset-inline-end: 0.125rem;
+  inset-block-end: 0.125rem;
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  font-size: 0.625rem;
+  padding: 0.0625rem;
+  border-radius: var(--sn-radius-pill);
+  background: var(--sn-color-bg);
+  pointer-events: none;
+}
+
+.pick-popup {
+  position: fixed;
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--sn-color-border);
+  border-radius: 0.5rem;
+  background: var(--sn-color-surface-solid);
+  color: inherit;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}

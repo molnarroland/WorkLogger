@@ -1,0 +1,120 @@
+<sn-settings-group [title]="account().name || ('jira.newAccount' | t)" [description]="'jira.footer' | t">
+  <div class="fields">
+    <label hlmLabel [for]="id() + '-name'">{{ 'jira.name' | t }}</label>
+    <input
+      hlmInput
+      [id]="id() + '-name'"
+      [placeholder]="'jira.namePlaceholder' | t"
+      [value]="account().name"
+      (change)="emit({ name: val($event) })"
+    />
+
+    <label hlmLabel [for]="id() + '-site'">{{ 'jira.site' | t }}</label>
+    <input
+      hlmInput
+      type="url"
+      [id]="id() + '-site'"
+      placeholder="https://yourcompany.atlassian.net"
+      [value]="account().baseURL"
+      (change)="emit({ baseURL: val($event) })"
+    />
+
+    <label hlmLabel [for]="id() + '-email'">{{ 'jira.email' | t }}</label>
+    <input
+      hlmInput
+      type="email"
+      [id]="id() + '-email'"
+      [value]="account().email"
+      (change)="emit({ email: val($event) })"
+    />
+
+    <label hlmLabel [for]="id() + '-token'">{{ 'jira.token' | t }}</label>
+    <input
+      hlmInput
+      type="password"
+      autocomplete="off"
+      [id]="id() + '-token'"
+      [placeholder]="hasJiraToken() ? ('token.saved' | t) : ''"
+      (change)="token.emit({ kind: 'jira', value: val($event) }); $any($event.target).value = ''"
+    />
+
+    <span hlmLabel aria-hidden="true">{{ 'jira.provider' | t }}</span>
+    @if (tempo(); as t) {
+      <span>{{ 'profiles.keptInTempo' | t: { name: t } }}</span>
+    } @else {
+      <label hlmLabel class="sr-only" [for]="id() + '-provider'">{{ 'jira.provider' | t }}</label>
+      <hlm-select [value]="account().provider" [itemToString]="providerLabel" (valueChange)="setProvider($event)">
+        <hlm-select-trigger class="select" [buttonId]="id() + '-provider'"><hlm-select-value /></hlm-select-trigger>
+        <hlm-select-content *hlmSelectPortal>
+          @for (p of providers; track p) {
+            <hlm-select-item [value]="p">{{ 'jira.provider.' + p | t }}</hlm-select-item>
+          }
+        </hlm-select-content>
+      </hlm-select>
+    }
+
+    <label hlmLabel [for]="id() + '-account'">{{ 'jira.accountId' | t }}</label>
+    <input
+      hlmInput
+      class="mono"
+      [id]="id() + '-account'"
+      [value]="account().accountId"
+      (change)="emit({ accountId: val($event) })"
+    />
+
+    <span hlmLabel>{{ 'jira.projects' | t }}</span>
+    <span class="row">
+      <span class="grow mono sn-text-muted truncate">
+        {{ account().projectKeys.length ? account().projectKeys.join(', ') : ('jira.noProjects' | t) }}
+      </span>
+      @if (loadingProjects()) {
+        <hlm-spinner />
+      }
+      <button
+        hlmBtn
+        variant="outline"
+        size="sm"
+        type="button"
+        [disabled]="loadingProjects()"
+        (click)="readProjects.emit()"
+      >
+        {{ 'jira.readProjects' | t }}
+      </button>
+    </span>
+  </div>
+
+  <div class="checks">
+    <wl-token-help title="jira.tokenTitle" [steps]="tokenSteps" />
+    <span class="row">
+      <button hlmBtn variant="outline" size="sm" type="button" [disabled]="checking()" (click)="check.emit('jira')">
+        {{ 'jira.checkJira' | t }}
+      </button>
+      @if (checking()) {
+        <hlm-spinner />
+      }
+    </span>
+    @if (checkLines().length) {
+      <div role="status">
+        <ul class="lines">
+          @for (l of checkLines(); track $index) {
+            <li class="line">
+              <ng-icon
+                [name]="l.ok === true ? 'lucideCircleCheck' : l.ok === false ? 'lucideCircleX' : 'lucideCircleMinus'"
+                [class.ok]="l.ok === true"
+                [class.bad]="l.ok === false"
+                [class.sn-text-muted]="l.ok === null"
+                aria-hidden="true"
+              />
+              <span class="stack">
+                <span class="section-title">{{ l.title }}</span>
+                @if (l.detail) {
+                  <span class="sn-text-muted small">{{ l.detail }}</span>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</sn-settings-group>

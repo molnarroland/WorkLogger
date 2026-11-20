@@ -1,0 +1,50 @@
+/* Layout only. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.list {
+  padding: 0.375rem;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.625rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.grow {
+  flex: 1;
+}
+
+/* Derived from currentColor, so it stays readable on the macOS accent selection. */
+.secondary {
+  opacity: 0.7;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pad {
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}

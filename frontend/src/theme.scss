@@ -1,0 +1,5 @@
+// The Spartan Native skins. Must load AFTER src/styles.css (angular.json "styles").
+@use '@spartan-native/theme/styles/spartan-native';
+// Desktop behaviours: list and table selection, dialog button order.
+@use '@spartan-native/helm/styles/spartan-native-helm';
+// @spartan-native/desktop-ui needs no stylesheet: its styles are component-scoped.

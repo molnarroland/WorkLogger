@@ -1,0 +1,109 @@
+<ng-template snPageCommands>
+  <button snCommand hideLabel icon="lucidePlus" [label]="'periods.add' | t" (click)="add()"></button>
+  <button
+    snCommand
+    hideLabel
+    icon="lucideRefreshCw"
+    [label]="'toolbar.rebuild' | t"
+    [disabled]="store.busy()"
+    (click)="store.run('rebuild')"
+  ></button>
+</ng-template>
+
+@if (!periods().length) {
+  <sn-status-page
+    class="fill"
+    icon="lucideFlag"
+    [title]="'periods.emptyTitle' | t"
+    [description]="'periods.emptyBody' | t"
+  >
+    <button hlmBtn type="button" (click)="add()">{{ 'periods.add' | t }}</button>
+  </sn-status-page>
+} @else {
+  <div class="body">
+    <div class="rows">
+      <p class="sn-text-muted">{{ 'periods.subtitle' | t }}</p>
+      <table hlmTable [attr.aria-label]="'pane.periods' | t">
+        <tbody hlmTBody>
+          @for (p of periods(); track p.id; let i = $index) {
+            <tr hlmTr>
+              <td hlmTd><span class="swatch" [style.--period]="color(i)" aria-hidden="true"></span></td>
+              <td hlmTd class="wide">
+                <div class="stack">
+                  <input
+                    hlmInput
+                    class="name"
+                    [attr.aria-label]="'periods.name' | t"
+                    [placeholder]="'periods.name' | t"
+                    [value]="p.title"
+                    (change)="update(i, { title: $any($event.target).value })"
+                  />
+                  <input
+                    hlmInput
+                    [attr.aria-label]="'periods.comment' | t"
+                    [placeholder]="'periods.comment' | t"
+                    [value]="p.comment"
+                    (change)="update(i, { comment: $any($event.target).value })"
+                  />
+                </div>
+              </td>
+              <td hlmTd>
+                <input
+                  hlmInput
+                  class="key-field issue"
+                  [class.needs-ticket]="!p.issueKey"
+                  [attr.aria-label]="'worklog.issue' | t"
+                  [placeholder]="'worklog.issue' | t"
+                  [value]="p.issueKey"
+                  (change)="setIssue(i, $event)"
+                />
+              </td>
+              <td hlmTd>
+                <span class="dates">
+                  <input
+                    hlmInput
+                    type="date"
+                    class="tabular"
+                    [attr.aria-label]="'periods.from' | t"
+                    [value]="p.from"
+                    (change)="setFrom(i, $any($event.target).value)"
+                  />
+                  <ng-icon name="lucideArrowRight" class="sn-text-muted" aria-hidden="true" />
+                  <input
+                    hlmInput
+                    type="date"
+                    class="tabular"
+                    [attr.aria-label]="'periods.to' | t"
+                    [min]="p.from"
+                    [value]="p.to"
+                    (change)="setTo(i, $any($event.target).value)"
+                  />
+                </span>
+              </td>
+              <td hlmTd>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  [attr.aria-label]="'worklog.delete' | t"
+                  (click)="remove(i)"
+                >
+                  <ng-icon name="lucideTrash2" aria-hidden="true" />
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <p class="sn-text-muted small">{{ 'periods.help' | t }}</p>
+    </div>
+    <wl-period-month
+      class="month"
+      [month]="store.month()"
+      [weeks]="store.data()?.weeks ?? []"
+      [days]="store.days()"
+      [periods]="periods()"
+    />
+  </div>
+}

@@ -1,0 +1,9 @@
+<wl-export-sheet
+  [(open)]="open"
+  [choices]="store.data()?.exports ?? []"
+  [from]="store.range().from"
+  [to]="store.range().to"
+  (copyMarkdown)="copyMarkdown($event)"
+  (save)="saveFile($event.ids, $event.format)"
+  (markExported)="store.setEntered($event, true)"
+/>

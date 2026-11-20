@@ -1,0 +1,68 @@
+/* Layout only; check results take the success / danger tokens. */
+:host {
+  display: block;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: minmax(10rem, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 1rem 0.75rem;
+}
+
+.actions.row,
+.row,
+.line {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.line {
+  align-items: flex-start;
+}
+
+.grow {
+  flex: 1;
+}
+
+.select {
+  inline-size: 100%;
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.ok {
+  color: var(--sn-color-success);
+}
+
+.bad {
+  color: var(--sn-color-danger);
+}
+
+@media (max-width: 44rem) {
+  .fields {
+    grid-template-columns: 1fr;
+  }
+}

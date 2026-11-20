@@ -1,0 +1,31 @@
+<nav class="dock" [attr.aria-label]="'dock.label' | t">
+  <div class="group">
+    @for (it of start(); track it.id) {
+      <ng-container *ngTemplateOutlet="item; context: { $implicit: it }" />
+    }
+  </div>
+  @if (end().length) {
+    <div class="group glass">
+      @for (it of end(); track it.id) {
+        <ng-container *ngTemplateOutlet="item; context: { $implicit: it }" />
+      }
+    </div>
+  }
+</nav>
+
+<ng-template #item let-it>
+  <button
+    type="button"
+    class="item"
+    [class.active]="it.id === active()"
+    [attr.aria-current]="it.id === active() ? 'page' : null"
+    [attr.aria-label]="'dock.item' | t: { page: (it.label | t), n: it.count }"
+    [snTooltip]="'dock.item' | t: { page: (it.label | t), n: it.count }"
+    (click)="open.emit(it.id)"
+  >
+    <ng-icon [name]="it.icon" aria-hidden="true" />
+    @if (it.count) {
+      <span class="count tabular" aria-hidden="true">{{ it.count > 99 ? '99+' : it.count }}</span>
+    }
+  </button>
+</ng-template>

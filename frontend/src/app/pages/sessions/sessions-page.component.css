@@ -1,0 +1,44 @@
+/* Layout only (row separators use the theme's border token). */
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-block-size: 0;
+}
+
+.fill {
+  flex: 1;
+}
+
+.days {
+  flex: 1;
+  margin: 0;
+  padding: 0.5rem 1.25rem;
+  overflow: auto;
+  list-style: none;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding-block: 0.625rem;
+  border-block-end: 1px solid var(--sn-color-border);
+}
+
+.day-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.625rem;
+}
+
+.figures {
+  display: flex;
+  gap: 0.75rem;
+  margin-inline-start: auto;
+}
+
+.leave {
+  color: var(--wl-state-leave);
+}

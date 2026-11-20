@@ -1,0 +1,7 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>WorkLogger</title>
+<!-- A site window opens here first: telling Wails the page is ready lets it run scripts in the site that follows. -->
+<script>
+  (window.webkit?.messageHandlers?.external ?? window.chrome?.webview)?.postMessage('wails:runtime:ready');
+</script>
