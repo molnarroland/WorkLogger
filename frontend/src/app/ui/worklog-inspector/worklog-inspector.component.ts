@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowUpRight, lucideTrash2 } from '@ng-icons/lucide';
+import { lucideArrowUpRight, lucideGitCommitHorizontal, lucideTextSearch, lucideTrash2 } from '@ng-icons/lucide';
 import { SnInspectorImports, SnTooltip } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -32,7 +32,7 @@ import { at, dayTitle, formatDuration, hm } from '../../shared/worklogs';
     SnInspectorImports,
     TPipe,
   ],
-  providers: [provideIcons({ lucideArrowUpRight, lucideTrash2 })],
+  providers: [provideIcons({ lucideArrowUpRight, lucideGitCommitHorizontal, lucideTextSearch, lucideTrash2 })],
   templateUrl: './worklog-inspector.component.html',
   styleUrl: './worklog-inspector.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,6 +68,12 @@ export class WorklogInspectorComponent {
     const title = w.description.trim();
     return w.source === 'meeting' && w.issueKey && title && !this.sent() ? { title, issueKey: w.issueKey } : null;
   });
+  /** "Choose…": the host opens the ticket picker for the entry. */
+  readonly chooseIssue = output<WorklogDto>();
+  /** "Commits": the host shows the git entry's commits. */
+  readonly showCommits = output<WorklogDto>();
+
+  protected readonly isGit = computed(() => this.w().source === 'git');
   protected readonly focus = computed(() => {
     const f = this.w().focus;
     return f && this.panes().includes(f.pane) ? f : null;

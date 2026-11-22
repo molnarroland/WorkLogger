@@ -215,3 +215,80 @@ func IsExcluded(path string, excluded []string) bool {
 	}
 	return false
 }
+
+// validHash: a full or abbreviated commit hash (never an option or a revision expression).
+func validHash(h string) bool {
+	if len(h) < 4 || len(h) > 64 {
+		return false
+	}
+	for _, r := range h {
+		if (r < '0' || r > '9') && (r < 'a' || r > 'f') && (r < 'A' || r > 'F') {
+			return false
+		}
+	}
+	return true
+}
+
+// Files is what a commit changed: each file with its added and deleted lines ("-" for binary files reads as 0).
+// A rename shows as git writes it ("old => new").
+func (g Git) Files(ctx context.Context, repoPath, hash string) ([]core.FileStat, error) {
+	if !validHash(hash) {
+		return nil, core.Err("commit.badHash")
+	}
+	out, err := g.Run.Run(ctx, "git", "-C", repoPath, "show", "--no-color", "--numstat", "--format=", hash)
+	if err != nil {
+		return nil, err
+	}
+	files := []core.FileStat{}
+	for _, line := range strings.FieldsFunc(out, func(r rune) bool { return r == '\n' || r == '\r' }) {
+		parts := strings.SplitN(line, "\t", 3)
+		if len(parts) != 3 {
+			continue
+		}
+		added, _ := strconv.Atoi(parts[0])
+		deleted, _ := strconv.Atoi(parts[1])
+		files = append(files, core.FileStat{Added: added, Deleted: deleted, Path: parts[2]})
+	}
+	return files, nil
+}
+
+// MaxDiff is the most of a diff Diff returns, in bytes.
+const MaxDiff = 256 << 10
+
+// Diff is a commit's patch, of one file when path isn't empty: at most MaxDiff bytes, and whether it was cut.
+func (g Git) Diff(ctx context.Context, repoPath, hash, path string) (string, bool, error) {
+	if !validHash(hash) {
+		return "", false, core.Err("commit.badHash")
+	}
+	args := []string{"-C", repoPath, "show", "--no-color", "--no-ext-diff", "--format=", "--patch", "--find-renames", hash}
+	if path != "" {
+		// A rename's numstat path ("dir/{a => b}.go" or "a => b"): both names, so git shows the rename.
+		args = append(append(args, "--"), renamePaths(path)...)
+	}
+	out, err := g.Run.Run(ctx, "git", args...)
+	if err != nil {
+		return "", false, err
+	}
+	if len(out) > MaxDiff {
+		cut := strings.LastIndexByte(out[:MaxDiff], '\n')
+		if cut < 0 {
+			cut = MaxDiff
+		}
+		return out[:cut], true, nil
+	}
+	return out, false, nil
+}
+
+// renamePaths is the old and new path of a numstat rename ("a => b", "dir/{a => b}/f"), else the path itself.
+func renamePaths(p string) []string {
+	clean := func(s string) string { return strings.ReplaceAll(s, "//", "/") }
+	if i, j := strings.Index(p, "{"), strings.Index(p, "}"); i >= 0 && j > i {
+		if arrow := strings.Index(p[i:j], " => "); arrow >= 0 {
+			return []string{clean(p[:i] + p[i+1:i+arrow] + p[j+1:]), clean(p[:i] + p[i+arrow+4:j] + p[j+1:])}
+		}
+	}
+	if arrow := strings.Index(p, " => "); arrow >= 0 {
+		return []string{p[:arrow], p[arrow+4:]}
+	}
+	return []string{p}
+}

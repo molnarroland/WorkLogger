@@ -3,6 +3,27 @@
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **A commit's contents**: a git entry's Commits button (in the inspector and on the Plans page) shows the commits it
+  was made from, with their message, the files each changed and each file's changes (or the whole commit's).
+- **Choose a ticket** for an entry without one: from the tickets planned for the day, used that day, the project
+  periods', or used in this period or the months before it; or search Jira for issues created within one or two
+  weeks of the day. In the inspector (Choose…) and on the Plans page, for one entry or all of a day's.
+- The Plans page also lists days that have no plans but have entries without a ticket.
+- **Send a week or a month to Tempo** at once: the Week page's send button and Export → Send reviewed entries send
+  the period's reviewed entries, after a question that says how many go and which days are left out (days that
+  still have drafts, and days that haven't come yet). What Tempo already has for those days is read back and left
+  out, as for a single day.
+
+### Fixed
+
+- **Collect reads HRmaster's hours** that weren't final when last read: today's, and any day read before it ended
+  (once, also the days read by an earlier version). Before, a day read in the middle of it kept its partial hours,
+  and today was left out, so the hours had to be fetched by hand.
+
 ## [0.1.1] - 2026-11-20
 
 ### Fixed

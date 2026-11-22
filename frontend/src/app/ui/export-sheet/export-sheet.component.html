@@ -45,6 +45,13 @@
     <section class="group" aria-labelledby="export-group-2">
       <h3 id="export-group-2" class="section-title">Tempo API</h3>
       <p class="sn-text-muted small">{{ 'export.pushByDay' | t }}</p>
+      <sn-settings-row [title]="'export.sendPeriodTitle' | t: { from: from(), to: to() }">
+        <span class="buttons">
+          <button hlmBtn size="sm" type="button" [disabled]="!from()" (click)="sendToTempo.emit()">
+            <ng-icon name="lucideSend" aria-hidden="true" /> {{ 'export.sendPeriod' | t }}
+          </button>
+        </span>
+      </sn-settings-row>
       <p class="sn-text-muted small">{{ 'export.footer' | t }}</p>
       <sn-settings-row [title]="'export.markExported' | t">
         <span class="buttons">

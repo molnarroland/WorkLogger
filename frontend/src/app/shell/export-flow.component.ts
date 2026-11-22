@@ -5,8 +5,8 @@ import { ShellStore } from '../state/shell.store';
 import { ExportSheetComponent } from '../ui/export-sheet/export-sheet.component';
 
 /**
- * Export, the flow around the export sheet: copy or save what it chose, or mark it exported. Sending to Tempo
- * is not here: it goes one day at a time, by hand, from the Days page. Outcomes go to the status bar.
+ * Export, the flow around the export sheet: copy or save what it chose, mark it exported, or send the period's
+ * reviewed entries to Tempo (after asking; days with drafts are left out). Outcomes go to the status bar.
  */
 @Component({
   selector: 'wl-export-flow',
@@ -27,6 +27,13 @@ export class ExportFlowComponent {
       return true;
     });
     if (copied) this.store.status.set(this.i18n.t('export.copied', { n: ids.length }));
+  }
+
+  /** The sheet closes first: the question (and the send's progress) belong to the window. */
+  protected async sendToTempo() {
+    const { from, to } = this.store.range();
+    this.open.set(false);
+    await this.store.sendRange(from, to);
   }
 
   protected async saveFile(ids: number[], format: ExportFormat) {

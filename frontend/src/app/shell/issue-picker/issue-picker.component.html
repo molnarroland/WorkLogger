@@ -1,0 +1,140 @@
+<sn-modal-sheet [(open)]="open" [title]="'picker.title' | t: { day: dayLabel() }">
+  <div class="body wl-issue-picker">
+    @if (subject()) {
+      <p class="subject small sn-text-muted truncate" [title]="subject()">{{ subject() }}</p>
+    }
+
+    <div class="search">
+      <sn-search-field
+        class="field"
+        [placeholder]="'picker.search' | t"
+        [label]="'picker.searchLabel' | t"
+        [value]="query()"
+        (valueChange)="query.set($event)"
+        (submitted)="searchJira()"
+      />
+      <hlm-toggle-group
+        type="single"
+        variant="outline"
+        size="sm"
+        [nullable]="false"
+        [value]="weeks()"
+        [attr.aria-label]="'picker.window' | t"
+        (valueChange)="setWeeks($event)"
+      >
+        <button hlmToggleGroupItem [value]="1">{{ 'picker.weeks' | t: { n: 1 } }}</button>
+        <button hlmToggleGroupItem [value]="2">{{ 'picker.weeks' | t: { n: 2 } }}</button>
+      </hlm-toggle-group>
+    </div>
+
+    @if (typedKey(); as key) {
+      <button hlmBtn size="sm" type="button" class="use-typed" (click)="pick(key)">
+        {{ 'picker.useTyped' | t: { key } }}
+      </button>
+    }
+
+    <section class="group" aria-labelledby="picker-known">
+      <h3 id="picker-known" class="section-title">{{ 'picker.known' | t }}</h3>
+      @if (options.isLoading()) {
+        <p class="loading small sn-text-muted"><hlm-spinner /></p>
+      } @else if (!local().length) {
+        <p class="small sn-text-muted">
+          {{ ((options.value()?.length ?? 0) ? 'picker.noMatch' : 'picker.noneKnown') | t }}
+        </p>
+      } @else {
+        <ul class="options">
+          @for (o of local(); track o.key) {
+            <li>
+              <button type="button" class="option" (click)="pick(o.key)">
+                <span class="issue-key">{{ o.key }}</span>
+                <span class="text">
+                  <span class="summary small">{{ o.summary }}</span>
+                  @if (o.description) {
+                    <span class="description small sn-text-muted">{{ o.description }}</span>
+                  }
+                </span>
+                <span hlmBadge variant="outline" class="origin">{{ 'picker.origin.' + o.origin | t }}</span>
+                @if (o.day) {
+                  <span class="when small sn-text-muted tabular" [title]="'picker.lastUsed' | t">{{
+                    short(o.day)
+                  }}</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="group" aria-labelledby="picker-jira">
+      <div class="group-head">
+        <h3 id="picker-jira" class="section-title">
+          {{ 'picker.jira' | t: { from: window().from, to: window().to } }}
+        </h3>
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [disabled]="searching() || jiraCurrent()"
+          (click)="searchJira()"
+        >
+          <ng-icon name="lucideSearch" aria-hidden="true" />
+          {{ 'picker.searchJira' | t }}
+        </button>
+      </div>
+      @if (searching()) {
+        <p class="loading small sn-text-muted"><hlm-spinner /> {{ 'picker.searching' | t }}</p>
+      } @else if (jiraError()) {
+        <p class="needs-ticket small">{{ jiraError() }}</p>
+      } @else if (jira(); as j) {
+        @if (!jiraCurrent()) {
+          <p class="small sn-text-muted">{{ 'picker.stale' | t }}</p>
+        }
+        @if (!j.found.length) {
+          <p class="small sn-text-muted">{{ 'picker.jiraNone' | t }}</p>
+        } @else {
+          <ul class="options" [attr.aria-label]="'picker.jiraResults' | t">
+            @for (o of j.found; track o.key) {
+              <li class="jira-row">
+                <button type="button" class="option" (click)="pick(o.key)">
+                  <span class="issue-key">{{ o.key }}</span>
+                  <span class="text">
+                    <span class="summary small">{{ o.summary }}</span>
+                    @if (o.description) {
+                      <span class="description small sn-text-muted" [title]="o.description">{{ o.description }}</span>
+                    }
+                  </span>
+                  @if (o.status) {
+                    <span hlmBadge variant="outline" class="origin">{{ o.status }}</span>
+                  }
+                  @if (o.accountName) {
+                    <span class="small sn-text-muted">{{ o.accountName }}</span>
+                  }
+                  <span class="when small sn-text-muted tabular" [title]="'picker.created' | t">{{
+                    short(o.day)
+                  }}</span>
+                </button>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-xs"
+                  type="button"
+                  class="open-jira"
+                  [attr.aria-label]="'picker.openInJira' | t: { key: o.key }"
+                  [snTooltip]="'picker.openInJira' | t: { key: o.key }"
+                  (click)="openInJira(o, $event)"
+                >
+                  <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      } @else {
+        <p class="small sn-text-muted">{{ 'picker.jiraHelp' | t }}</p>
+      }
+    </section>
+  </div>
+  <button hlmBtn variant="outline" snSheetCancel type="button">{{ 'status.cancel' | t }}</button>
+</sn-modal-sheet>

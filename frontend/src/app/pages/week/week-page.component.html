@@ -1,4 +1,14 @@
 <ng-template snPageCommands>
+  @if (days().length) {
+    <button
+      snCommand
+      hideLabel
+      icon="lucideSend"
+      [label]="'week.send' | t"
+      [disabled]="store.busy() || store.locked() || days()[0].day > store.today()"
+      (click)="store.sendRange(days()[0].day, days()[6].day)"
+    ></button>
+  }
   @if (store.modules().includes('chats') && days().length) {
     <button
       snCommand

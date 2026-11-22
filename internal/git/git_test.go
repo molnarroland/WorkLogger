@@ -158,3 +158,62 @@ func (execRunner) Run(ctx context.Context, name string, args ...string) (string,
 	out, err := exec.CommandContext(ctx, name, args...).Output()
 	return string(out), err
 }
+
+func TestFilesAndDiff(t *testing.T) {
+	dir := t.TempDir()
+	run := func(args ...string) string {
+		cmd := exec.Command("git", append([]string{"-C", dir, "-c", "user.name=A", "-c", "user.email=a@b.c"}, args...)...)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Skip("git not available:", err, string(out))
+		}
+		return strings.TrimSpace(string(out))
+	}
+	run("init", "-q")
+	must := func(err error) {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	must(os.MkdirAll(filepath.Join(dir, "src"), 0o755))
+	must(os.WriteFile(filepath.Join(dir, "src", "a.go"), []byte("one\ntwo\n"), 0o644))
+	must(os.WriteFile(filepath.Join(dir, "b.txt"), []byte("b\n"), 0o644))
+	run("add", ".")
+	run("commit", "-q", "-m", "first")
+	must(os.WriteFile(filepath.Join(dir, "src", "a.go"), []byte("one\nthree\n"), 0o644))
+	run("mv", "b.txt", "c.txt")
+	run("commit", "-q", "-am", "second")
+	hash := run("rev-parse", "HEAD")
+
+	g := Git{Run: execRunner{}}
+	files, err := g.Files(context.Background(), dir, hash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != 2 || files[1].Path != "src/a.go" || files[1].Added != 1 || files[1].Deleted != 1 {
+		t.Errorf("files: %+v", files)
+	}
+	diff, cut, err := g.Diff(context.Background(), dir, hash, "src/a.go")
+	if err != nil || cut || !strings.Contains(diff, "-two\n+three") || strings.Contains(diff, "c.txt") {
+		t.Errorf("one file's diff: %q %v %v", diff, cut, err)
+	}
+	if diff, _, err := g.Diff(context.Background(), dir, hash, files[0].Path); err != nil || !strings.Contains(diff, "rename to c.txt") {
+		t.Errorf("a renamed file's diff (%s): %q %v", files[0].Path, diff, err)
+	}
+	if _, err := g.Files(context.Background(), dir, "--output=/tmp/x"); err == nil {
+		t.Error("an option is refused as a hash")
+	}
+}
+
+func TestRenamePaths(t *testing.T) {
+	for in, want := range map[string][]string{
+		"a.go":                  {"a.go"},
+		"b.txt => c.txt":        {"b.txt", "c.txt"},
+		"src/{old => new}/f.go": {"src/old/f.go", "src/new/f.go"},
+		"src/{ => sub}/f.go":    {"src/f.go", "src/sub/f.go"},
+	} {
+		if got := renamePaths(in); !reflect.DeepEqual(got, want) {
+			t.Errorf("%q: %q, want %q", in, got, want)
+		}
+	}
+}

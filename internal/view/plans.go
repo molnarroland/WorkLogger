@@ -47,7 +47,7 @@ type PlanDay struct {
 }
 
 // BuildPlans puts the plans and outside worklogs under their days (oldest first), each ticket-day once per kind,
-// largest first. Days with neither are left out.
+// largest first. A day with neither shows only when it has entries without a ticket (to give them one).
 func BuildPlans(planned []Planned, logs []core.Worklog) []PlanDay {
 	type ref struct {
 		kind     PlanKind
@@ -99,6 +99,11 @@ func BuildPlans(planned []Planned, logs []core.Worklog) []PlanDay {
 			plannedByRef[r.key+"|"+r.day] += it.Seconds
 		}
 		d.Items = append(d.Items, *it)
+	}
+	for day := range untagged {
+		if days[day] == nil {
+			days[day] = &PlanDay{Day: day}
+		}
 	}
 	out := []PlanDay{}
 	for _, d := range days {

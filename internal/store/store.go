@@ -273,6 +273,8 @@ var migrations = []string{
         subject TEXT NOT NULL DEFAULT ''
     );
     CREATE INDEX IF NOT EXISTS idx_sent_emails_ts ON sent_emails(ts);`,
+	// 10: the day each HRmaster day record was read, so a day read before it ended is read again
+	`ALTER TABLE day_info ADD COLUMN read_on TEXT NOT NULL DEFAULT '';`,
 }
 
 // SchemaVersion is the user_version a fully migrated database has.

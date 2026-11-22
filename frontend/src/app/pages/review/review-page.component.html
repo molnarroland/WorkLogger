@@ -210,7 +210,11 @@
         [panes]="store.paneIds()"
         (open)="open($event)"
         (always)="store.alwaysForMeeting($event.title, $event.issueKey)"
+        (chooseIssue)="sheets.chooseIssue($event)"
+        (showCommits)="sheets.showCommits($event)"
       />
     }
   </sn-inspector>
 </sn-inspector-layout>
+
+<wl-entry-sheets #sheets />

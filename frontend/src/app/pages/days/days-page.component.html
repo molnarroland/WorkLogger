@@ -126,6 +126,8 @@
         [panes]="store.paneIds()"
         (open)="open($event)"
         (always)="store.alwaysForMeeting($event.title, $event.issueKey)"
+        (chooseIssue)="sheets.chooseIssue($event)"
+        (showCommits)="sheets.showCommits($event)"
       />
     } @else {
       <p class="small sn-text-muted">{{ 'days.happenedHelp' | t }}</p>
@@ -140,3 +142,5 @@
     }
   </sn-inspector>
 </sn-inspector-layout>
+
+<wl-entry-sheets #sheets />

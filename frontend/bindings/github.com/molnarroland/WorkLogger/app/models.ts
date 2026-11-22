@@ -114,6 +114,40 @@ export interface CollectProgress {
 }
 
 /**
+ * CommitDTO is a stored commit, with its repository's name.
+ */
+export interface CommitDTO {
+    "repoId": number;
+    "repo": string;
+    "hash": string;
+    "at": string;
+    "author": string;
+    "subject": string;
+    "body": string;
+    "ref": string;
+    "files": number;
+    "insertions": number;
+    "deletions": number;
+}
+
+/**
+ * CommitDiffDTO is a commit's patch (of one file, or all of it); Truncated when it was too long to show whole.
+ */
+export interface CommitDiffDTO {
+    "text": string;
+    "truncated": boolean;
+}
+
+/**
+ * CommitFileDTO is a file a commit changed; a rename's path is git's "old => new".
+ */
+export interface CommitFileDTO {
+    "path": string;
+    "added": number;
+    "deleted": number;
+}
+
+/**
  * ConfluenceActivityDTO is the feed by day (newest first), how many entries (versions and comments) and page-days
  * it has, and how many Confluence profiles it was read from (0: none set up).
  */
@@ -265,6 +299,47 @@ export interface ExportChoiceDTO {
      * Missing counts the chosen entries left out because they have no ticket.
      */
     "missing": number;
+}
+
+/**
+ * IssueOptionDTO is a ticket offered for an entry without one.
+ */
+export interface IssueOptionDTO {
+    "key": string;
+    "summary": string;
+
+    /**
+     * Origin is why it is offered: "plan" (Tempo planned it for the day), "day" (another entry of the day has it),
+     * "period" (a project period covers the day), "recent" (an entry of this period or an earlier one has it), or
+     * "jira" (a Jira search found it).
+     */
+    "origin": string;
+
+    /**
+     * Day is when it was last used up to the month's end ("recent", "day"), or created ("jira"); "" otherwise.
+     */
+    "day": string;
+
+    /**
+     * Uses is how many entries have it ("recent", "day").
+     */
+    "uses": number;
+    "status": string;
+
+    /**
+     * Description is the start of the issue's description, on one line ("jira"); "" otherwise.
+     */
+    "description": string;
+
+    /**
+     * Account is the Jira profile a search found it with (for openJiraIssue); "" otherwise.
+     */
+    "account": string;
+
+    /**
+     * AccountName names that profile when there are several, else "".
+     */
+    "accountName": string;
 }
 
 export interface IssueTotalDTO {
@@ -482,6 +557,28 @@ export interface ProfileEdit {
 export interface ProjectDTO {
     "key": string;
     "defaultIssue": string | null;
+}
+
+/**
+ * PushPreviewDTO is what sending a range to Tempo would do (PushRangeToTempo), for the question asked first.
+ */
+export interface PushPreviewDTO {
+    /**
+     * Entries and Seconds are the reviewed entries that would be sent; Days how many days they are on.
+     */
+    "entries": number;
+    "seconds": number;
+    "days": number;
+
+    /**
+     * DraftDays are the days left out because they still have drafts.
+     */
+    "draftDays": string[] | null;
+
+    /**
+     * Later is the reviewed entries on days that haven't come yet, left out.
+     */
+    "later": number;
 }
 
 export interface RepoDTO {

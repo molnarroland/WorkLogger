@@ -19,7 +19,7 @@
     <button hlmBtn type="button" [disabled]="reading()" (click)="refresh()">{{ 'plans.read' | t }}</button>
     <button hlmBtn variant="outline" type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
   </sn-status-page>
-} @else if (!total()) {
+} @else if (!any()) {
   <sn-status-page
     class="fill"
     icon="lucideCalendarClock"
@@ -90,6 +90,19 @@
                       <ng-icon [name]="icon[e.source]" aria-hidden="true" [title]="'source.' + e.source | t" />
                       <span class="truncate" [title]="e.description">{{ e.description }}</span>
                       <span class="tabular sn-text-muted">{{ e.seconds | duration }}</span>
+                      @if (e.source === 'git') {
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="icon-xs"
+                          type="button"
+                          [attr.aria-label]="'commits.showFor' | t: { title: e.description }"
+                          [snTooltip]="'commits.show' | t"
+                          (click)="showCommits(e)"
+                        >
+                          <ng-icon name="lucideGitCommitHorizontal" aria-hidden="true" />
+                        </button>
+                      }
                       @if (e.focus && panes().includes(e.focus.pane)) {
                         <button
                           hlmBtn
@@ -113,16 +126,65 @@
               }
             </article>
           }
-          @if (d.suggest && d.untagged.length) {
-            <div class="untagged small">
-              <span>{{ 'plans.untagged' | t: { n: d.untagged.length } }}</span>
-              <button hlmBtn size="sm" variant="outline" type="button" (click)="useForUntagged(d)">
-                {{ 'plans.useForAll' | t: { key: d.suggest } }}
-              </button>
+          @if (d.untagged.length) {
+            <div class="untagged">
+              <div class="untagged-head small">
+                <span class="needs-ticket">{{ 'plans.untagged' | t: { n: d.untagged.length } }}</span>
+                <span class="untagged-actions">
+                  @if (d.suggest) {
+                    <button hlmBtn size="sm" variant="outline" type="button" (click)="useForUntagged(d)">
+                      {{ 'plans.useForAll' | t: { key: d.suggest } }}
+                    </button>
+                  }
+                  <button hlmBtn size="sm" variant="outline" type="button" (click)="choose(d)">
+                    <ng-icon name="lucideTextSearch" aria-hidden="true" /> {{ 'plans.chooseForAll' | t }}
+                  </button>
+                </span>
+              </div>
+              <ul class="entries">
+                @for (e of d.untagged; track e.id) {
+                  <li class="entry small">
+                    <ng-icon [name]="icon[e.source]" aria-hidden="true" [title]="'source.' + e.source | t" />
+                    <span class="truncate" [title]="e.description">{{ e.description }}</span>
+                    <span class="tabular sn-text-muted">{{ e.seconds | duration }}</span>
+                    @if (e.source === 'git') {
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="icon-xs"
+                        type="button"
+                        [attr.aria-label]="'commits.showFor' | t: { title: e.description }"
+                        [snTooltip]="'commits.show' | t"
+                        (click)="showCommits(e)"
+                      >
+                        <ng-icon name="lucideGitCommitHorizontal" aria-hidden="true" />
+                      </button>
+                    }
+                    <button
+                      hlmBtn
+                      variant="ghost"
+                      size="icon-xs"
+                      type="button"
+                      [attr.aria-label]="'worklog.chooseIssueHelp' | t"
+                      [snTooltip]="'worklog.chooseIssueHelp' | t"
+                      (click)="choose(d, [e])"
+                    >
+                      <ng-icon name="lucideTextSearch" aria-hidden="true" />
+                    </button>
+                  </li>
+                }
+              </ul>
             </div>
           }
         </section>
       }
     </div>
   }
+}
+
+@if (picker(); as p) {
+  <wl-issue-picker [(open)]="pickerOpen" [day]="p.day" [subject]="p.subject" (picked)="picked($event)" />
+}
+@if (commitsOf(); as e) {
+  <wl-commit-sheet [(open)]="commitsOpen" [worklogId]="e.id" [title]="e.description" />
 }

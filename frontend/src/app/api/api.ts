@@ -322,6 +322,68 @@ export interface WorklogDto {
   planIssue: string | null;
 }
 
+/** What sending a range to Tempo would do. */
+export interface PushPreviewDto {
+  /** The reviewed entries that would be sent, their time, and how many days they are on. */
+  entries: number;
+  seconds: number;
+  days: number;
+  /** Days left out because they still have drafts. */
+  draftDays: string[];
+  /** Reviewed entries on days that haven't come yet, left out. */
+  later: number;
+}
+
+/** A stored commit behind a git entry, with its repository's name. */
+export interface CommitDto {
+  repoId: number;
+  repo: string;
+  hash: string;
+  /** RFC 3339. */
+  at: string;
+  author: string;
+  subject: string;
+  body: string;
+  /** The branch it was reached from. */
+  ref: string;
+  files: number;
+  insertions: number;
+  deletions: number;
+}
+
+/** A file a commit changed; a rename's path is git's `old => new`. */
+export interface CommitFileDto {
+  path: string;
+  added: number;
+  deleted: number;
+}
+
+/** A commit's patch; `truncated` when it was too long to show whole. */
+export interface CommitDiffDto {
+  text: string;
+  truncated: boolean;
+}
+
+/**
+ * A ticket offered for an entry without one. `origin`: planned in Tempo for the day, used by another entry that
+ * day, a project period's, used in this period or an earlier one, or found by a Jira search.
+ */
+export interface IssueOptionDto {
+  key: string;
+  summary: string;
+  origin: 'plan' | 'day' | 'period' | 'recent' | 'jira';
+  /** Last used (`day`, `recent`) or created (`jira`); '' otherwise. */
+  day: string;
+  uses: number;
+  status: string;
+  /** The start of the issue's description, on one line (`jira`); '' otherwise. */
+  description: string;
+  /** The Jira profile a search found it with (openJiraIssue); '' otherwise. */
+  account: string;
+  /** That profile's name when there are several, else ''. */
+  accountName: string;
+}
+
 /** One of WorkLogger's entries next to a plan (its commits, chats, meetings…). */
 export interface PlanEntryDto {
   id: number;
@@ -778,6 +840,19 @@ export interface Api {
   jiraActivity(from: string, to: string): Promise<JiraActivityDto>;
   /** Opens an issue of a Jira profile in the browser. */
   openJiraIssue(account: string, key: string): Promise<void>;
+  /** The tickets to offer an entry of the day: planned, used that day, periods', then recent ones. No network. */
+  issueOptions(day: string): Promise<IssueOptionDto[]>;
+  /**
+   * Jira issues created within `weeks` (1–4) of the day with every word of `text` in their summary (a full key
+   * finds that issue too), nearest to the day first. Goes to Jira with every Jira profile.
+   */
+  searchJiraIssues(day: string, text: string, weeks: number): Promise<IssueOptionDto[]>;
+  /** The commits a git entry was made from, oldest first; none for other entries. No network. */
+  worklogCommits(id: number): Promise<CommitDto[]>;
+  /** What a commit changed, read from its repository. */
+  commitFiles(repoId: number, hash: string): Promise<CommitFileDto[]>;
+  /** A commit's patch, of one file (as commitFiles names it) or, with '', all of it. */
+  commitDiff(repoId: number, hash: string, path: string): Promise<CommitDiffDto>;
   /** What you did in Confluence over the days (inclusive), with every Confluence profile. Goes to Confluence each time. */
   confluenceActivity(from: string, to: string): Promise<ConfluenceActivityDto>;
   /** Opens a page of a Confluence profile's site in the browser. */
@@ -902,6 +977,13 @@ export interface Api {
    * yet; what Tempo already has for the day is left out. Runs as a job: ends with `collect:done` and its message.
    */
   pushDayToTempo(day: string): Promise<void>;
+  /** What pushRangeToTempo would send for the days (inclusive), for the question asked first. No network. */
+  pushPreview(from: string, to: string): Promise<PushPreviewDto>;
+  /**
+   * Sends the reviewed entries of a week, a month or any days (inclusive) to Tempo, like pushDayToTempo for each
+   * day: days with drafts and days that haven't come are left out. Runs as a job, ending with `collect:done`.
+   */
+  pushRangeToTempo(from: string, to: string): Promise<void>;
 
   /**
    * Emits `collect:progress` while it runs and `collect:done` when it ends (finished or cancelled). Unless forced,

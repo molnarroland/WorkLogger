@@ -1,0 +1,163 @@
+/* Layout only; colours come from the theme tokens. */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  /* The sheet sets the width (styles.css); the list scrolls inside it, the buttons staying in view. */
+  max-block-size: calc(100vh - 11rem);
+  overflow: auto;
+}
+
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.commits,
+.files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.commit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--sn-color-stroke);
+  border-radius: var(--sn-list-item-radius, 0.5rem);
+  background: var(--sn-color-surface);
+}
+
+.commit-head,
+.file {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  inline-size: 100%;
+  padding: 0.125rem 0.25rem;
+  border: 0;
+  border-radius: var(--sn-radius-control);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.commit-head:hover,
+.file:hover,
+.file.selected {
+  background: var(--sn-color-hover);
+}
+
+.commit-head:focus-visible,
+.file:focus-visible {
+  outline: var(--sn-focus-outline);
+}
+
+.subject {
+  flex: 1;
+  font-weight: var(--sn-font-weight-strong);
+}
+
+.path {
+  flex: 1;
+  font-family: var(--sn-font-mono);
+}
+
+.truncate {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding-inline-start: 1.75rem;
+}
+
+.mono {
+  font-family: var(--sn-font-mono);
+}
+
+.stat {
+  white-space: nowrap;
+}
+
+/* The theme's success and danger are fill colours: mixed towards the text colour to read as text (darker in light
+   mode, lighter in dark mode). */
+.add {
+  color: color-mix(in srgb, var(--sn-color-success) 45%, var(--sn-color-fg));
+}
+
+.del {
+  color: color-mix(in srgb, var(--sn-color-danger) 55%, var(--sn-color-fg));
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0 1.75rem;
+}
+
+.message {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+.whole {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.diff {
+  margin: 0;
+  max-block-size: max(28rem, calc(100vh - 20rem));
+  overflow: auto;
+  padding: 0.5rem 0;
+  border: 1px solid var(--sn-color-stroke);
+  /* Not the control radius: that is a pill on macOS. */
+  border-radius: var(--sn-list-item-radius, 0.5rem);
+  background: var(--sn-color-bg);
+  font-family: var(--sn-font-mono);
+  font-size: var(--sn-font-size-small);
+  line-height: 1.45;
+}
+
+.line {
+  display: block;
+  padding-inline: 0.75rem;
+  white-space: pre;
+}
+
+.line.add {
+  background: color-mix(in srgb, var(--sn-color-success) 14%, transparent);
+  color: inherit;
+}
+
+.line.del {
+  background: color-mix(in srgb, var(--sn-color-danger) 14%, transparent);
+  color: inherit;
+}
+
+.line.hunk {
+  color: var(--sn-color-primary);
+}
+
+.line.meta {
+  color: var(--sn-color-fg-muted);
+}

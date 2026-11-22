@@ -94,4 +94,26 @@ func TestPushDayToTempo(t *testing.T) {
 			t.Errorf("created: %v", created)
 		}
 	})
+	t.Run("a month sends its reviewed days, without days that have drafts or haven't come", func(t *testing.T) {
+		add("2026-03-05", "09:00", "ORB-2", 1800, core.StatusReviewed)
+		add("2026-03-05", "10:00", "ORB-2", 900, core.StatusDraft) // the day isn't reviewed yet
+		add("2026-03-12", "09:00", "ORB-2", 1800, core.StatusReviewed)
+		p, err := s.PushPreview("2026-03-01", "2026-03-31")
+		must(t, err)
+		// 03-03's ORB-1 is reviewed but Tempo has it: the preview can't know that without the network.
+		if p.Entries != 2 || p.Days != 2 || p.Seconds != 3600+1800 || len(p.DraftDays) != 1 || p.DraftDays[0] != "2026-03-05" || p.Later != 1 {
+			t.Fatalf("preview: %+v", p)
+		}
+		created = nil
+		must(t, s.PushRangeToTempo("2026-03-31", "2026-03-01"))
+		if len(created) != 1 || !strings.Contains(created[0], `"startDate":"2026-03-04"`) {
+			t.Fatalf("created: %v", created)
+		}
+		if w, _ := s.one(other); w.Status != core.StatusExported {
+			t.Errorf("03-04's entry: %+v", w)
+		}
+		if !lastActivity(s, "Sent 1 worklogs for 2026-03-01 – 2026-03-31") || !lastActivity(s, "1 days with drafts") {
+			t.Errorf("activity: %+v", s.Activity())
+		}
+	})
 }

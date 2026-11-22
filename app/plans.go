@@ -105,6 +105,9 @@ func (s *Service) Plans(month string) (PlansDTO, error) {
 		return out, fmt.Errorf("not a month: %q", month)
 	}
 	out.Read = s.readBack(from)
+	if !out.Read {
+		return out, nil // nothing to show next to until Tempo is read
+	}
 	logs, err := s.Store.Worklogs(from, to)
 	if err != nil {
 		return out, err

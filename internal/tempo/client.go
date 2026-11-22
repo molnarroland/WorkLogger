@@ -435,6 +435,30 @@ func (a ADF) Text() string {
 	return strings.Join(parts, " ")
 }
 
+// Words is all text nodes with blocks (paragraphs, list items, headings…) and line breaks kept apart by a space,
+// where Text runs a list's items together.
+func (a ADF) Words() string {
+	var b strings.Builder
+	var walk func(n ADFNode)
+	walk = func(n ADFNode) {
+		switch {
+		case n.Text != nil:
+			b.WriteString(*n.Text)
+		case n.Type == "hardBreak":
+			b.WriteByte(' ')
+		default:
+			for _, c := range n.Content {
+				walk(c)
+			}
+			b.WriteByte(' ')
+		}
+	}
+	for _, n := range a.Content {
+		walk(n)
+	}
+	return strings.TrimSpace(b.String())
+}
+
 // Coverage is the "KEY|day" ticket-days whose time Tempo already has: Tempo's time for the ticket on that day is
 // at least what WorkLogger has (a minute of rounding allowed). Entries without a ticket never match.
 func Coverage(logs []core.Worklog, tempo []Worklog) map[string]bool {

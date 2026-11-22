@@ -64,7 +64,7 @@ func (s *Service) finishSettled(ctx context.Context, m core.Message, err error, 
 	return err
 }
 
-// Collect reads git history, the calendars and HRmaster's missing hours for the days, then rebuilds the drafts. It emits collect:progress
+// Collect reads git history, the calendars and HRmaster's hours that aren't final yet (hrmasterGaps) for the days, then rebuilds the drafts. It emits collect:progress
 // while it runs and collect:done when it ends (finished or cancelled). Unless forced, it leaves out the weeks
 // Tempo already has in full (settledDays): the range shrinks to the days around them, and collect:done counts
 // what was left out.
@@ -149,7 +149,7 @@ func (s *Service) Collect(from, to string, force bool) error {
 			skipped = append(skipped, err.Error())
 		}
 	}
-	// HRmaster's hours for the past days it hasn't filled in yet (a month read before those days happened).
+	// HRmaster's hours for the days whose hours weren't final when last read (today's always).
 	if profiles := st.ProfilesOf(core.ProfileHRmaster); st.Has(core.ModuleWorkTimes) && len(profiles) > 0 && ctx.Err() == nil {
 		months, err := s.hrmasterGaps(from, to)
 		if err != nil {
@@ -278,12 +278,13 @@ func (s *Service) FetchHrmaster(from, to string) error {
 	return s.finish(ctx, core.Say("hrmaster.imported", "n", days).WithSkipped(problems), nil)
 }
 
-// hrmasterGaps is the months Collect reads from HRmaster: those with a day up to yesterday that HRmaster hasn't
-// filled in. A day counts as filled when it has sessions, or its record says rest day, leave, a holiday or hours
-// worked; a workday recorded with nothing was read before it happened. Today is left to the HRmaster fetch: its
-// hours aren't final until the day ends.
+// hrmasterGaps is the months Collect reads from HRmaster: those with a day up to today whose hours aren't final
+// yet. Rest days, leave and holidays are final as soon as they are read; any other day is final once it was read
+// after it ended, so a month read in the middle of a day (or before the day happened) is read again, and today is
+// always read. Records from before the read day was kept are read once more; sessions without a record count as
+// read.
 func (s *Service) hrmasterGaps(from, to string) ([]web.Month, error) {
-	to = min(to, s.Days.Shift(s.today(), -1))
+	to = min(to, s.today())
 	if from > to {
 		return nil, nil
 	}
@@ -295,14 +296,13 @@ func (s *Service) hrmasterGaps(from, to string) ([]web.Month, error) {
 	if err != nil {
 		return nil, err
 	}
-	filled := map[string]bool{}
+	hasSessions := map[string]bool{}
 	for _, w := range sessions {
-		filled[w.Day] = true
+		hasSessions[w.Day] = true
 	}
 	var out []web.Month
 	for _, day := range s.Days.Range(from, to) {
-		r := records[day]
-		if filled[day] || r != nil && (r.Status == core.DayRestDay || r.Status.IsAbsence() || r.ReportedWorked != nil && *r.ReportedWorked > 0) {
+		if hrmasterFinal(day, records[day], hasSessions[day]) {
 			continue
 		}
 		d := s.Days.Date(day)
@@ -311,6 +311,18 @@ func (s *Service) hrmasterGaps(from, to string) ([]web.Month, error) {
 		}
 	}
 	return out, nil
+}
+
+// hrmasterFinal: HRmaster's record of the day won't change any more (hrmasterGaps).
+func hrmasterFinal(day string, r *core.DayRecord, hasSessions bool) bool {
+	switch {
+	case r == nil:
+		return hasSessions
+	case r.Status == core.DayRestDay || r.Status.IsAbsence():
+		return true
+	default:
+		return r.ReadOn > day
+	}
 }
 
 // importHrmaster reads the months from every HRmaster profile and imports them merged: each day from the profile
@@ -357,6 +369,10 @@ func (s *Service) importHrmaster(ctx context.Context, profiles []core.Profile, m
 		return 0, problems, errors.New(strings.Join(problems, " "))
 	}
 	merged := core.MergeTimesheets(sheets)
+	today := s.today()
+	for i := range merged.Days {
+		merged.Days[i].ReadOn = today
+	}
 	if err := s.Store.WithContext(ctx).ImportTimesheet(merged); err != nil {
 		return 0, problems, err
 	}

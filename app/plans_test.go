@@ -53,6 +53,10 @@ func TestTempoPlans(t *testing.T) {
 	chat.IssueKey = nil
 	_, err = db.InsertWorklog(chat)
 	must(t, err)
+	lone := ts.Worklog("2026-03-06", "10:00", 1800, core.SourceGit, "", false) // a day with no plans
+	lone.IssueKey = nil
+	_, err = db.InsertWorklog(lone)
+	must(t, err)
 
 	p, err := s.Plans("2026-03")
 	must(t, err)
@@ -67,7 +71,7 @@ func TestTempoPlans(t *testing.T) {
 
 	p, err = s.Plans("2026-03")
 	must(t, err)
-	if !p.Read || p.Planned != 3*3600 || len(p.Days) != 2 {
+	if !p.Read || p.Planned != 3*3600 || len(p.Days) != 3 {
 		t.Fatalf("read %v, planned %d, %d days", p.Read, p.Planned, len(p.Days))
 	}
 	d := p.Days[0]
@@ -84,6 +88,10 @@ func TestTempoPlans(t *testing.T) {
 	}
 	if len(d.Untagged) != 1 || d.Untagged[0].Source != "chat" || d.Suggest == nil || *d.Suggest != "ORB-1" {
 		t.Errorf("untagged %+v, suggest %v", d.Untagged, d.Suggest)
+	}
+
+	if lone := p.Days[2]; lone.Day != "2026-03-06" || len(lone.Items) != 0 || len(lone.Untagged) != 1 || lone.Suggest != nil {
+		t.Errorf("a day with only entries without a ticket: %+v", lone)
 	}
 
 	m, err := s.Month("2026-03")
@@ -108,7 +116,7 @@ func TestTempoPlans(t *testing.T) {
 			t.Fatal(err)
 		}
 		p, _ := s.Plans("2026-03")
-		if p.Planned != 0 || len(p.Days) != 1 || p.Days[0].Items[0].Kind != "tempo" {
+		if p.Planned != 0 || len(p.Days) != 2 || p.Days[0].Items[0].Kind != "tempo" {
 			t.Errorf("after a failed plan read: %+v", p)
 		}
 	})

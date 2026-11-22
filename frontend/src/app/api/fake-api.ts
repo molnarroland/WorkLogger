@@ -13,6 +13,11 @@ import type {
   ChatDayDto,
   CheckLine,
   CollectProgress,
+  CommitDto,
+  CommitDiffDto,
+  CommitFileDto,
+  IssueOptionDto,
+  PushPreviewDto,
   ExportFormat,
   MonthDto,
   JiraActivityDto,
@@ -36,6 +41,7 @@ import type {
 import type { LanguageChoice } from '../i18n/t.pipe';
 import { EVENTS } from './api';
 import {
+  SAMPLE_MONTHS,
   SAMPLE_TODAY,
   sampleWeek,
   sampleSetup,
@@ -280,6 +286,126 @@ export class FakeApi implements Api {
 
   async openJiraIssue() {
     // The fake has no browser to open.
+  }
+
+  /** The tickets of the sample month: the day's first, then the rest by when they were last used. */
+  async issueOptions(day: string): Promise<IssueOptionDto[]> {
+    const m = await this.month(day.slice(0, 7));
+    const byKey = new Map<string, IssueOptionDto>();
+    for (const w of m.worklogs) {
+      if (!w.issueKey) continue;
+      const o = byKey.get(w.issueKey) ?? { ...issueOption(w.issueKey, ''), origin: 'recent' as const };
+      o.uses++;
+      if (w.day > o.day) o.day = w.day;
+      if (w.day === day) o.origin = 'day';
+      byKey.set(w.issueKey, o);
+    }
+    return [...byKey.values()].sort(
+      (a, b) => Number(b.origin === 'day') - Number(a.origin === 'day') || b.day.localeCompare(a.day),
+    );
+  }
+
+  /** Invented issues created around the day, filtered by the words of the text. */
+  async searchJiraIssues(day: string, text: string, weeks: number): Promise<IssueOptionDto[]> {
+    if (this.locked) throw new Error('Unlock first: tokens are kept in the keyring.');
+    const base = new Date(`${day}T12:00:00`);
+    const titles = [
+      'Login page times out on slow networks',
+      'Export the monthly report as CSV',
+      'Rounding of commit estimates',
+      'Payment webhook retries',
+      'Dark mode for the settings page',
+      'Upgrade the build pipeline',
+    ];
+    const descriptions = [
+      'On 3G the sign-in request takes over 30 seconds and the page gives up. Raise the timeout and show progress.',
+      'Finance wants the month as a CSV with one row per day and ticket, hours with two decimals.',
+      '',
+      'Stripe retries a failed webhook for three days; make the handler idempotent so a retry books nothing twice.',
+      'Follow the system appearance and remember an override per user.',
+      'Move CI to the new runners and cache the Go modules between jobs.',
+    ];
+    const words = text
+      .toLocaleLowerCase()
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter(Boolean);
+    return titles
+      .map((summary, i) => {
+        const created = new Date(base);
+        created.setDate(base.getDate() + (i % 2 ? 1 : -1) * Math.round(((i + 1) * 7 * weeks) / titles.length));
+        return {
+          ...issueOption(`WL-${120 + i}`, summary),
+          origin: 'jira' as const,
+          day: created.toISOString().slice(0, 10),
+          status: i % 3 ? 'In Progress' : 'To Do',
+          description: descriptions[i],
+          account: 'j1',
+        };
+      })
+      .filter((o) =>
+        words.every((w) =>
+          o.summary
+            .toLocaleLowerCase()
+            .split(/\s+/)
+            .some((x) => x.startsWith(w)),
+        ),
+      );
+  }
+
+  /** Two made-up commits for a git entry. */
+  async worklogCommits(id: number): Promise<CommitDto[]> {
+    for (const month of SAMPLE_MONTHS) this.get(month); // every sample month, loaded once
+    const w = this.find(id);
+    if (!w || w.source !== 'git') return [];
+    const repo = this.repoList[id % Math.max(this.repoList.length, 1)];
+    const key = w.issueKey ?? '';
+    return [
+      { minutes: 0, subject: `${key} Fix rounding of the last entry`.trim(), files: 3, ins: 42, del: 7 },
+      { minutes: 95, subject: `${key} Cover daylight-saving days`.trim(), files: 1, ins: 18, del: 2 },
+    ].map((c, i) => ({
+      repoId: repo?.id ?? 1,
+      repo: repo?.name ?? 'billing',
+      hash: `${(id * 7919 + i).toString(16).padStart(8, '0')}c0ffee${i}`,
+      at: new Date(new Date(w.start).getTime() + c.minutes * 60_000).toISOString(),
+      author: 'You',
+      subject: c.subject,
+      body: i === 0 ? 'The remainder went to the first entry instead of the largest one.' : '',
+      ref: 'refs/heads/main',
+      files: c.files,
+      insertions: c.ins,
+      deletions: c.del,
+    }));
+  }
+
+  async commitFiles(_repoId: number, hash: string): Promise<CommitFileDto[]> {
+    return hash.endsWith('0')
+      ? [
+          { path: 'internal/core/builder.go', added: 30, deleted: 6 },
+          { path: 'internal/core/builder_test.go', added: 11, deleted: 1 },
+          { path: 'docs/{notes.md => ARCHITECTURE.md}', added: 1, deleted: 0 },
+        ]
+      : [{ path: 'internal/core/days_test.go', added: 18, deleted: 2 }];
+  }
+
+  async commitDiff(_repoId: number, _hash: string, path: string): Promise<CommitDiffDto> {
+    const file = path || 'internal/core/builder.go';
+    return {
+      text: [
+        `diff --git a/${file} b/${file}`,
+        'index 3f2a1c0..9b8e7d1 100644',
+        `--- a/${file}`,
+        `+++ b/${file}`,
+        '@@ -120,7 +120,9 @@ func share(total int, parts []int) []int {',
+        ' \tfor i := range parts {',
+        '-\t\tout[0] += rest',
+        '+\t\t// The remainder goes to the largest part.',
+        '+\t\tout[largest(parts)] += rest',
+        ' \t}',
+        ' \treturn out',
+        ' }',
+      ].join('\n'),
+      truncated: false,
+    };
   }
 
   /** Two pages a day from the sample: a spec named after the day's ticket (with its draft), and a roadmap. */
@@ -838,6 +964,49 @@ export class FakeApi implements Api {
     });
   }
 
+  /** The sample's reviewed entries in the range, by the backend's rule (pushPlan). */
+  private pushPlan(from: string, to: string) {
+    const byDay = new Map<string, WorklogDto[]>();
+    for (const month of SAMPLE_MONTHS)
+      for (const w of this.get(month).worklogs)
+        if (w.day >= from && w.day <= to) byDay.set(w.day, [...(byDay.get(w.day) ?? []), w]);
+    const ready: WorklogDto[] = [];
+    const preview: PushPreviewDto = { entries: 0, seconds: 0, days: 0, draftDays: [], later: 0 };
+    for (const [day, logs] of [...byDay].sort(([a], [b]) => a.localeCompare(b))) {
+      const dayReady = logs.filter((w) => w.status === 'reviewed' && w.tempoId == null && w.issueKey && w.duration > 0);
+      if (day > SAMPLE_TODAY) preview.later += dayReady.length;
+      else if (logs.some((w) => w.status === 'draft' && w.duration > 0)) preview.draftDays.push(day);
+      else if (dayReady.length) {
+        ready.push(...dayReady);
+        preview.days++;
+        preview.entries += dayReady.length;
+        preview.seconds += dayReady.reduce((n, w) => n + w.duration, 0);
+      }
+    }
+    return { ready, preview };
+  }
+
+  async pushPreview(from: string, to: string) {
+    return this.pushPlan(from, to).preview;
+  }
+
+  async pushRangeToTempo(from: string, to: string) {
+    const { ready, preview } = this.pushPlan(from, to);
+    let tempoId = 9500;
+    for (const w of ready) Object.assign(w, { status: 'exported', locked: true, tempoId: tempoId++ });
+    const n = ready.length;
+    const drafts = preview.draftDays.length;
+    this.emit<CollectDone>(EVENTS.collectDone, {
+      cancelled: false,
+      failed: false,
+      message: {
+        code: 'push.rangeDone',
+        params: { n, from, to, already: 0, drafts, later: preview.later },
+        text: `Sent ${n} worklogs for ${from} – ${to} to Tempo (0 already there, left out; ${drafts} days with drafts and ${preview.later} entries on later days not sent).`,
+      },
+    });
+  }
+
   // ── Jobs and events ────────────────────────────────────────────────────────
 
   async cleanUpSettled(): Promise<CleanupDto> {
@@ -968,4 +1137,18 @@ function entryFlags(w: WorklogDto) {
   w.effectiveStatus = w.status;
   w.canDelete = w.tempoId === null;
   w.canMove = w.status !== 'exported';
+}
+
+function issueOption(key: string, summary: string): IssueOptionDto {
+  return {
+    key,
+    summary,
+    origin: 'recent',
+    day: '',
+    uses: 0,
+    status: '',
+    description: '',
+    account: '',
+    accountName: '',
+  };
 }

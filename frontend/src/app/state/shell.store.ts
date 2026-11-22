@@ -1,4 +1,5 @@
 import { DestroyRef, Injectable, type Signal, computed, inject, signal } from '@angular/core';
+import { SnAlert } from '@spartan-native/desktop-ui';
 import {
   API,
   type Api,
@@ -16,6 +17,7 @@ import {
 import { I18n } from '../i18n/t.pipe';
 import { visiblePanes } from '../shell/panes';
 import type { Task, TaskState } from '../shared/task';
+import { dayTitle, formatDuration } from '../shared/worklogs';
 
 export type Job = 'collect' | 'rebuild' | 'fetchHrmaster' | 'fetchGoogleChat' | 'fetchGoogleCalendar';
 
@@ -68,6 +70,7 @@ export function providePageHeader(store: ShellStore, destroy: DestroyRef, header
 export class ShellStore {
   private readonly api = inject(API);
   private readonly i18n = inject(I18n);
+  private readonly alert = inject(SnAlert);
 
   readonly locked = signal(true);
   readonly unlocking = signal(false);
@@ -209,12 +212,47 @@ export class ShellStore {
   }
 
   /** Sends one day to Tempo, by hand (the job's last word goes to the status bar); a job slot like run(). */
-  async pushDay(day: string) {
+  pushDay(day: string) {
+    return this.push(this.i18n.t('tasks.pushDay', { day }), () => this.api.pushDayToTempo(day));
+  }
+
+  /**
+   * Sends the reviewed entries of a week or a month (inclusive) to Tempo, after asking: the question says how
+   * many go and which days are left out (drafts, days to come). With nothing to send it only says so.
+   */
+  async sendRange(from: string, to: string) {
+    if (this.busy() || !this.data()) return;
+    const p = await this.attempt(() => this.api.pushPreview(from, to));
+    if (!p) return;
+    const lang = this.i18n.lang();
+    const left = [
+      p.draftDays.length
+        ? this.i18n.t('push.rangeDrafts', {
+            n: p.draftDays.length,
+            days: p.draftDays.map((d) => dayTitle(d, lang)).join(', '),
+          })
+        : '',
+      p.later ? this.i18n.t('push.rangeLater', { n: p.later }) : '',
+    ].filter(Boolean);
+    if (!p.entries) {
+      this.status.set([this.i18n.t('push.rangeNothing', { from, to }), ...left].join(' '));
+      return;
+    }
+    const yes = await this.alert.confirm([this.i18n.t('push.rangeDetail'), ...left].join(' '), {
+      title: this.i18n.t('push.rangeQuestion', { n: p.entries, d: formatDuration(p.seconds), days: p.days, from, to }),
+      confirmLabel: this.i18n.t('export.send'),
+      cancelLabel: this.i18n.t('status.cancel'),
+    });
+    if (yes) await this.push(this.i18n.t('tasks.pushRange', { from, to }), () => this.api.pushRangeToTempo(from, to));
+  }
+
+  /** A send to Tempo as a job: the Tasks entry, the busy slot, then the month and Tempo's read-back again. */
+  private async push(label: string, op: () => Promise<void>) {
     if (this.busy() || !this.data()) return;
     this.busy.set(true);
-    const task = (this.jobTask = this.startTask(this.i18n.t('tasks.pushDay', { day })));
+    const task = (this.jobTask = this.startTask(label));
     try {
-      await this.api.pushDayToTempo(day);
+      await op();
       await this.reload();
       void this.refreshTempo();
     } catch (e) {

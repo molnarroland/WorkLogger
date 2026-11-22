@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { SnAlert } from '@spartan-native/desktop-ui';
 import { API } from '../api/api';
 import { FakeApi, type FakeApiOptions } from '../api/fake-api';
 import { fixtures } from '../api/testing/fixtures';
@@ -8,9 +9,16 @@ import { ShellStore } from './shell.store';
 // The store holds what the backend computed; the FakeApi's mutations are naive (they change an entry's own
 // fields, not the derived totals), so these specs check the wiring: the call is made and the month re-read.
 // The derived values themselves are tested in Go (internal/view).
-async function store(opts: FakeApiOptions = {}, api = new FakeApi({ stepMs: 0, ...opts })) {
+async function store(
+  opts: FakeApiOptions = {},
+  api = new FakeApi({ stepMs: 0, ...opts }),
+  confirm = vi.fn(async () => true),
+) {
   TestBed.configureTestingModule({
-    providers: [{ provide: API, useValue: api }],
+    providers: [
+      { provide: API, useValue: api },
+      { provide: SnAlert, useValue: { confirm } },
+    ],
   });
   const s = TestBed.inject(ShellStore);
   await s.ready;
@@ -18,6 +26,43 @@ async function store(opts: FakeApiOptions = {}, api = new FakeApi({ stepMs: 0, .
 }
 
 describe('ShellStore', () => {
+  it('asks before sending a range to Tempo, with the days left out, then sends it as a job', async () => {
+    const api = new FakeApi({ stepMs: 0 });
+    const confirm = vi.fn(async () => true);
+    const s = await store({}, api, confirm);
+    const send = vi.spyOn(api, 'pushRangeToTempo');
+    vi.spyOn(api, 'pushPreview').mockResolvedValue({
+      entries: 3,
+      seconds: 3 * 3600,
+      days: 2,
+      draftDays: ['2026-10-29'],
+      later: 1,
+    });
+    await s.sendRange('2026-10-26', '2026-11-01');
+    expect(confirm).toHaveBeenCalledTimes(1);
+    const [detail, o] = confirm.mock.calls[0] as unknown as [string, { title: string }];
+    expect(o.title).toBe('Send 3 reviewed worklogs (3h) on 2 days for 2026-10-26 – 2026-11-01 to Tempo?');
+    expect(detail).toMatch(/1 day still has drafts and is left out: .*29/);
+    expect(detail).toMatch(/1 entry on a day that hasn't come yet is left out/);
+    expect(send).toHaveBeenCalledWith('2026-10-26', '2026-11-01');
+    expect(s.busy()).toBe(false);
+  });
+
+  it("doesn't send when the question is cancelled, nor ask when nothing is reviewed", async () => {
+    const api = new FakeApi({ stepMs: 0 });
+    const confirm = vi.fn(async () => false);
+    const s = await store({}, api, confirm);
+    const send = vi.spyOn(api, 'pushRangeToTempo');
+    const preview = vi.spyOn(api, 'pushPreview');
+    preview.mockResolvedValue({ entries: 1, seconds: 3600, days: 1, draftDays: [], later: 0 });
+    await s.sendRange('2026-10-01', '2026-10-31');
+    expect(send).not.toHaveBeenCalled();
+    preview.mockResolvedValue({ entries: 0, seconds: 0, days: 0, draftDays: [], later: 0 });
+    await s.sendRange('2026-10-01', '2026-10-31');
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(s.status()).toBe('Nothing reviewed to send for 2026-10-01 – 2026-10-31.');
+  });
+
   it("loads modules and the backend's current month when unlocked", async () => {
     const s = await store();
     expect(s.locked()).toBe(false);

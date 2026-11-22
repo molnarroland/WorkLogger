@@ -1,0 +1,99 @@
+<sn-modal-sheet [(open)]="open" [title]="heading()">
+  <div class="body wl-commit-sheet">
+    @if (commits.isLoading()) {
+      <p class="loading small sn-text-muted"><hlm-spinner /> {{ 'commits.loading' | t }}</p>
+    } @else if (commits.error()) {
+      <p class="needs-ticket small">{{ 'commits.failed' | t }}</p>
+    } @else if (!commits.value()?.length) {
+      <sn-status-page
+        icon="lucideGitCommitHorizontal"
+        [title]="'commits.noneTitle' | t"
+        [description]="'commits.noneBody' | t"
+      />
+    } @else {
+      <ul class="commits" [attr.aria-label]="'commits.title' | t">
+        @for (c of commits.value(); track c.hash) {
+          @let open = expanded()[c.hash];
+          <li class="commit">
+            <button type="button" class="commit-head" [attr.aria-expanded]="!!open" (click)="toggle(c)">
+              <ng-icon [name]="open ? 'lucideChevronDown' : 'lucideChevronRight'" aria-hidden="true" />
+              <span class="subject truncate" [title]="c.subject">{{ c.subject }}</span>
+              <span class="stat tabular small">
+                <span class="add">+{{ c.insertions }}</span> <span class="del">−{{ c.deletions }}</span>
+              </span>
+            </button>
+            <p class="meta small sn-text-muted tabular">
+              <span class="mono">{{ short(c.hash) }}</span>
+              <span>{{ c.repo }}</span>
+              @if (branch(c.ref); as b) {
+                <span class="truncate" [title]="b">{{ b }}</span>
+              }
+              <span>{{ when(c.at) }}</span>
+              <span>{{ 'commits.files' | t: { n: c.files } }}</span>
+              <wl-copy-button [small]="true" [iconOnly]="true" [label]="'commits.copyHash' | t" [text]="c.hash" />
+            </p>
+            @if (open) {
+              <div class="detail">
+                @if (c.body) {
+                  <pre class="message small">{{ c.body }}</pre>
+                }
+                @if (open.error) {
+                  <p class="needs-ticket small">{{ open.error }}</p>
+                }
+                @if (open.files; as files) {
+                  <ul class="files" [attr.aria-label]="'commits.filesOf' | t: { hash: short(c.hash) }">
+                    @for (f of files; track f.path) {
+                      <li>
+                        <button
+                          type="button"
+                          class="file small"
+                          [class.selected]="open.path === f.path"
+                          [attr.aria-pressed]="open.path === f.path"
+                          (click)="showDiff(c, f.path)"
+                        >
+                          <ng-icon name="lucideFileDiff" aria-hidden="true" />
+                          <span class="path truncate" [title]="f.path">{{ f.path }}</span>
+                          <span class="stat tabular">
+                            <span class="add">+{{ f.added }}</span> <span class="del">−{{ f.deleted }}</span>
+                          </span>
+                        </button>
+                      </li>
+                    } @empty {
+                      <li class="small sn-text-muted">{{ 'commits.noFiles' | t }}</li>
+                    }
+                  </ul>
+                  <div class="whole">
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      [attr.aria-pressed]="open.path === ''"
+                      (click)="showDiff(c, '')"
+                    >
+                      {{ (open.path === '' ? 'commits.hideAll' : 'commits.showAll') | t }}
+                    </button>
+                  </div>
+                }
+                @if (loading() === c.hash) {
+                  <p class="loading small sn-text-muted"><hlm-spinner /> {{ 'commits.reading' | t }}</p>
+                }
+                @if (open.diff; as d) {
+                  <pre
+                    class="diff"
+                    [attr.aria-label]="'commits.diffOf' | t: { path: open.path || short(c.hash) }"
+                  ><code>@for (l of lines(d.text); track $index) {<span class="line {{ l.kind }}">{{ l.text }}
+</span>}</code></pre>
+                  @if (d.truncated) {
+                    <p class="small sn-text-muted">{{ 'commits.truncated' | t }}</p>
+                  }
+                }
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+  <button hlmBtn variant="outline" snSheetCancel type="button">{{ 'commits.close' | t }}</button>
+</sn-modal-sheet>

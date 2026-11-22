@@ -45,6 +45,9 @@ export const sampleSetup = (name: SampleSetup): SetupStepDto[] => structuredClon
 /** The day the sample data is computed for. */
 export const SAMPLE_TODAY = data.today;
 
+/** The months the sample has ("YYYY-MM"). */
+export const SAMPLE_MONTHS = Object.keys(data.months);
+
 /** The sample week holding `day` (September to November 2026), or null. Its prev/next step a week from its Monday. */
 export function sampleWeek(day: string, empty = false): WeekDto | null {
   const w = Object.values(empty ? data.emptyWeeks : data.weeks).find((x) => x.days.some((d) => d.day === day));

@@ -103,3 +103,11 @@ tr.wl-focused > td:first-child {
   width: min(52rem, calc(100vw - 2rem));
   min-block-size: min(40rem, calc(100vh - 8rem));
 }
+
+/* The commits and ticket-picker sheets hold long lists: wide, and as tall as the window allows. */
+.cdk-overlay-pane [data-slot='sn-modal-sheet-panel'].sheet:has(.wl-commit-sheet) {
+  width: min(72rem, calc(100vw - 2rem));
+}
+.cdk-overlay-pane [data-slot='sn-modal-sheet-panel'].sheet:has(.wl-issue-picker) {
+  width: min(56rem, calc(100vw - 2rem));
+}

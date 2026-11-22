@@ -12,6 +12,7 @@ import type {
   ChatsDto,
   ChatMessageDto,
   CheckLine,
+  IssueOptionDto,
   ExportFormat,
   JiraAccount,
   MeetingsDto,
@@ -54,6 +55,12 @@ export class WailsApi implements Api {
   jiraActivity = async (from: string, to: string) => (await Go.JiraActivity(from, to)) as unknown as JiraActivityDto;
   sourceCounts = (from: string, to: string) => Go.SourceCounts(from, to);
   openJiraIssue = (account: string, key: string) => Go.OpenJiraIssue(account, key);
+  issueOptions = async (day: string) => ((await Go.IssueOptions(day)) ?? []) as IssueOptionDto[];
+  searchJiraIssues = async (day: string, text: string, weeks: number) =>
+    ((await Go.SearchJiraIssues(day, text, weeks)) ?? []) as IssueOptionDto[];
+  worklogCommits = async (id: number) => (await Go.WorklogCommits(id)) ?? [];
+  commitFiles = async (repoId: number, hash: string) => (await Go.CommitFiles(repoId, hash)) ?? [];
+  commitDiff = (repoId: number, hash: string, path: string) => Go.CommitDiff(repoId, hash, path);
   confluenceActivity = async (from: string, to: string) =>
     (await Go.ConfluenceActivity(from, to)) as unknown as ConfluenceActivityDto;
   openConfluencePage = (profile: string, pageId: string) => Go.OpenConfluencePage(profile, pageId);
@@ -141,6 +148,11 @@ export class WailsApi implements Api {
   exportText = (ids: number[]) => Go.ExportText(ids);
   exportFile = (ids: number[], format: ExportFormat) => Go.ExportFile(ids, format);
   pushDayToTempo = (day: string) => Go.PushDayToTempo(day);
+  pushPreview = async (from: string, to: string) => {
+    const p = await Go.PushPreview(from, to);
+    return { ...p, draftDays: p.draftDays ?? [] };
+  };
+  pushRangeToTempo = (from: string, to: string) => Go.PushRangeToTempo(from, to);
 
   collect = (from: string, to: string, force = false) => Go.Collect(from, to, force);
   cleanUpSettled = (from: string, to: string) => Go.CleanUpSettled(from, to);

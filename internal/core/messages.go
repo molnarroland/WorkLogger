@@ -99,6 +99,7 @@ var English = map[string]string{
 	"push.done":            "Sent {n} worklogs to Tempo.",
 	"push.failed":          "Sent {n} worklogs to Tempo. Failed: {reason}",
 	"push.dayDone":         "Sent {n} worklogs for {day} to Tempo ({already} already there, left out).",
+	"push.rangeDone":       "Sent {n} worklogs for {from} – {to} to Tempo ({already} already there, left out; {drafts} days with drafts and {later} entries on later days not sent).",
 	"push.dayHasDrafts":    "{day} still has {n} draft entries. Review them before sending the day to Tempo.",
 	"push.future":          "{day} hasn't come yet; only past days and today can be sent to Tempo.",
 	"hrmaster.imported":    "HRmaster: imported {n} days. Rebuild drafts to apply them.",
@@ -136,6 +137,12 @@ var English = map[string]string{
 	"email.needPassword":     "Enter the mail password (an app password for Gmail, iCloud or Yahoo) in Settings → Profiles.",
 	"confluence.needProfile": "Add a Confluence profile in Settings → Profiles to read your Confluence pages.",
 	"jira.needProfile":       "Add a Jira profile with its API token in Settings → Profiles to read your Jira activity.",
+	"jira.searchNeedProfile": "Add a Jira profile with its API token in Settings → Profiles to search Jira.",
+
+	// Commits
+	"commit.badHash":  "That is not a commit hash.",
+	"commit.noRepo":   "The commit's repository is no longer in WorkLogger.",
+	"commit.notFound": "The commit could not be read from {repo}; it may have been rebased away or the repository moved.",
 
 	// Chats
 	"chat.future":           "Google Chat: these days haven't come yet.",

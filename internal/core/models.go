@@ -251,6 +251,9 @@ type DayRecord struct {
 	Label          string // e.g. "Munkanap (Home Office)", "Szabadság", "Pihenőnap"
 	ReportedWorked *int   // "Ledolgozott órák", seconds
 	ReportedBreaks *int   // "Napi nem fizetett szünet", seconds
+	// ReadOn is the day the record was read from HRmaster ("" for records read before this was kept). A record
+	// read on or before its own day may still change: its hours weren't final yet.
+	ReadOn string
 }
 
 // Ptr returns a pointer to v (for optional fields).

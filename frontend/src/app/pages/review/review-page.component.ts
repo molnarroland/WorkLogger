@@ -23,6 +23,7 @@ import { DurationPipe } from '../../shared/duration.pipe';
 import { dayTitle, hm } from '../../shared/worklogs';
 import { ShellStore } from '../../state/shell.store';
 import { SOURCE_ICON, provideSourceIcons } from '../../shared/source-icons';
+import { EntrySheetsComponent } from '../../shell/entry-sheets/entry-sheets.component';
 import { WorklogInspectorComponent } from '../../ui/worklog-inspector/worklog-inspector.component';
 
 export type ReviewFilter = 'noTicket' | 'drafts' | 'locked' | 'all';
@@ -49,6 +50,7 @@ export type ReviewFilter = 'noTicket' | 'drafts' | 'locked' | 'all';
     SnSelectableImports,
     SnStatusPage,
     TPipe,
+    EntrySheetsComponent,
     WorklogInspectorComponent,
   ],
   providers: [provideSourceIcons(), provideIcons({ lucideInbox, lucideLock, lucidePlus, lucideTriangleAlert })],

@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideMessagesSquare } from '@ng-icons/lucide';
+import { lucideMessagesSquare, lucideSend } from '@ng-icons/lucide';
 import { SnCommandBarImports, SnPageCommandsTemplate } from '@spartan-native/desktop-ui';
 import { API } from '../../api/api';
 import { I18n, TPipe } from '../../i18n/t.pipe';
@@ -29,7 +29,7 @@ const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 @Component({
   selector: 'wl-week-page',
   imports: [SnPageCommandsTemplate, SnCommandBarImports, TPipe, WeekTimelineComponent],
-  providers: [provideIcons({ lucideMessagesSquare })],
+  providers: [provideIcons({ lucideMessagesSquare, lucideSend })],
   templateUrl: './week-page.component.html',
   styleUrl: './week-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

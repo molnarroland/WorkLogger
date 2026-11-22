@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCopy, lucideFileText, lucideTriangleAlert } from '@ng-icons/lucide';
+import { lucideCopy, lucideFileText, lucideSend, lucideTriangleAlert } from '@ng-icons/lucide';
 import { SnModalSheet, SnSettingsImports } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
@@ -22,7 +22,7 @@ import { DurationPipe } from '../../shared/duration.pipe';
     SnSettingsImports,
     TPipe,
   ],
-  providers: [provideIcons({ lucideCopy, lucideFileText, lucideTriangleAlert })],
+  providers: [provideIcons({ lucideCopy, lucideFileText, lucideSend, lucideTriangleAlert })],
   templateUrl: './export-sheet.component.html',
   styleUrl: './export-sheet.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +36,8 @@ export class ExportSheetComponent {
   readonly copyMarkdown = output<number[]>();
   readonly save = output<{ ids: number[]; format: ExportFormat }>();
   readonly markExported = output<number[]>();
+  /** Send the range's reviewed entries to Tempo (the host asks first). */
+  readonly sendToTempo = output<void>();
 
   protected readonly files: ExportFormat[] = ['csv', 'json'];
   protected readonly onlyReviewed = signal(false);

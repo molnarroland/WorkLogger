@@ -142,6 +142,35 @@ func (s *Store) Commits(day string) ([]core.StoredCommit, error) {
 	return out, rows.Err()
 }
 
+// CommitsByHash is the stored commits with these hashes, in any repository, oldest first.
+func (s *Store) CommitsByHash(hashes []string) ([]core.StoredCommit, error) {
+	if len(hashes) == 0 {
+		return nil, nil
+	}
+	args := make([]any, len(hashes))
+	for i, h := range hashes {
+		args[i] = h
+	}
+	rows, err := s.query(`SELECT repo_id, hash, ts, COALESCE(author, ''), COALESCE(email, ''), subject, body, ref, files,
+        insertions, deletions FROM commits WHERE hash IN (?`+strings.Repeat(", ?", len(hashes)-1)+`) ORDER BY ts`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []core.StoredCommit
+	for rows.Next() {
+		var c core.StoredCommit
+		var ts int64
+		if err := rows.Scan(&c.RepoID, &c.Hash, &ts, &c.Author, &c.Email, &c.Subject, &c.Body, &c.Ref,
+			&c.FilesChanged, &c.Insertions, &c.Deletions); err != nil {
+			return nil, err
+		}
+		c.Date = fromUnix(ts)
+		out = append(out, c)
+	}
+	return out, rows.Err()
+}
+
 // ── Work sessions and day records ───────────────────────────────────────────
 
 func (s *Store) scanSessions(query string, args ...any) ([]core.WorkSession, error) {
@@ -191,10 +220,11 @@ func (s *Store) ImportTimesheet(t core.ParsedTimesheet) error {
 			}
 		}
 		for _, d := range t.Days {
-			if _, err := tx.exec(`INSERT INTO day_info(day, status, label, reported_worked, reported_breaks) VALUES(?, ?, ?, ?, ?)
+			if _, err := tx.exec(`INSERT INTO day_info(day, status, label, reported_worked, reported_breaks, read_on) VALUES(?, ?, ?, ?, ?, ?)
                 ON CONFLICT(day) DO UPDATE SET status = excluded.status, label = excluded.label,
-                    reported_worked = excluded.reported_worked, reported_breaks = excluded.reported_breaks`,
-				d.Day, string(d.Status), d.Label, nullIntPtr(d.ReportedWorked), nullIntPtr(d.ReportedBreaks)); err != nil {
+                    reported_worked = excluded.reported_worked, reported_breaks = excluded.reported_breaks,
+                    read_on = excluded.read_on`,
+				d.Day, string(d.Status), d.Label, nullIntPtr(d.ReportedWorked), nullIntPtr(d.ReportedBreaks), d.ReadOn); err != nil {
 				return err
 			}
 		}
@@ -220,7 +250,7 @@ func (s *Store) DeleteSessions(fromDay, toDay string) error {
 }
 
 func (s *Store) DayRecords(fromDay, toDay string) ([]core.DayRecord, error) {
-	rows, err := s.query(`SELECT day, status, label, reported_worked, reported_breaks FROM day_info
+	rows, err := s.query(`SELECT day, status, label, reported_worked, reported_breaks, read_on FROM day_info
         WHERE day >= ? AND day <= ? ORDER BY day`, fromDay, toDay)
 	if err != nil {
 		return nil, err
@@ -231,7 +261,7 @@ func (s *Store) DayRecords(fromDay, toDay string) ([]core.DayRecord, error) {
 		var d core.DayRecord
 		var status string
 		var worked, breaks sql.NullInt64
-		if err := rows.Scan(&d.Day, &status, &d.Label, &worked, &breaks); err != nil {
+		if err := rows.Scan(&d.Day, &status, &d.Label, &worked, &breaks, &d.ReadOn); err != nil {
 			return nil, err
 		}
 		d.Status = core.DayStatus(status)
@@ -655,6 +685,25 @@ func (s *Store) JiraTickets(day string) ([]core.JiraTicket, error) {
 		}
 		t.First, t.Last = fromUnix(first), fromUnix(last)
 		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// IssueSummaries is the latest summary your Jira activity saw for each ticket.
+func (s *Store) IssueSummaries() (map[string]string, error) {
+	rows, err := s.query(`SELECT a.issue_key, a.summary FROM jira_activity a
+        WHERE a.summary != '' AND a.ts = (SELECT MAX(ts) FROM jira_activity b WHERE b.issue_key = a.issue_key)`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]string{}
+	for rows.Next() {
+		var key, summary string
+		if err := rows.Scan(&key, &summary); err != nil {
+			return nil, err
+		}
+		out[key] = summary
 	}
 	return out, rows.Err()
 }

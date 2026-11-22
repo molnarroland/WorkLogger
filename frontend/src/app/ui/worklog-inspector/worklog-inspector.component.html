@@ -33,18 +33,31 @@
 
     <label hlmLabel [for]="id() + '-issue'">{{ 'worklog.issue' | t }}</label>
     <div class="stack">
-      <input
-        #issue
-        hlmInput
-        class="key-field"
-        [class.needs-ticket]="!w().issueKey"
-        [id]="id() + '-issue'"
-        [placeholder]="'issue.placeholder' | t"
-        [value]="w().issueKey ?? ''"
-        [disabled]="sent()"
-        (keydown.enter)="setIssue(issue)"
-        (blur)="setIssue(issue)"
-      />
+      <div class="with-button">
+        <input
+          #issue
+          hlmInput
+          class="key-field"
+          [class.needs-ticket]="!w().issueKey"
+          [id]="id() + '-issue'"
+          [placeholder]="'issue.placeholder' | t"
+          [value]="w().issueKey ?? ''"
+          [disabled]="sent()"
+          (keydown.enter)="setIssue(issue)"
+          (blur)="setIssue(issue)"
+        />
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [disabled]="sent()"
+          [snTooltip]="'worklog.chooseIssueHelp' | t"
+          (click)="chooseIssue.emit(w())"
+        >
+          <ng-icon name="lucideTextSearch" aria-hidden="true" /> {{ 'worklog.chooseIssue' | t }}
+        </button>
+      </div>
       @if (meetingRule(); as r) {
         <div>
           <button hlmBtn variant="outline" size="sm" type="button" (click)="always.emit(r)">
@@ -111,6 +124,11 @@
 </sn-inspector-section>
 
 <div class="actions">
+  @if (isGit()) {
+    <button hlmBtn variant="outline" size="sm" type="button" (click)="showCommits.emit(w())">
+      <ng-icon name="lucideGitCommitHorizontal" aria-hidden="true" /> {{ 'commits.show' | t }}
+    </button>
+  }
   @if (focus(); as f) {
     <button hlmBtn variant="outline" size="sm" type="button" class="show" (click)="open.emit(f)">
       <ng-icon name="lucideArrowUpRight" aria-hidden="true" />

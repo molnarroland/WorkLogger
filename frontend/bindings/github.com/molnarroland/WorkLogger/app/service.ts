@@ -145,13 +145,27 @@ export function ClearToken(accountID: string, kind: string): $CancellablePromise
 }
 
 /**
- * Collect reads git history, the calendars and HRmaster's missing hours for the days, then rebuilds the drafts. It emits collect:progress
+ * Collect reads git history, the calendars and HRmaster's hours that aren't final yet (hrmasterGaps) for the days, then rebuilds the drafts. It emits collect:progress
  * while it runs and collect:done when it ends (finished or cancelled). Unless forced, it leaves out the weeks
  * Tempo already has in full (settledDays): the range shrinks to the days around them, and collect:done counts
  * what was left out.
  */
 export function Collect($from: string, to: string, force: boolean): $CancellablePromise<void> {
     return $Call.ByID(2288006902, $from, to, force);
+}
+
+/**
+ * CommitDiff is a commit's patch, of one file (as CommitFiles names it) or, with an empty path, all of it.
+ */
+export function CommitDiff(repoID: number, hash: string, path: string): $CancellablePromise<$models.CommitDiffDTO> {
+    return $Call.ByID(223265374, repoID, hash, path);
+}
+
+/**
+ * CommitFiles is what a commit changed, read from its repository.
+ */
+export function CommitFiles(repoID: number, hash: string): $CancellablePromise<$models.CommitFileDTO[] | null> {
+    return $Call.ByID(3939514780, repoID, hash);
 }
 
 /**
@@ -266,6 +280,15 @@ export function IsLocked(): $CancellablePromise<boolean> {
 }
 
 /**
+ * IssueOptions is the tickets to offer for an entry of the day: planned for the day first, then those used that
+ * day, the project periods around it, then those used in the day's month or the months before it (latest first).
+ * It reads only what is stored (and Tempo's last read-back); nothing goes to the network.
+ */
+export function IssueOptions(day: string): $CancellablePromise<$models.IssueOptionDTO[] | null> {
+    return $Call.ByID(1266405203, day);
+}
+
+/**
  * JiraActivity reads what you did in Jira over the days (inclusive) with every Jira profile (issues you created,
  * fields you changed, comments and attachments) by day and ticket, each with the entries without a ticket that
  * ran around it. It goes to Jira every time; nothing is stored.
@@ -347,6 +370,22 @@ export function Projects(): $CancellablePromise<$models.ProjectDTO[] | null> {
  */
 export function PushDayToTempo(day: string): $CancellablePromise<void> {
     return $Call.ByID(1139369202, day);
+}
+
+/**
+ * PushPreview is what PushRangeToTempo would send for the days (inclusive). No network.
+ */
+export function PushPreview($from: string, to: string): $CancellablePromise<$models.PushPreviewDTO> {
+    return $Call.ByID(1046219348, $from, to);
+}
+
+/**
+ * PushRangeToTempo sends the reviewed entries of a week, a month or any days (inclusive) to Tempo, like
+ * PushDayToTempo for each day at once: days that still have drafts and days that haven't come yet are left out
+ * (and said so), and what Tempo already has for the range is read back first and left out.
+ */
+export function PushRangeToTempo($from: string, to: string): $CancellablePromise<void> {
+    return $Call.ByID(3922579671, $from, to);
 }
 
 /**
@@ -439,6 +478,14 @@ export function SaveSettings($in: core$0.Settings): $CancellablePromise<core$0.S
  */
 export function ScanWorkspace(): $CancellablePromise<void> {
     return $Call.ByID(3235324662);
+}
+
+/**
+ * SearchJiraIssues finds the Jira issues created within weeks (1–4) of the day whose summary has every word of
+ * text, with every Jira profile, nearest to the day first. A text that is an issue key finds that issue too.
+ */
+export function SearchJiraIssues(day: string, text: string, weeks: number): $CancellablePromise<$models.IssueOptionDTO[] | null> {
+    return $Call.ByID(1965009212, day, text, weeks);
 }
 
 /**
@@ -613,4 +660,11 @@ export function UseDescriptionsAsComments(day: string): $CancellablePromise<void
  */
 export function Week(day: string): $CancellablePromise<$models.WeekDTO> {
     return $Call.ByID(2129368792, day);
+}
+
+/**
+ * WorklogCommits is the commits an entry was made from (none for an entry that isn't from git), oldest first.
+ */
+export function WorklogCommits(id: number): $CancellablePromise<$models.CommitDTO[] | null> {
+    return $Call.ByID(4278613509, id);
 }

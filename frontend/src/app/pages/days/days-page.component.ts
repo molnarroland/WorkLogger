@@ -40,6 +40,7 @@ import { DayEntriesComponent } from '../../ui/day-entries/day-entries.component'
 import { openFocus } from '../../shared/focus';
 import { DayEvidenceComponent } from '../../ui/day-evidence/day-evidence.component';
 import { SourceBarComponent } from '../../ui/source-bar/source-bar.component';
+import { EntrySheetsComponent } from '../../shell/entry-sheets/entry-sheets.component';
 import { WorklogInspectorComponent } from '../../ui/worklog-inspector/worklog-inspector.component';
 
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -64,6 +65,7 @@ const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
     SnStatusPage,
     SourceBarComponent,
     TPipe,
+    EntrySheetsComponent,
     WorklogInspectorComponent,
   ],
   providers: [

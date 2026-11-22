@@ -55,7 +55,7 @@ func TestSchema(t *testing.T) {
 	s := open(t)
 	var v int
 	must(t, s.db.QueryRow("PRAGMA user_version").Scan(&v))
-	if v != SchemaVersion || SchemaVersion != 9 {
+	if v != SchemaVersion || SchemaVersion != 10 {
 		t.Errorf("migratesToTheLatestVersion: %d", v)
 	}
 

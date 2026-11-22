@@ -1,31 +1,43 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowUpRight, lucideCalendarClock, lucideRefreshCw, lucideSearchX } from '@ng-icons/lucide';
+import {
+  lucideArrowUpRight,
+  lucideCalendarClock,
+  lucideGitCommitHorizontal,
+  lucideRefreshCw,
+  lucideSearchX,
+  lucideTextSearch,
+} from '@ng-icons/lucide';
 import { SnCommandBarImports, SnPageCommandsTemplate, SnStatusPage, SnTooltip } from '@spartan-native/desktop-ui';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { API, type Focus, type PlanDayDto, type PlanItemDto } from '../../api/api';
+import { API, type Focus, type PlanDayDto, type PlanEntryDto, type PlanItemDto } from '../../api/api';
 import { I18n, TPipe } from '../../i18n/t.pipe';
 import { DurationPipe } from '../../shared/duration.pipe';
 import { clearFocus, openFocus } from '../../shared/focus';
 import { SOURCE_ICON, provideSourceIcons } from '../../shared/source-icons';
 import { dayTitle } from '../../shared/worklogs';
 import { ShellStore } from '../../state/shell.store';
+import { CommitSheetComponent } from '../../shell/commit-sheet/commit-sheet.component';
+import { IssuePickerComponent } from '../../shell/issue-picker/issue-picker.component';
 import { ListFilterComponent } from '../../ui/list-filter/list-filter.component';
 
 /**
  * Tempo plans of the month: per day, each ticket Tempo Planner planned for you (Jira or Tempo adds them when a ticket
  * is assigned or changes status) and each worklog Tempo has that WorkLogger didn't send, next to WorkLogger's own
- * commits, chats and meetings on the same ticket. A day's entries without a ticket can take its planned ticket.
+ * commits, chats and meetings on the same ticket. A day's entries without a ticket can take its planned ticket, or
+ * one chosen from the tickets of this period and before, or found in Jira. A git entry's commits can be opened.
  */
 @Component({
   selector: 'wl-plans-page',
   imports: [
     SnTooltip,
+    CommitSheetComponent,
     DurationPipe,
     HlmBadgeImports,
     HlmButtonImports,
+    IssuePickerComponent,
     ListFilterComponent,
     NgIcon,
     SnCommandBarImports,
@@ -35,7 +47,14 @@ import { ListFilterComponent } from '../../ui/list-filter/list-filter.component'
   ],
   providers: [
     provideSourceIcons(),
-    provideIcons({ lucideArrowUpRight, lucideCalendarClock, lucideRefreshCw, lucideSearchX }),
+    provideIcons({
+      lucideArrowUpRight,
+      lucideCalendarClock,
+      lucideGitCommitHorizontal,
+      lucideRefreshCw,
+      lucideSearchX,
+      lucideTextSearch,
+    }),
   ],
   templateUrl: './plans-page.component.html',
   styleUrl: './plans-page.component.css',
@@ -72,12 +91,25 @@ export class PlansPageComponent {
     const q = this.query().trim().toLocaleLowerCase();
     return this.all()
       .filter((d) => !day || d.day === day)
-      .map((d) => ({ ...d, items: q ? d.items.filter((it) => itemMatches(it, q)) : d.items }))
-      .filter((d) => d.items.length > 0)
+      .map((d) => ({
+        ...d,
+        items: q ? d.items.filter((it) => itemMatches(it, q)) : d.items,
+        untagged: q ? d.untagged.filter((e) => e.description.toLocaleLowerCase().includes(q)) : d.untagged,
+      }))
+      .filter((d) => d.items.length > 0 || d.untagged.length > 0)
       .map((d) => ({ ...d, title: dayTitle(d.day, this.i18n.lang()) }));
   });
   protected readonly count = computed(() => this.days().reduce((n, d) => n + d.items.length, 0));
   protected readonly total = computed(() => this.all().reduce((n, d) => n + d.items.length, 0));
+  /** Something to show: plans, or entries without a ticket. */
+  protected readonly any = computed(() => this.all().some((d) => d.items.length || d.untagged.length));
+
+  /** The ticket picker: for which entries of which day. */
+  protected readonly picker = signal<{ day: string; ids: number[]; subject: string } | null>(null);
+  protected readonly pickerOpen = signal(false);
+  /** The commit viewer: which git entry. */
+  protected readonly commitsOf = signal<PlanEntryDto | null>(null);
+  protected readonly commitsOpen = signal(false);
 
   protected async refresh() {
     this.reading.set(true);
@@ -100,6 +132,32 @@ export class PlansPageComponent {
     );
     await this.store.setMonth(this.store.month());
     this.store.status.set(this.i18n.t('plans.used', { n: d.untagged.length, key }));
+  }
+
+  /** Chooses a ticket for some of the day's entries without one (all of them when `entries` is omitted). */
+  protected choose(d: PlanDayDto, entries: PlanEntryDto[] = d.untagged) {
+    if (!entries.length) return;
+    const subject =
+      entries.length === 1 ? entries[0].description : this.i18n.t('plans.untagged', { n: entries.length });
+    this.picker.set({ day: d.day, ids: entries.map((e) => e.id), subject });
+    this.pickerOpen.set(true);
+  }
+
+  protected async picked(key: string) {
+    const p = this.picker();
+    if (!p) return;
+    const ok = await this.store.attempt(async () => {
+      await this.api.setIssue(p.ids, key);
+      return true;
+    });
+    if (!ok) return;
+    await this.store.setMonth(this.store.month());
+    this.store.status.set(this.i18n.t('plans.used', { n: p.ids.length, key }));
+  }
+
+  protected showCommits(e: PlanEntryDto) {
+    this.commitsOf.set(e);
+    this.commitsOpen.set(true);
   }
 
   protected panes() {
