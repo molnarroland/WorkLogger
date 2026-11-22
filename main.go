@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"time"
 	_ "time/tzdata"
+	"unsafe"
 
 	"github.com/molnarroland/WorkLogger/app"
 	"github.com/molnarroland/WorkLogger/internal/core"
@@ -38,6 +39,15 @@ func init() {
 }
 
 const keyringService = "WorkLogger"
+
+// unlockReason is the line under the Touch ID or Windows Hello prompt. macOS puts it after
+// "“WorkLogger” is trying to"; Windows shows it as it is.
+func unlockReason() string {
+	if runtime.GOOS == "darwin" {
+		return "unlock your API tokens"
+	}
+	return "Unlock WorkLogger's API tokens"
+}
 
 func main() {
 	config, err := os.UserConfigDir() // %AppData% on Windows, ~/.config on Linux, ~/Library/Application Support on macOS
@@ -67,9 +77,16 @@ func main() {
 	bridge := webview.NewBridge()
 	svc := app.New(app.Deps{
 		Store: db, Days: days, Clock: platform.SystemClock{},
-		Secrets: &platform.Keyring{Service: keyringService},
-		HTTP:    &http.Client{Timeout: 60 * time.Second},
-		Git:     git.Git{Run: platform.ExecRunner{}},
+		// Unlock asks for Touch ID / the login password on macOS and Windows Hello on Windows (not yet on Linux).
+		Secrets: &platform.Keyring{Service: keyringService, Verify: func() error {
+			var window unsafe.Pointer
+			if mainWin != nil {
+				window = mainWin.NativeWindow()
+			}
+			return platform.VerifyUser(unlockReason(), window)
+		}},
+		HTTP: &http.Client{Timeout: 60 * time.Second},
+		Git:  git.Git{Run: platform.ExecRunner{}},
 		Shell: app.Shell{
 			// Only the main window hears the app's events: Wails' Event.Emit runs them in every window, and a page
 			// in a site window could listen in (docs/ARCHITECTURE.md, Trust boundaries).

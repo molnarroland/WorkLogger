@@ -222,7 +222,11 @@ covers the rules, including the Windows origin.
 
 - **Local data** lives in one SQLite file, `os.UserConfigDir()/WorkLogger/worklogger.sqlite` (directory mode 0700).
 - **Tokens** live in the OS keyring (`internal/platform` Keyring); the app starts locked and reads the keyring only
-  when you unlock it.
+  when you unlock it. Unlock first asks the user to prove it's them (`platform.VerifyUser`): LocalAuthentication
+  (Touch ID or the login password) on macOS cgo builds, Windows Hello through WinRT's `UserConsentVerifier` on
+  Windows, nothing yet on Linux or macOS `purego` builds. It passes without asking when the OS has nothing to check
+  against (Windows Hello not set up or turned off by policy, no login password). The database key is still read at
+  start-up without asking, so this guards the tokens and the UI, not the database file.
 - **The activity console** shows every outgoing request and git command with credentials masked
   (`app/activity.go` `MaskSecrets`). Chat message text is never written to it.
 - **Outgoing connections** go only to services you configure: your Jira site, Tempo, Google (Chat, and Calendar

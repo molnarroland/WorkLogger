@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -50,14 +51,23 @@ func (ExecRunner) Run(ctx context.Context, name string, args ...string) (string,
 // once. It starts locked: nothing is read or written until Unlock.
 type Keyring struct {
 	Service string // "WorkLogger"
-	mu      sync.Mutex
-	values  map[string]string // nil while locked
+	// Verify, when set, must pass before Unlock reads the item: the user proves it's them (VerifyUser).
+	Verify func() error
+	mu     sync.Mutex
+	values map[string]string // nil while locked
 }
 
 const keyringItem = "tokens"
 
-// Unlock reads the item. False when the keyring refused (an empty keyring is fine).
+// Unlock checks Verify, then reads the item. False when the check failed or was cancelled, or the keyring
+// refused (an empty keyring is fine).
 func (k *Keyring) Unlock() bool {
+	if k.Verify != nil {
+		if err := k.Verify(); err != nil {
+			log.Printf("unlock: %v", err)
+			return false
+		}
+	}
 	k.mu.Lock()
 	defer k.mu.Unlock()
 	raw, err := keyring.Get(k.Service, keyringItem)

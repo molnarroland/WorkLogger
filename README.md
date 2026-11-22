@@ -53,7 +53,9 @@ the drafts reviewed, and **Export**.
 - **Local database:** one SQLite file, `WorkLogger/worklogger.sqlite` in your user config folder
   (`~/Library/Application Support` on macOS, `%AppData%` on Windows, `~/.config` on Linux).
 - **Tokens** (Jira, Tempo, Google) are kept in the system keyring, never in the database. The app starts locked
-  and reads the keyring only when you unlock it.
+  and reads the keyring only when you unlock it, which asks for Touch ID or your login password on macOS and
+  Windows Hello (face, fingerprint or PIN) on Windows. Linux doesn't ask yet. If Windows Hello isn't set up, or
+  your Mac has no login password, unlocking doesn't ask either.
 - **Network:** WorkLogger only connects to the services you set up: your Jira site, Tempo (`api.tempo.io` or
   `api.eu.tempo.io`), Google (Chat, and Calendar if you use it), your HRmaster site, and the calendar feed URLs you
   add. There is no telemetry or analytics. The activity console (status bar → **Activity**) lists every request

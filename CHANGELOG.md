@@ -5,6 +5,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Unlocking asks who you are**: Touch ID or your login password on macOS, Windows Hello (face, fingerprint or PIN)
+  on Windows. Cancelling leaves the app locked. Linux unlocks without asking, as before.
+
 ## [0.2.0] - 2026-11-22
 
 ### Added
