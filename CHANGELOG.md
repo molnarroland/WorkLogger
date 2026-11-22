@@ -5,13 +5,16 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-22
+
 ### Added
 
 - **A commit's contents**: a git entry's Commits button (in the inspector and on the Plans page) shows the commits it
   was made from, with their message, the files each changed and each file's changes (or the whole commit's).
 - **Choose a ticket** for an entry without one: from the tickets planned for the day, used that day, the project
   periods', or used in this period or the months before it; or search Jira for issues created within one or two
-  weeks of the day. In the inspector (Choose…) and on the Plans page, for one entry or all of a day's.
+  weeks of the day, each shown with the start of its description. In the inspector (Choose…) and on the Plans page,
+  for one entry or all of a day's.
 - The Plans page also lists days that have no plans but have entries without a ticket.
 - **Send a week or a month to Tempo** at once: the Week page's send button and Export → Send reviewed entries send
   the period's reviewed entries, after a question that says how many go and which days are left out (days that
@@ -69,5 +72,6 @@ The first public release.
   - Windows: the 64-bit exe in a zip.
   - Linux: the 64-bit binary, compressed with UPX.
 
+[0.2.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.2.0
 [0.1.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.1.1
 [0.1.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.1.0
