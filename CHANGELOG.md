@@ -5,6 +5,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-22
+
 ### Changed
 
 - **Unlocking asks who you are**: Touch ID or your login password on macOS, Windows Hello (face, fingerprint or PIN)
@@ -77,6 +79,7 @@ The first public release.
   - Windows: the 64-bit exe in a zip.
   - Linux: the 64-bit binary, compressed with UPX.
 
+[0.2.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.2.1
 [0.2.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.2.0
 [0.1.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.1.1
 [0.1.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.1.0
