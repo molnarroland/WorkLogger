@@ -1,22 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideFolderOpen,
-  lucideFolderPlus,
-  lucideGitBranch,
-  lucideHardDrive,
-  lucideRefreshCw,
-  lucideSearchX,
-  lucideTrash2,
-} from '@ng-icons/lucide';
+  phosphorGitBranch,
+  phosphorHardDrive,
+  phosphorArrowsClockwise,
+  phosphorMagnifyingGlassMinus,
+  phosphorTrash,
+} from '@ng-icons/phosphor-icons/regular';
 import {
   SnCommandBarImports,
   SnPageCommandsTemplate,
   SnSettingsImports,
   SnStatusPage,
 } from '@spartan-native/desktop-ui';
-import { NATIVE_HOST } from '@spartan-native/theme';
 import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -25,18 +22,18 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { API, type RepoDto } from '../../api/api';
 import { TPipe } from '../../i18n/t.pipe';
 import { ShellStore } from '../../state/shell.store';
-import { ChipListComponent } from '../../ui/chip-list/chip-list.component';
 import { type RuleItem, RuleListComponent } from '../../ui/rule-list/rule-list.component';
 import { ListFilterComponent } from '../../ui/list-filter/list-filter.component';
 
 import { ScrollIntoViewDirective } from '../../ui/scroll-into-view.directive';
-/** Where the git repositories are, whose commits count, and which issue each repository's time goes to. */
+/** The repositories and their commits, and which issue each repository's time goes to. Folders and commit emails
+ *  are on the Setup tab (RepoSetupComponent). */
 @Component({
   selector: 'wl-repositories-page',
   imports: [
     ScrollIntoViewDirective,
+    RouterLink,
     SnPageCommandsTemplate,
-    ChipListComponent,
     ListFilterComponent,
     HlmAccordionImports,
     HlmButtonImports,
@@ -52,13 +49,11 @@ import { ScrollIntoViewDirective } from '../../ui/scroll-into-view.directive';
   ],
   providers: [
     provideIcons({
-      lucideFolderOpen,
-      lucideFolderPlus,
-      lucideGitBranch,
-      lucideHardDrive,
-      lucideRefreshCw,
-      lucideSearchX,
-      lucideTrash2,
+      phosphorGitBranch,
+      phosphorHardDrive,
+      phosphorArrowsClockwise,
+      phosphorMagnifyingGlassMinus,
+      phosphorTrash,
     }),
   ],
   templateUrl: './repositories-page.component.html',
@@ -73,7 +68,6 @@ export class RepositoriesPageComponent {
   protected readonly store = inject(ShellStore);
   private readonly router = inject(Router);
   private readonly api = inject(API);
-  private readonly host = inject(NATIVE_HOST);
 
   protected readonly repos = resource({
     params: () => this.store.month() || undefined,
@@ -101,28 +95,6 @@ export class RepositoriesPageComponent {
   protected readonly projectItems = computed<RuleItem[]>(() =>
     (this.projects.value() ?? []).map((p) => ({ label: p.key, issueKey: p.defaultIssue })),
   );
-
-  /** Adds a workspace folder: the OS folder picker through the host where it gives a path (Wails), the
-   *  backend's otherwise. Then scans, so its repositories show straight away. */
-  protected async choose() {
-    let path: string | null = null;
-    if (this.host.dialogs) {
-      const picked = await this.host.dialogs.pickFolder({
-        directory: this.store.settings()?.workspaceRoots[0] || undefined,
-      });
-      if (!picked) return;
-      path = picked.path ?? null;
-    }
-    path ??= (await this.store.attempt(() => this.api.chooseFolder())) ?? null;
-    if (!path) return;
-    await this.store.editSettings((api) => api.addWorkspaceRoot(path));
-    await this.scan();
-  }
-
-  /** Off the list only; its repositories stay until removed (the folder on disk is not touched). */
-  protected removeRoot(path: string) {
-    return this.store.editSettings((api) => api.removeWorkspaceRoot(path));
-  }
 
   protected async scan() {
     await this.store.attempt(() => this.api.scanWorkspace());

@@ -12,15 +12,15 @@ import {
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideCircleArrowDown,
-  lucideClipboardPaste,
-  lucideUserCog,
-  lucideMessagesSquare,
-  lucideSearchX,
-  lucideTrash2,
-  lucideUser,
-  lucideUsers,
-} from '@ng-icons/lucide';
+  phosphorArrowCircleDown,
+  phosphorClipboard,
+  phosphorUserGear,
+  phosphorChats,
+  phosphorMagnifyingGlassMinus,
+  phosphorTrash,
+  phosphorUser,
+  phosphorUsers,
+} from '@ng-icons/phosphor-icons/regular';
 import { Router } from '@angular/router';
 import { SnCommandBarImports, SnModalSheet, SnPageCommandsTemplate, SnStatusPage } from '@spartan-native/desktop-ui';
 import { SnSelectableImports } from '@spartan-native/helm';
@@ -56,14 +56,14 @@ import { ListFilterComponent } from '../../ui/list-filter/list-filter.component'
   ],
   providers: [
     provideIcons({
-      lucideCircleArrowDown,
-      lucideClipboardPaste,
-      lucideUserCog,
-      lucideMessagesSquare,
-      lucideSearchX,
-      lucideTrash2,
-      lucideUser,
-      lucideUsers,
+      phosphorArrowCircleDown,
+      phosphorClipboard,
+      phosphorUserGear,
+      phosphorChats,
+      phosphorMagnifyingGlassMinus,
+      phosphorTrash,
+      phosphorUser,
+      phosphorUsers,
     }),
   ],
   templateUrl: './chats-page.component.html',

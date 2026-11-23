@@ -217,7 +217,7 @@ describe('ShellStore', () => {
 
     vi.spyOn(api, 'fetchHrmaster').mockRejectedValue(new Error('HRmaster: could not reach 2026-10.'));
     await s.run('fetchHrmaster');
-    expect(s.tasks().find((t) => t.label === 'Fetch work times from HRmaster')).toMatchObject({
+    expect(s.tasks().find((t) => t.label === 'Fetch work sessions from HRmaster')).toMatchObject({
       state: 'failed',
       message: 'HRmaster: could not reach 2026-10.',
     });

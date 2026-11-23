@@ -63,10 +63,15 @@ export const FirstRun: Story = {
   play: async ({ userEvent }) => {
     const dialog = await screen.findByRole('dialog', { name: 'Welcome to WorkLogger' });
     await expect(dialog).toBeVisible();
+    await userEvent.click(await screen.findByRole('button', { name: 'Start setup' }));
     await userEvent.click(await screen.findByRole('switch', { name: 'Do you commit to Git repositories?' }));
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Add folder…' }));
-    await userEvent.click(await screen.findByRole('button', { name: 'Done' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    // The last page collects the month, then opens the first day to do.
+    const done = await screen.findByRole('button', { name: /^(Go to the first day|Open the overview)$/ });
+    await waitFor(() => expect(done).toBeEnabled(), { timeout: 5000 });
+    await userEvent.click(done);
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Welcome to WorkLogger' })).toBeNull(), {
       timeout: 3000,
     });
@@ -87,13 +92,20 @@ export const FoldTheSidePanel: Story = {
   },
 };
 
-export const OpenAPageFromAllPages: Story = {
+export const SourcesTabAndSetup: Story = {
+  beforeEach: () => {
+    history.replaceState(null, '', location.pathname + location.search);
+    localStorage.removeItem('wl.sidebar.tab');
+  },
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(await canvas.findByRole('button', { name: 'All pages' }));
-    await userEvent.click(await canvas.findByRole('button', { name: 'Timesheet' }));
-    await expect(await canvas.findByRole('heading', { name: 'Timesheet' }, { timeout: 5000 })).toBeVisible();
-    // The item now stands for the open page.
-    await expect(canvas.getByRole('button', { name: 'Timesheet' })).toHaveAttribute('aria-current', 'page');
+    await userEvent.click(await canvas.findByText('Sources'));
+    await userEvent.click(await canvas.findByRole('link', { name: /^Repositories/ }));
+    await expect(
+      await canvas.findByRole('heading', { level: 1, name: 'Repositories' }, { timeout: 5000 }),
+    ).toBeVisible();
+    // The source's setup is on its own tab.
+    await userEvent.click(canvas.getByText('Setup'));
+    await expect(await canvas.findByText('Your commit emails')).toBeVisible();
   },
 };
 
@@ -103,16 +115,18 @@ export const OpenAPageFromAllPages: Story = {
  */
 export const SmokeUnlockCollectReviewSend: Story = {
   parameters: { api: { locked: true } },
-  // Start on the default page: the hash URL outlives a story, and "All pages" is named after the page it opened.
-  beforeEach: () => history.replaceState(null, '', location.pathname + location.search),
+  // Start on the default page and the Days tab: the hash URL and the remembered tab outlive a story.
+  beforeEach: () => {
+    history.replaceState(null, '', location.pathname + location.search);
+    localStorage.removeItem('wl.sidebar.tab');
+  },
   play: async ({ canvas, canvasElement, userEvent }) => {
     await userEvent.click(await canvas.findByRole('button', { name: 'Unlock' }));
 
     await userEvent.click(await canvas.findByRole('button', { name: /^Collect/ }));
     await waitFor(() => expect(canvas.queryByRole('button', { name: 'Cancel' })).toBeNull(), { timeout: 5000 });
 
-    await userEvent.click(canvas.getByRole('button', { name: 'All pages' }));
-    await userEvent.click(await canvas.findByRole('button', { name: 'Review' }));
+    await userEvent.click(await canvas.findByRole('link', { name: /^Review/ }));
     await expect(await canvas.findByRole('heading', { name: 'Review' }, { timeout: 5000 })).toBeVisible();
     await userEvent.click(await canvas.findByRole('button', { name: 'All' }));
     await expect((await canvas.findAllByRole('row')).length).toBeGreaterThan(1);

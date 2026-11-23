@@ -47,7 +47,7 @@
     [open]="!!selectedDay()"
     (openChange)="!$event && selected.set(null)"
     [title]="selectedTitle()"
-    icon="lucideCalendarDays"
+    icon="phosphorCalendarDots"
   >
     @if (selectedDay(); as d) {
       <sn-inspector-section [title]="'timesheet.summary' | t">
@@ -116,7 +116,7 @@
 
       <div class="actions">
         <button hlmBtn variant="outline" size="sm" type="button" (click)="store.addWorklog(d.day)">
-          <ng-icon name="lucidePlus" aria-hidden="true" /> {{ 'day.addEntry' | t }}
+          <ng-icon name="phosphorPlus" aria-hidden="true" /> {{ 'day.addEntry' | t }}
         </button>
         <button
           hlmBtn

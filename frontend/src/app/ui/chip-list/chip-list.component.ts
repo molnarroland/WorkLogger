@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideX } from '@ng-icons/lucide';
+import { phosphorX } from '@ng-icons/phosphor-icons/regular';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -10,7 +10,7 @@ import { TPipe } from '../../i18n/t.pipe';
 @Component({
   selector: 'wl-chip-list',
   imports: [HlmBadgeImports, HlmButtonImports, HlmInputImports, NgIcon, TPipe],
-  providers: [provideIcons({ lucideX })],
+  providers: [provideIcons({ phosphorX })],
   templateUrl: './chip-list.component.html',
   styleUrl: './chip-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -79,7 +79,7 @@
           [disabled]="searching() || jiraCurrent()"
           (click)="searchJira()"
         >
-          <ng-icon name="lucideSearch" aria-hidden="true" />
+          <ng-icon name="phosphorMagnifyingGlass" aria-hidden="true" />
           {{ 'picker.searchJira' | t }}
         </button>
       </div>
@@ -125,7 +125,7 @@
                   [snTooltip]="'picker.openInJira' | t: { key: o.key }"
                   (click)="openInJira(o, $event)"
                 >
-                  <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+                  <ng-icon name="phosphorArrowUpRight" aria-hidden="true" />
                 </button>
               </li>
             }

@@ -1,18 +1,18 @@
 import { ChangeDetectionStrategy, Component, effect, input, model, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideActivity,
-  lucideBookOpen,
-  lucideCalendar,
-  lucideClipboardList,
-  lucideClock,
-  lucideCloudDownload,
-  lucideHardDrive,
-  lucideMail,
-  lucideMessagesSquare,
-  lucideSettings,
-  lucideUsers,
-} from '@ng-icons/lucide';
+  phosphorPulse,
+  phosphorBookOpen,
+  phosphorCalendarBlank,
+  phosphorClipboardText,
+  phosphorClock,
+  phosphorCloudArrowDown,
+  phosphorHardDrive,
+  phosphorEnvelopeSimple,
+  phosphorChats,
+  phosphorGear,
+  phosphorUsers,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnAssistantImports, SnModalSheet, SnSettingsImports } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
@@ -24,13 +24,13 @@ import type { SetupStep } from '../../shared/setup-steps';
 import { SetupChecklistComponent } from '../setup-checklist/setup-checklist.component';
 
 export const MODULES: { id: Module; icon: string }[] = [
-  { id: 'git', icon: 'lucideHardDrive' },
-  { id: 'calendar', icon: 'lucideUsers' },
-  { id: 'workTimes', icon: 'lucideClock' },
-  { id: 'chats', icon: 'lucideMessagesSquare' },
-  { id: 'jira', icon: 'lucideActivity' },
-  { id: 'confluence', icon: 'lucideBookOpen' },
-  { id: 'email', icon: 'lucideMail' },
+  { id: 'git', icon: 'phosphorHardDrive' },
+  { id: 'calendar', icon: 'phosphorUsers' },
+  { id: 'workTimes', icon: 'phosphorClock' },
+  { id: 'chats', icon: 'phosphorChats' },
+  { id: 'jira', icon: 'phosphorPulse' },
+  { id: 'confluence', icon: 'phosphorBookOpen' },
+  { id: 'email', icon: 'phosphorEnvelopeSimple' },
 ];
 
 export type WelcomePage = 'intro' | 'sources' | 'tempo' | 'setup';
@@ -38,10 +38,10 @@ export const WELCOME_PAGES: WelcomePage[] = ['intro', 'sources', 'tempo', 'setup
 
 /** The month's workflow, as the sidebar groups it. */
 const FLOW: { step: Step; icon: string }[] = [
-  { step: 'setup', icon: 'lucideSettings' },
-  { step: 'gather', icon: 'lucideCloudDownload' },
-  { step: 'fill', icon: 'lucideCalendar' },
-  { step: 'finish', icon: 'lucideClipboardList' },
+  { step: 'setup', icon: 'phosphorGear' },
+  { step: 'gather', icon: 'phosphorCloudArrowDown' },
+  { step: 'fill', icon: 'phosphorCalendarBlank' },
+  { step: 'finish', icon: 'phosphorClipboardText' },
 ];
 
 /**
@@ -63,17 +63,17 @@ const FLOW: { step: Step; icon: string }[] = [
   ],
   providers: [
     provideIcons({
-      lucideActivity,
-      lucideBookOpen,
-      lucideCalendar,
-      lucideClipboardList,
-      lucideClock,
-      lucideCloudDownload,
-      lucideHardDrive,
-      lucideMail,
-      lucideMessagesSquare,
-      lucideSettings,
-      lucideUsers,
+      phosphorPulse,
+      phosphorBookOpen,
+      phosphorCalendarBlank,
+      phosphorClipboardText,
+      phosphorClock,
+      phosphorCloudArrowDown,
+      phosphorHardDrive,
+      phosphorEnvelopeSimple,
+      phosphorChats,
+      phosphorGear,
+      phosphorUsers,
     }),
   ],
   templateUrl: './welcome-sheet.component.html',

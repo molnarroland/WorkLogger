@@ -10,7 +10,6 @@ export const General: Story = {};
 const onTab = (tab: string) => ({ template: `<wl-settings-page tab="${tab}" />` });
 export const Timesheet: Story = { render: () => onTab('timesheet') };
 export const Profiles: Story = { render: () => onTab('profiles') };
-export const Calendars: Story = { render: () => onTab('calendars') };
 export const FromWelcomeToJira: Story = { render: () => onTab('jira') };
 export const Hungarian: Story = { parameters: { lang: 'hu' } };
 export const SwitchesTab: Story = {

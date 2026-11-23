@@ -4,7 +4,7 @@
       <span class="tabular">{{ 'export.count' | t: { n: ids().length, d: (seconds() | duration) } }}</span>
       @if (missing()) {
         <span class="needs-ticket small skipped">
-          <ng-icon name="lucideTriangleAlert" aria-hidden="true" /> {{ 'export.skipped' | t: { n: missing() } }}
+          <ng-icon name="phosphorWarning" aria-hidden="true" /> {{ 'export.skipped' | t: { n: missing() } }}
         </span>
       }
     </div>
@@ -33,10 +33,10 @@
             [disabled]="!ids().length"
             (click)="save.emit({ ids: ids(), format: 'markdown' })"
           >
-            <ng-icon name="lucideFileText" aria-hidden="true" /> {{ 'export.saveMd' | t }}
+            <ng-icon name="phosphorFileText" aria-hidden="true" /> {{ 'export.saveMd' | t }}
           </button>
           <button hlmBtn size="sm" type="button" [disabled]="!ids().length" (click)="copyMarkdown.emit(ids())">
-            <ng-icon name="lucideCopy" aria-hidden="true" /> {{ 'export.copyMarkdown' | t }}
+            <ng-icon name="phosphorCopy" aria-hidden="true" /> {{ 'export.copyMarkdown' | t }}
           </button>
         </span>
       </sn-settings-row>
@@ -48,7 +48,7 @@
       <sn-settings-row [title]="'export.sendPeriodTitle' | t: { from: from(), to: to() }">
         <span class="buttons">
           <button hlmBtn size="sm" type="button" [disabled]="!from()" (click)="sendToTempo.emit()">
-            <ng-icon name="lucideSend" aria-hidden="true" /> {{ 'export.sendPeriod' | t }}
+            <ng-icon name="phosphorPaperPlaneTilt" aria-hidden="true" /> {{ 'export.sendPeriod' | t }}
           </button>
         </span>
       </sn-settings-row>

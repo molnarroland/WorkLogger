@@ -18,7 +18,7 @@ const meta: Meta<TaskListComponent> = {
       },
       {
         id: 2,
-        label: 'Fetch work times from HRmaster',
+        label: 'Fetch work sessions from HRmaster',
         state: 'failed',
         message: 'HRmaster: signed in, but the work-time calendar was not recognised',
         started: '2026-11-17T09:13:00Z',

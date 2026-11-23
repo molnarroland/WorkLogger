@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideTriangleAlert } from '@ng-icons/lucide';
+import { phosphorWarning } from '@ng-icons/phosphor-icons/regular';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { TPipe } from '../../i18n/t.pipe';
 
@@ -8,7 +8,7 @@ import { TPipe } from '../../i18n/t.pipe';
 @Component({
   selector: 'wl-token-help',
   imports: [HlmAlertImports, NgIcon, TPipe],
-  providers: [provideIcons({ lucideTriangleAlert })],
+  providers: [provideIcons({ phosphorWarning })],
   templateUrl: './token-help.component.html',
   styleUrl: './token-help.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

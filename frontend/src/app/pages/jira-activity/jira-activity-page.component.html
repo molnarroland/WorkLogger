@@ -2,7 +2,7 @@
   <button
     snCommand
     hideLabel
-    icon="lucideRefreshCw"
+    icon="phosphorArrowsClockwise"
     [label]="'jira.refresh' | t"
     [disabled]="feed.isLoading()"
     (click)="refresh()"
@@ -12,14 +12,14 @@
 @if (feed.isLoading() && !tickets()) {
   <div class="fill loading sn-text-muted" role="status"><hlm-spinner aria-hidden="true" />{{ 'jira.reading' | t }}</div>
 } @else if (error()) {
-  <sn-status-page class="fill" icon="lucideActivity" [title]="'jira.failedTitle' | t" [description]="error()">
+  <sn-status-page class="fill" icon="phosphorPulse" [title]="'jira.failedTitle' | t" [description]="error()">
     <button hlmBtn type="button" (click)="refresh()">{{ 'jira.refresh' | t }}</button>
     <button hlmBtn variant="outline" type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
   </sn-status-page>
 } @else if (accounts() === 0) {
   <sn-status-page
     class="fill"
-    icon="lucideActivity"
+    icon="phosphorPulse"
     [title]="'jira.noAccountTitle' | t"
     [description]="'jira.noAccountBody' | t"
   >
@@ -28,7 +28,7 @@
 } @else if (!tickets()) {
   <sn-status-page
     class="fill"
-    icon="lucideActivity"
+    icon="phosphorPulse"
     [title]="'jira.emptyTitle' | t"
     [description]="'jira.emptyBody' | t"
   />
@@ -54,7 +54,7 @@
   @if (!days().length) {
     <sn-status-page
       class="fill"
-      icon="lucideSearchX"
+      icon="phosphorMagnifyingGlassMinus"
       [title]="'filter.noMatch' | t"
       [description]="'filter.noMatchBody' | t"
     >
@@ -100,7 +100,9 @@
                   >
                     @for (a of t.attachments; track $index) {
                       <span class="file" [title]="a.time + ' · ' + a.text">
-                        <ng-icon name="lucidePaperclip" aria-hidden="true" /><span class="truncate">{{ a.text }}</span>
+                        <ng-icon name="phosphorPaperclip" aria-hidden="true" /><span class="truncate">{{
+                          a.text
+                        }}</span>
                       </span>
                     }
                   </span>
@@ -130,7 +132,7 @@
                     }
                     @if (t.suggested.length) {
                       <div class="suggest small">
-                        <ng-icon name="lucideLightbulb" aria-hidden="true" />
+                        <ng-icon name="phosphorLightbulb" aria-hidden="true" />
                         <div class="suggest-body">
                           <span>{{ 'jira.suggest' | t: { n: t.suggested.length, key: t.issueKey } }}</span>
                           <ul class="entries">

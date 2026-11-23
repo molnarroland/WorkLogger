@@ -13,14 +13,14 @@ import {
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideArrowRight,
-  lucideCalendarDays,
-  lucideCalendarX,
-  lucideCheck,
-  lucideMessagesSquare,
-  lucidePlus,
-  lucideSend,
-} from '@ng-icons/lucide';
+  phosphorArrowRight,
+  phosphorCalendarDots,
+  phosphorCalendarX,
+  phosphorCheck,
+  phosphorChats,
+  phosphorPlus,
+  phosphorPaperPlaneTilt,
+} from '@ng-icons/phosphor-icons/regular';
 import {
   SnAlert,
   SnCommandBarImports,
@@ -70,13 +70,13 @@ const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
   ],
   providers: [
     provideIcons({
-      lucideArrowRight,
-      lucideCalendarDays,
-      lucideCalendarX,
-      lucideCheck,
-      lucideMessagesSquare,
-      lucidePlus,
-      lucideSend,
+      phosphorArrowRight,
+      phosphorCalendarDots,
+      phosphorCalendarX,
+      phosphorCheck,
+      phosphorChats,
+      phosphorPlus,
+      phosphorPaperPlaneTilt,
     }),
   ],
   templateUrl: './days-page.component.html',
@@ -195,7 +195,7 @@ export class DaysPageComponent {
       stepDays: 1,
       today: {
         label: 'days.today',
-        icon: 'lucideCalendar1',
+        icon: 'phosphorCalendarDot',
         go: () => this.go(this.store.today()),
         current: computed(() => this.current() === this.store.today()),
       },

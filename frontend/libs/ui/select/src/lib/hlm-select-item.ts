@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCheck } from '@ng-icons/lucide';
+import { phosphorCheck } from '@ng-icons/phosphor-icons/regular';
 import { BrnSelectItem } from '@spartan-ng/brain/select';
 import { classes } from '@spartan-ng/helm/utils';
 
@@ -8,7 +8,7 @@ import { classes } from '@spartan-ng/helm/utils';
   selector: 'hlm-select-item',
   exportAs: 'hlmSelectItem',
   imports: [NgIcon],
-  providers: [provideIcons({ lucideCheck })],
+  providers: [provideIcons({ phosphorCheck })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: BrnSelectItem, inputs: ['id', 'disabled', 'value'] }],
   host: { 'data-slot': 'select-item' },
@@ -16,7 +16,7 @@ import { classes } from '@spartan-ng/helm/utils';
     <ng-content />
     @if (_active()) {
       <ng-icon
-        name="lucideCheck"
+        name="phosphorCheck"
         class="absolute end-2 flex items-center justify-center text-[length:--spacing(4)]"
         aria-hidden="true"
       />

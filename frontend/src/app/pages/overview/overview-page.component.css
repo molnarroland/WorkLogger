@@ -154,3 +154,30 @@
   justify-content: space-between;
   gap: 0.5rem;
 }
+
+/* Next up: the first day that needs work. */
+.next-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.next-dot {
+  flex: none;
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  border-radius: 50%;
+}
+
+.next-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.next-day {
+  font-size: calc(var(--sn-font-size) * 1.15);
+  font-weight: var(--sn-font-weight-strong);
+}

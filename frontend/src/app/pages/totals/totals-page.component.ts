@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { provideIcons } from '@ng-icons/core';
-import { lucideChartBar } from '@ng-icons/lucide';
+import { phosphorChartBar } from '@ng-icons/phosphor-icons/regular';
 import { SnPageCommandsTemplate, SnStatusPage } from '@spartan-native/desktop-ui';
 import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
 import { HlmTableImports } from '@spartan-ng/helm/table';
@@ -37,7 +37,7 @@ const TICKET_LEGEND: BarPart[] = [
     StackedBarComponent,
     TPipe,
   ],
-  providers: [provideIcons({ lucideChartBar })],
+  providers: [provideIcons({ phosphorChartBar })],
   templateUrl: './totals-page.component.html',
   styleUrl: './totals-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

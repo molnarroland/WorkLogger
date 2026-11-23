@@ -2,16 +2,16 @@
   <button
     snCommand
     hideLabel
-    icon="lucideCircleArrowDown"
+    icon="phosphorArrowCircleDown"
     [label]="'sessions.fetch' | t"
     [disabled]="!hasUrl() || store.busy()"
     (click)="fetch()"
   ></button>
-  <button snCommand hideLabel icon="lucideUserCog" [label]="'profiles.manage' | t" (click)="openProfiles()"></button>
+  <button snCommand hideLabel icon="phosphorUserGear" [label]="'profiles.manage' | t" (click)="openProfiles()"></button>
   <button
     snCommand
     hideLabel
-    icon="lucideTrash2"
+    icon="phosphorTrash"
     [label]="'sessions.clear' | t"
     [disabled]="!days().length"
     (click)="clear()"
@@ -21,7 +21,7 @@
 @if (!days().length) {
   <sn-status-page
     class="fill"
-    icon="lucideClock"
+    icon="phosphorClock"
     [title]="'sessions.emptyTitle' | t"
     [description]="(hasUrl() ? 'sessions.emptyBody' : 'sessions.noProfile') | t"
   >

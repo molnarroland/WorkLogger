@@ -3,7 +3,7 @@
     @for (e of items(); track e.id) {
       <li class="item" [class.skipped]="e.skipped">
         <span class="head small">
-          <ng-icon [name]="e.kind === 'meeting' ? 'lucideUsers' : 'lucideMessagesSquare'" aria-hidden="true" />
+          <ng-icon [name]="e.kind === 'meeting' ? 'phosphorUsers' : 'phosphorChats'" aria-hidden="true" />
           <span class="kind">{{ (e.kind === 'meeting' ? 'days.meeting' : 'days.chat') | t }}</span>
           <span class="tabular sn-text-muted when">{{ hm(e.from) }}–{{ hm(e.to) }}</span>
           @if (panes().includes(e.focus.pane)) {
@@ -16,7 +16,7 @@
               [snTooltip]="'focus.showIn' | t: { page: ('pane.' + e.focus.pane | t) }"
               (click)="open.emit(e.focus)"
             >
-              <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+              <ng-icon name="phosphorArrowUpRight" aria-hidden="true" />
             </button>
           }
         </span>

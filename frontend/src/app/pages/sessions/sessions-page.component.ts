@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, resource } from '@angular/core';
 import { provideIcons } from '@ng-icons/core';
 import { Router } from '@angular/router';
-import { lucideCircleArrowDown, lucideClock, lucideTrash2, lucideUserCog } from '@ng-icons/lucide';
+import {
+  phosphorArrowCircleDown,
+  phosphorClock,
+  phosphorTrash,
+  phosphorUserGear,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnCommandBarImports, SnPageCommandsTemplate, SnStatusPage } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { API } from '../../api/api';
@@ -25,7 +30,7 @@ import { ScrollIntoViewDirective } from '../../ui/scroll-into-view.directive';
     SnStatusPage,
     TPipe,
   ],
-  providers: [provideIcons({ lucideCircleArrowDown, lucideClock, lucideTrash2, lucideUserCog })],
+  providers: [provideIcons({ phosphorArrowCircleDown, phosphorClock, phosphorTrash, phosphorUserGear })],
   templateUrl: './sessions-page.component.html',
   styleUrl: './sessions-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -13,15 +13,15 @@ import {
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideBookOpen,
-  lucideBriefcase,
-  lucideClock,
-  lucideMail,
-  lucideMessagesSquare,
-  lucidePlus,
-  lucideTimer,
-  lucideTrash2,
-} from '@ng-icons/lucide';
+  phosphorBookOpen,
+  phosphorBriefcase,
+  phosphorClock,
+  phosphorEnvelopeSimple,
+  phosphorChats,
+  phosphorPlus,
+  phosphorTimer,
+  phosphorTrash,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnSettingsImports } from '@spartan-native/desktop-ui';
 import { SnSelectableImports } from '@spartan-native/helm';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -38,12 +38,12 @@ import { type SetupStep, setupLink, toSetupSteps } from '../../shared/setup-step
 
 export const PROFILE_KINDS: ProfileKind[] = ['googleChat', 'hrmaster', 'jira', 'tempo', 'confluence', 'email'];
 export const PROFILE_ICON: Record<ProfileKind, string> = {
-  googleChat: 'lucideMessagesSquare',
-  hrmaster: 'lucideClock',
-  jira: 'lucideBriefcase',
-  tempo: 'lucideTimer',
-  confluence: 'lucideBookOpen',
-  email: 'lucideMail',
+  googleChat: 'phosphorChats',
+  hrmaster: 'phosphorClock',
+  jira: 'phosphorBriefcase',
+  tempo: 'phosphorTimer',
+  confluence: 'phosphorBookOpen',
+  email: 'phosphorEnvelopeSimple',
 };
 
 interface Item {
@@ -76,14 +76,14 @@ interface Item {
   ],
   providers: [
     provideIcons({
-      lucideBookOpen,
-      lucideBriefcase,
-      lucideClock,
-      lucideMail,
-      lucideMessagesSquare,
-      lucidePlus,
-      lucideTimer,
-      lucideTrash2,
+      phosphorBookOpen,
+      phosphorBriefcase,
+      phosphorClock,
+      phosphorEnvelopeSimple,
+      phosphorChats,
+      phosphorPlus,
+      phosphorTimer,
+      phosphorTrash,
     }),
   ],
   templateUrl: './profiles-settings.component.html',

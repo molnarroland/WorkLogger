@@ -8,7 +8,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideX } from '@ng-icons/lucide';
+import { phosphorX } from '@ng-icons/phosphor-icons/regular';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import type { ActivityLine } from '../../api/api';
 import { TPipe } from '../../i18n/t.pipe';
@@ -17,7 +17,7 @@ import { TPipe } from '../../i18n/t.pipe';
 @Component({
   selector: 'wl-activity-console',
   imports: [HlmButtonImports, NgIcon, TPipe],
-  providers: [provideIcons({ lucideX })],
+  providers: [provideIcons({ phosphorX })],
   templateUrl: './activity-console.component.html',
   styleUrl: './activity-console.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

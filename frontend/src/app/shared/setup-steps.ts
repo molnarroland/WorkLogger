@@ -11,15 +11,36 @@ export interface SetupStep {
   action: SetupAction;
 }
 
-/** The backend's setup steps (Api.setupSteps) with where each is done. */
+/**
+ * The source page each step belongs to: its "Set up" badge in the side panel. Google and Jira are accounts more than
+ * one source uses (Google: chats and calendars; Jira: Tempo), so their steps stay on Settings → Profiles; their
+ * source's Setup tab still shows the form. Tempo has no source.
+ */
+export const SETUP_PANE: Partial<Record<SetupStepId, string>> = {
+  repositories: 'repositories',
+  calendar: 'meetings',
+  hrmaster: 'sessions',
+  google: 'chats',
+  jira: 'jira',
+  confluence: 'confluence',
+  email: 'email',
+};
+const ACCOUNT_STEPS: readonly SetupStepId[] = ['google', 'jira'];
+
+/** The backend's setup steps (Api.setupSteps) with where each is done: its source's Setup tab, else the backend's place. */
 export function toSetupSteps(steps: readonly SetupStepDto[]): SetupStep[] {
-  return steps.map((s) => ({
-    id: s.id,
-    done: s.done,
-    action: s.profile
-      ? { kind: 'profile', profile: s.profile }
-      : { kind: 'page', path: s.page, ...(s.tab ? { tab: s.tab } : {}) },
-  }));
+  return steps.map((s) => {
+    const pane = ACCOUNT_STEPS.includes(s.id) ? undefined : SETUP_PANE[s.id];
+    return {
+      id: s.id,
+      done: s.done,
+      action: pane
+        ? { kind: 'page', path: pane, tab: 'setup' }
+        : s.profile
+          ? { kind: 'profile', profile: s.profile }
+          : { kind: 'page', path: s.page, ...(s.tab ? { tab: s.tab } : {}) },
+    };
+  });
 }
 
 /** The router link of a step. */

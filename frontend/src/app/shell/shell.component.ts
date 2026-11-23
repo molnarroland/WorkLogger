@@ -7,47 +7,48 @@ import {
   inject,
   resource,
   signal,
+  untracked,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideActivity,
-  lucideBookOpen,
-  lucideMail,
-  lucideCalendar,
-  lucideCalendar1,
-  lucideCalendarCheck,
-  lucideCalendarRange,
-  lucideCalendarClock,
-  lucideChartBar,
-  lucideChevronLeft,
-  lucideChevronRight,
-  lucideChevronsLeft,
-  lucideChevronsRight,
-  lucideCircleArrowDown,
-  lucideCircleHelp,
-  lucideCircleCheck,
-  lucideCircleX,
-  lucideClipboardList,
-  lucideClock,
-  lucideFlag,
-  lucideHardDrive,
-  lucideHouse,
-  lucideInbox,
-  lucideLayoutGrid,
-  lucideListChecks,
-  lucideLock,
-  lucideMenu,
-  lucideMessagesSquare,
-  lucidePanelLeft,
-  lucideSearch,
-  lucideSettings,
-  lucideShare,
-  lucideTerminal,
-  lucideUsers,
-} from '@ng-icons/lucide';
+  phosphorPulse,
+  phosphorBookOpen,
+  phosphorEnvelopeSimple,
+  phosphorCalendarBlank,
+  phosphorCalendarDot,
+  phosphorCalendarCheck,
+  phosphorCalendarDots,
+  phosphorCalendarPlus,
+  phosphorChartBar,
+  phosphorCaretLeft,
+  phosphorCaretRight,
+  phosphorCaretDoubleLeft,
+  phosphorCaretDoubleRight,
+  phosphorArrowCircleDown,
+  phosphorQuestion,
+  phosphorWarning,
+  phosphorCheckCircle,
+  phosphorXCircle,
+  phosphorClipboardText,
+  phosphorClock,
+  phosphorFlag,
+  phosphorHardDrive,
+  phosphorHouse,
+  phosphorTray,
+  phosphorListChecks,
+  phosphorLock,
+  phosphorList,
+  phosphorChats,
+  phosphorSidebar,
+  phosphorMagnifyingGlass,
+  phosphorGear,
+  phosphorExport,
+  phosphorTerminalWindow,
+  phosphorUsers,
+} from '@ng-icons/phosphor-icons/regular';
 import {
   SnCommandBarImports,
   SnMenuImports,
@@ -61,11 +62,14 @@ import {
 } from '@spartan-native/desktop-ui';
 import { SpartanNativeTheme, skinFamily } from '@spartan-native/theme';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { filter, map } from 'rxjs';
 import { API, type DayDto, type Module } from '../api/api';
 import { I18n, TPipe, langFor, rememberLang } from '../i18n/t.pipe';
-import { type Pane, PANES, STEPS } from './panes';
+import { type Pane, PANES, type SideTab, TAB_OF } from './panes';
+import { SIDE_ICONS, sideIcon } from './side-icons';
 import { appMenu } from './app-menu';
 import { ExportFlowComponent } from './export-flow.component';
 import { type Shortcut, ShortcutService } from './shortcuts';
@@ -74,16 +78,16 @@ import { lookOf, lookOverrides, rememberLook } from '../shared/appearance';
 import { DurationPipe } from '../shared/duration.pipe';
 import { TRIAGE_COLOR } from '../shared/colors';
 import { monthTitle } from '../shared/month';
-import { formatDuration, parseDay } from '../shared/worklogs';
+import { dayNote, formatDuration, parseDay } from '../shared/worklogs';
 import { type Heading, ShellStore } from '../state/shell.store';
 import { ActivityConsoleComponent } from '../ui/activity-console/activity-console.component';
 import { TaskListComponent } from '../ui/task-list/task-list.component';
 import { type DockItem, SourceDockComponent } from '../ui/source-dock/source-dock.component';
 import { PeriodPickerComponent } from '../ui/period-picker/period-picker.component';
-import { PageLauncherComponent } from '../ui/page-launcher/page-launcher.component';
 import { OnboardingComponent } from './onboarding/onboarding.component';
+import { SourceSetupComponent } from './source-setup/source-setup.component';
 import { type WelcomePage, WelcomeSheetComponent } from '../ui/welcome-sheet/welcome-sheet.component';
-import { type SetupStep, setupLink, toSetupSteps } from '../shared/setup-steps';
+import { SETUP_PANE, type SetupStep, setupLink, toSetupSteps } from '../shared/setup-steps';
 
 /**
  * The window: title bar, sidebar navigation, the month's command bar, the current page and the status bar.
@@ -104,7 +108,9 @@ const MONTH_DAYS = 30;
     DurationPipe,
     ExportFlowComponent,
     HlmButtonImports,
+    HlmAlertImports,
     HlmSpinnerImports,
+    HlmToggleGroupImports,
     NgIcon,
     NgTemplateOutlet,
     SnResizable,
@@ -117,7 +123,6 @@ const MONTH_DAYS = 30;
     SnSidebarNavImports,
     SnStatusPage,
     SnWindowImports,
-    PageLauncherComponent,
     PeriodPickerComponent,
     SourceDockComponent,
     TaskListComponent,
@@ -125,43 +130,45 @@ const MONTH_DAYS = 30;
     TPipe,
     WelcomeSheetComponent,
     OnboardingComponent,
+    SourceSetupComponent,
   ],
   providers: [
     provideIcons({
-      lucideActivity,
-      lucideBookOpen,
-      lucideMail,
-      lucideCalendar,
-      lucideCalendar1,
-      lucideCalendarCheck,
-      lucideCalendarRange,
-      lucideCalendarClock,
-      lucideChartBar,
-      lucideChevronLeft,
-      lucideChevronRight,
-      lucideChevronsLeft,
-      lucideChevronsRight,
-      lucideCircleArrowDown,
-      lucideCircleHelp,
-      lucideCircleCheck,
-      lucideCircleX,
-      lucideClipboardList,
-      lucideClock,
-      lucideFlag,
-      lucideHardDrive,
-      lucideHouse,
-      lucideInbox,
-      lucideLayoutGrid,
-      lucideListChecks,
-      lucideLock,
-      lucideMenu,
-      lucideMessagesSquare,
-      lucidePanelLeft,
-      lucideSearch,
-      lucideSettings,
-      lucideShare,
-      lucideTerminal,
-      lucideUsers,
+      ...SIDE_ICONS,
+      phosphorPulse,
+      phosphorBookOpen,
+      phosphorEnvelopeSimple,
+      phosphorCalendarBlank,
+      phosphorCalendarDot,
+      phosphorCalendarCheck,
+      phosphorCalendarDots,
+      phosphorCalendarPlus,
+      phosphorChartBar,
+      phosphorCaretLeft,
+      phosphorCaretRight,
+      phosphorCaretDoubleLeft,
+      phosphorCaretDoubleRight,
+      phosphorArrowCircleDown,
+      phosphorQuestion,
+      phosphorWarning,
+      phosphorCheckCircle,
+      phosphorXCircle,
+      phosphorClipboardText,
+      phosphorClock,
+      phosphorFlag,
+      phosphorHardDrive,
+      phosphorHouse,
+      phosphorTray,
+      phosphorListChecks,
+      phosphorLock,
+      phosphorList,
+      phosphorChats,
+      phosphorSidebar,
+      phosphorMagnifyingGlass,
+      phosphorGear,
+      phosphorExport,
+      phosphorTerminalWindow,
+      phosphorUsers,
     }),
   ],
   templateUrl: './shell.component.html',
@@ -215,13 +222,22 @@ export class ShellComponent {
   protected readonly range = this.store.range;
   protected readonly monthTitle = computed(() => monthTitle(this.store.month(), this.i18n.lang()));
   protected readonly isCurrentMonth = computed(() => this.store.month() === this.store.currentMonth());
-  /** The side panel's top: Overview, Days, Week. */
-  protected readonly views = computed(() => this.store.panes().filter((p) => p.view));
-  /** Every other page, by workflow step, under "All pages". */
-  protected readonly moreGroups = computed(() =>
-    STEPS.map((step) => ({ step, panes: this.store.panes().filter((p) => !p.view && p.step === step) })).filter(
-      (g) => g.panes.length > 0,
-    ),
+  /** The side panel's groups: the Days tab's top and Month, the Sources tab's sources and calendar. */
+  protected readonly views = computed(() => this.store.panes().filter((p) => p.place === 'view'));
+  protected readonly monthPanes = computed(() => this.store.panes().filter((p) => p.place === 'month' && !p.parent));
+  protected readonly sourcePanes = computed(() =>
+    this.store
+      .panes()
+      .filter((p) => p.place === 'source' && (p.id !== 'jira' || this.store.modules().includes('jira'))),
+  );
+  protected readonly calendarPanes = computed(() => this.store.panes().filter((p) => p.place === 'calendar'));
+  /** The side panel's tab; remembered in this window. */
+  protected readonly sideTab = signal<SideTab>(readTab());
+  /** The setup steps still to do: the Sources tab's count and its Finish setup item. */
+  protected readonly setupLeft = computed(() => this.setupSteps().filter((s) => !s.done).length);
+  /** The source pages with a setup step still to do. */
+  private readonly needsSetup = computed(
+    () => new Set(this.setupSteps().flatMap((s) => (!s.done && SETUP_PANE[s.id] ? [SETUP_PANE[s.id]] : []))),
   );
 
   private readonly url = toSignal(
@@ -232,15 +248,22 @@ export class ShellComponent {
     { initialValue: this.router.url },
   );
   protected readonly pane = computed(() => this.url().split(/[/?#]/)[1] ?? '');
-  /** The pages pinned to the side panel (ids, in the order pinned); remembered in this window. */
-  protected readonly pinned = signal<string[]>(readList(PINNED_KEY));
-  /** The pinned pages that are on (their module may be off), in workflow order. */
-  protected readonly pinnedPanes = computed(() =>
-    this.store.panes().filter((p) => !p.view && this.pinned().includes(p.id)),
+  /** The side panel item the open page belongs to: itself, or the page it is a tab of. */
+  protected readonly paneGroup = computed(() => PANES.find((p) => p.id === this.pane())?.parent ?? this.pane());
+  /** A page with tabs of its own pages (Log in Tempo: By ticket, Totals): the pages, else null. */
+  protected readonly groupTabs = computed(() => {
+    const kids = this.store.panes().filter((p) => p.parent === this.paneGroup());
+    const root = PANES.find((p) => p.id === this.paneGroup());
+    return root && kids.length ? [root, ...kids] : null;
+  });
+  /** A source page: it has Activity and Setup tabs (`?tab=setup`). */
+  protected readonly isSource = computed(() => PANES.find((p) => p.id === this.pane())?.place === 'source');
+  protected readonly sourceTab = computed(() =>
+    this.isSource() && /[?&]tab=setup(&|#|$)/.test(this.url()) ? 'setup' : 'activity',
   );
-  /** "All pages" stands for the open page when it is one of them and not pinned: its name and icon, as current. */
-  protected readonly morePane = computed(
-    () => this.store.panes().find((p) => !p.view && p.id === this.pane() && !this.pinned().includes(p.id)) ?? null,
+  /** The open source's first setup step left, shown above its Activity tab. */
+  protected readonly sourceStepLeft = computed(() =>
+    this.isSource() ? (this.setupSteps().find((s) => !s.done && SETUP_PANE[s.id] === this.pane()) ?? null) : null,
   );
   /** The day open in the Days view, to mark it in the side panel's lists. */
   protected readonly openDay = computed(() => /^\/days\/(\d{4}-\d{2}-\d{2})/.exec(this.url())?.[1] ?? null);
@@ -256,14 +279,25 @@ export class ShellComponent {
     const day = this.scopeDay();
     return { from: day ?? from, to: day ?? to };
   });
-  /** Re-counted when the day changes or the month is re-read (after a collect, fetch or rebuild). */
-  private readonly counts = resource({
+  /** The month's counts (the side panel's sources); re-counted when the month is re-read (collect, fetch, rebuild). */
+  private readonly monthCounts = resource({
     params: () => {
-      if (!this.scope().from || this.store.locked()) return undefined;
-      return { ...this.scope(), data: this.store.data(), modules: this.store.modules() };
+      const { from, to } = this.store.range();
+      if (!from || this.store.locked()) return undefined;
+      return { from, to, data: this.store.data(), modules: this.store.modules() };
     },
     loader: ({ params }) => this.api.sourceCounts(params.from, params.to),
   });
+  /** The scoped day's counts, for the dock; the month's when no day is scoped. */
+  private readonly dayCounts = resource({
+    params: () => {
+      const day = this.scopeDay();
+      if (!day || this.store.locked()) return undefined;
+      return { day, data: this.store.data(), modules: this.store.modules() };
+    },
+    loader: ({ params }) => this.api.sourceCounts(params.day, params.day),
+  });
+  private readonly counts = computed(() => (this.scopeDay() ? this.dayCounts : this.monthCounts));
   /** What the month's data already knows: periods over the days, days still to do, drafts to review. */
   private localCount(id: string): number {
     const { from, to } = this.scope();
@@ -282,7 +316,7 @@ export class ShellComponent {
   }
   /** The source pages whose module is on, then the finishing pages; each with its count. */
   protected readonly dock = computed<DockItem[]>(() => {
-    const counts = this.counts.value();
+    const counts = this.counts().value();
     const on = this.store.paneIds();
     const shown = (id: string) => on.includes(id) && (id !== 'jira' || this.store.modules().includes('jira'));
     return [...DOCK_PANES, ...DOCK_END].flatMap((id) => {
@@ -299,7 +333,7 @@ export class ShellComponent {
     if (t) return { label: t.label, icon: t.icon, current: t.current(), go: t.go };
     return {
       label: 'month.this',
-      icon: 'lucideCalendarCheck',
+      icon: 'phosphorCalendarCheck',
       current: this.isCurrentMonth(),
       go: () => this.thisMonth(),
     };
@@ -343,8 +377,9 @@ export class ShellComponent {
   protected readonly narrow = signal(false);
   protected readonly folded = computed(() => this.collapsed() || this.narrow());
   /** The fold button's icon: macOS's sidebar toggle, the navigation pane's hamburger elsewhere. */
-  protected readonly toggleIcon = computed(() => (this.skinFamily() === 'macos' ? 'lucidePanelLeft' : 'lucideMenu'));
+  protected readonly toggleIcon = computed(() => (this.skinFamily() === 'macos' ? 'phosphorSidebar' : 'phosphorList'));
   protected readonly triageColor = TRIAGE_COLOR;
+  protected readonly sideIcon = sideIcon;
   protected readonly dayGroups = computed(() => {
     return [
       { id: 'attention', title: 'side.attention', days: this.store.attention() },
@@ -411,6 +446,12 @@ export class ShellComponent {
       inject(DestroyRef).onDestroy(() => query.removeEventListener('change', update));
     }
 
+    // Opening a page shows the tab that lists it, so the current page is always in view.
+    effect(() => {
+      const place = PANES.find((p) => p.id === this.pane())?.place;
+      if (place) untracked(() => this.sideTab() !== TAB_OF[place] && this.setSideTab(TAB_OF[place]));
+    });
+
     // Settings → General: the user's language and look on top of the OS values, remembered for the next start.
     effect(() => {
       const s = this.store.settings();
@@ -433,10 +474,38 @@ export class ShellComponent {
     return '';
   }
 
-  protected togglePin(id: string) {
-    const list = this.pinned().includes(id) ? this.pinned().filter((p) => p !== id) : [...this.pinned(), id];
-    this.pinned.set(list);
-    writeList(PINNED_KEY, list);
+  /** A source's badge: "Set up" (folded: "!") while a setup step is left, else its count for the month. */
+  protected sourceBadge(pane: Pane): string | number {
+    if (this.needsSetup().has(pane.id)) return this.folded() ? '!' : this.i18n.t('side.setUp');
+    const counts = this.monthCounts.value();
+    return (counts && pane.id in counts ? counts[pane.id as keyof typeof counts] : 0) || '';
+  }
+
+  protected pickSideTab(value: unknown) {
+    if (value === 'days' || value === 'sources') this.setSideTab(value);
+  }
+
+  private setSideTab(tab: SideTab) {
+    this.sideTab.set(tab);
+    writeTab(tab);
+  }
+
+  protected pickGroupTab(value: unknown) {
+    if (typeof value === 'string' && this.groupTabs()?.some((p) => p.id === value)) this.go(value);
+  }
+
+  protected pickSourceTab(value: unknown) {
+    if (value !== 'setup' && value !== 'activity') return;
+    void this.router.navigate([], {
+      queryParams: { tab: value === 'setup' ? 'setup' : null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  /** Finish setup: the guide, at its setup page. */
+  protected openSetup() {
+    this.welcomePage.set('setup');
+    this.modulesOpen.set(true);
   }
 
   protected toggleSidebar() {
@@ -455,18 +524,8 @@ export class ShellComponent {
     return parseDay(day).getDate();
   }
 
-  /** The line under a day in the side panel: what it still needs. */
   protected dayNote(d: DayDto) {
-    switch (d.state) {
-      case 'empty':
-        return this.i18n.t('side.nothingLogged');
-      case 'partial':
-        return this.i18n.t('side.short', { d: formatDuration(d.short) });
-      case 'noTicket':
-        return this.i18n.t('day.withoutIssue', { n: d.missing });
-      default:
-        return this.i18n.t('side.toReview', { n: d.drafts });
-    }
+    return dayNote(d, (k, p) => this.i18n.t(k, p));
   }
 
   /** A day's whole description, for the folded chips and screen readers. */
@@ -537,23 +596,22 @@ export class ShellComponent {
 }
 
 const COLLAPSED_KEY = 'wl.sidebar.folded';
-const PINNED_KEY = 'wl.sidebar.pinned';
+const TAB_KEY = 'wl.sidebar.tab';
 
-/** Like readFlag: a list of strings, or none when it is missing, blocked or not a list. */
-function readList(key: string): string[] {
+/** Like readFlag: the side panel's tab, Days when it is missing or blocked. */
+function readTab(): SideTab {
   try {
-    const v: unknown = JSON.parse(localStorage.getItem(key) ?? '[]');
-    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+    return localStorage.getItem(TAB_KEY) === 'sources' ? 'sources' : 'days';
   } catch {
-    return [];
+    return 'days';
   }
 }
 
-function writeList(key: string, list: string[]) {
+function writeTab(tab: SideTab) {
   try {
-    localStorage.setItem(key, JSON.stringify(list));
+    localStorage.setItem(TAB_KEY, tab);
   } catch {
-    // Not remembered; the pins still show until the window closes.
+    // Not remembered; the tab still switches.
   }
 }
 

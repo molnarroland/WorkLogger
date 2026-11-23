@@ -1,39 +1,39 @@
 import { provideIcons } from '@ng-icons/core';
 import {
-  lucideActivity,
-  lucideBookOpen,
-  lucideFlag,
-  lucideGitBranch,
-  lucideMail,
-  lucideMessagesSquare,
-  lucidePencil,
-  lucideUmbrella,
-  lucideUsers,
-} from '@ng-icons/lucide';
+  phosphorPulse,
+  phosphorBookOpen,
+  phosphorFlag,
+  phosphorGitBranch,
+  phosphorEnvelopeSimple,
+  phosphorChats,
+  phosphorPencilSimple,
+  phosphorUmbrella,
+  phosphorUsers,
+} from '@ng-icons/phosphor-icons/regular';
 import type { Source } from '../api/api';
 
 /** One icon per work source. */
 export const SOURCE_ICON: Record<Source, string> = {
-  git: 'lucideGitBranch',
-  jira: 'lucideActivity',
-  confluence: 'lucideBookOpen',
-  email: 'lucideMail',
-  meeting: 'lucideUsers',
-  chat: 'lucideMessagesSquare',
-  absence: 'lucideUmbrella',
-  manual: 'lucidePencil',
-  period: 'lucideFlag',
+  git: 'phosphorGitBranch',
+  jira: 'phosphorPulse',
+  confluence: 'phosphorBookOpen',
+  email: 'phosphorEnvelopeSimple',
+  meeting: 'phosphorUsers',
+  chat: 'phosphorChats',
+  absence: 'phosphorUmbrella',
+  manual: 'phosphorPencilSimple',
+  period: 'phosphorFlag',
 };
 
 export const provideSourceIcons = () =>
   provideIcons({
-    lucideActivity,
-    lucideBookOpen,
-    lucideFlag,
-    lucideGitBranch,
-    lucideMail,
-    lucideMessagesSquare,
-    lucidePencil,
-    lucideUmbrella,
-    lucideUsers,
+    phosphorPulse,
+    phosphorBookOpen,
+    phosphorFlag,
+    phosphorGitBranch,
+    phosphorEnvelopeSimple,
+    phosphorChats,
+    phosphorPencilSimple,
+    phosphorUmbrella,
+    phosphorUsers,
   });

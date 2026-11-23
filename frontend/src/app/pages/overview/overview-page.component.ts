@@ -1,24 +1,30 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCalendarX, lucideCircleCheck, lucideListChecks, lucideSend, lucideTag } from '@ng-icons/lucide';
+import {
+  phosphorCalendarX,
+  phosphorCheckCircle,
+  phosphorListChecks,
+  phosphorPaperPlaneTilt,
+  phosphorTag,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnStatusPage } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { I18n, TPipe } from '../../i18n/t.pipe';
 import { DurationPipe } from '../../shared/duration.pipe';
 import type { TodoDto, TodoKind } from '../../api/api';
-import { toBarParts } from '../../shared/colors';
+import { TRIAGE_COLOR, toBarParts } from '../../shared/colors';
 import { monthTitle } from '../../shared/month';
-import { parseDay } from '../../shared/worklogs';
+import { dayNote, dayTitle, parseDay } from '../../shared/worklogs';
 import { ShellStore } from '../../state/shell.store';
 import { SourceBarComponent } from '../../ui/source-bar/source-bar.component';
 import { SourceLegendComponent } from '../../ui/source-legend/source-legend.component';
 
 const TODO_ICON: Record<TodoKind, string> = {
-  fillDays: 'lucideCalendarX',
-  addTickets: 'lucideTag',
-  reviewDrafts: 'lucideListChecks',
-  logInTempo: 'lucideSend',
+  fillDays: 'phosphorCalendarX',
+  addTickets: 'phosphorTag',
+  reviewDrafts: 'phosphorListChecks',
+  logInTempo: 'phosphorPaperPlaneTilt',
 };
 
 /**
@@ -27,8 +33,19 @@ const TODO_ICON: Record<TodoKind, string> = {
  */
 @Component({
   selector: 'wl-overview-page',
-  imports: [DurationPipe, HlmButtonImports, NgIcon, SnStatusPage, SourceBarComponent, SourceLegendComponent, TPipe],
-  providers: [provideIcons({ lucideCalendarX, lucideCircleCheck, lucideListChecks, lucideSend, lucideTag })],
+  imports: [
+    DurationPipe,
+    HlmButtonImports,
+    NgIcon,
+    RouterLink,
+    SnStatusPage,
+    SourceBarComponent,
+    SourceLegendComponent,
+    TPipe,
+  ],
+  providers: [
+    provideIcons({ phosphorCalendarX, phosphorCheckCircle, phosphorListChecks, phosphorPaperPlaneTilt, phosphorTag }),
+  ],
   templateUrl: './overview-page.component.html',
   styleUrl: './overview-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +63,20 @@ export class OverviewPageComponent {
   protected readonly todos = this.store.todos;
   protected readonly monthName = computed(() => monthTitle(this.store.month(), this.i18n.lang()));
   protected readonly empty = computed(() => this.store.worklogs().length === 0);
+  /** Next up: the first day that needs work (the side panel's "Needs attention"), with what it needs. */
+  protected readonly next = computed(() => {
+    const d = this.store.attention()[0];
+    if (!d) return null;
+    return {
+      day: d.day,
+      color: TRIAGE_COLOR[d.state],
+      title: dayTitle(d.day, this.i18n.lang()),
+      logged: d.logged,
+      expected: d.expected,
+      note: dayNote(d, (k, p) => this.i18n.t(k, p)),
+      more: this.store.attention().length - 1,
+    };
+  });
 
   /** "Oct 29, Oct 30" (at most four, then "+2"). */
   protected days(days: readonly string[]): string {

@@ -1,9 +1,9 @@
 <ng-template snPageCommands>
-  <button snCommand hideLabel icon="lucidePlus" [label]="'periods.add' | t" (click)="add()"></button>
+  <button snCommand hideLabel icon="phosphorPlus" [label]="'periods.add' | t" (click)="add()"></button>
   <button
     snCommand
     hideLabel
-    icon="lucideRefreshCw"
+    icon="phosphorArrowsClockwise"
     [label]="'toolbar.rebuild' | t"
     [disabled]="store.busy()"
     (click)="store.run('rebuild')"
@@ -13,7 +13,7 @@
 @if (!periods().length) {
   <sn-status-page
     class="fill"
-    icon="lucideFlag"
+    icon="phosphorFlag"
     [title]="'periods.emptyTitle' | t"
     [description]="'periods.emptyBody' | t"
   >
@@ -68,7 +68,7 @@
                     [value]="p.from"
                     (change)="setFrom(i, $any($event.target).value)"
                   />
-                  <ng-icon name="lucideArrowRight" class="sn-text-muted" aria-hidden="true" />
+                  <ng-icon name="phosphorArrowRight" class="sn-text-muted" aria-hidden="true" />
                   <input
                     hlmInput
                     type="date"
@@ -89,7 +89,7 @@
                   [attr.aria-label]="'worklog.delete' | t"
                   (click)="remove(i)"
                 >
-                  <ng-icon name="lucideTrash2" aria-hidden="true" />
+                  <ng-icon name="phosphorTrash" aria-hidden="true" />
                 </button>
               </td>
             </tr>

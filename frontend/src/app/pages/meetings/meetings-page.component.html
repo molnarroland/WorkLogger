@@ -3,22 +3,22 @@
     <button
       snCommand
       hideLabel
-      icon="lucideRefreshCw"
+      icon="phosphorArrowsClockwise"
       [label]="'meetings.read' | t"
       (click)="meetings.reload()"
     ></button>
     <button
       snCommand
       hideLabel
-      icon="lucideCalendarCog"
+      icon="phosphorCalendarDots"
       [label]="'meetings.settings' | t"
-      (click)="openSettings()"
+      (click)="openSetup()"
     ></button>
   </ng-template>
 
   @if (suggestion(); as sug) {
     <div hlmAlert class="sn-tone-warning suggestion" snActionScope>
-      <ng-icon name="lucideLightbulb" />
+      <ng-icon name="phosphorLightbulb" />
       <p hlmAlertTitle>{{ 'meetings.suggestion' | t: { title: sug.title, n: sug.count } }}</p>
       <div hlmAlertDescription class="suggestion-row">
         <input
@@ -51,11 +51,11 @@
   @if (!list().length) {
     <sn-status-page
       class="fill"
-      icon="lucideUsers"
+      icon="phosphorUsers"
       [title]="'meetings.emptyTitle' | t"
       [description]="'meetings.emptyBody' | t"
     >
-      <button hlmBtn type="button" (click)="openSettings()">{{ 'meetings.settings' | t }}</button>
+      <button hlmBtn type="button" (click)="openSetup()">{{ 'meetings.settings' | t }}</button>
     </sn-status-page>
   } @else {
     <div class="table">

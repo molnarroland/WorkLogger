@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowUpRight, lucideGitCommitHorizontal, lucideTextSearch, lucideTrash2 } from '@ng-icons/lucide';
+import {
+  phosphorArrowUpRight,
+  phosphorGitCommit,
+  phosphorListMagnifyingGlass,
+  phosphorTrash,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnInspectorImports, SnTooltip } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -32,7 +37,7 @@ import { at, dayTitle, formatDuration, hm } from '../../shared/worklogs';
     SnInspectorImports,
     TPipe,
   ],
-  providers: [provideIcons({ lucideArrowUpRight, lucideGitCommitHorizontal, lucideTextSearch, lucideTrash2 })],
+  providers: [provideIcons({ phosphorArrowUpRight, phosphorGitCommit, phosphorListMagnifyingGlass, phosphorTrash })],
   templateUrl: './worklog-inspector.component.html',
   styleUrl: './worklog-inspector.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

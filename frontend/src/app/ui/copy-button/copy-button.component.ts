@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCheck, lucideCopy } from '@ng-icons/lucide';
+import { phosphorCheck, phosphorCopy } from '@ng-icons/phosphor-icons/regular';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { TPipe } from '../../i18n/t.pipe';
 
@@ -8,7 +8,7 @@ import { TPipe } from '../../i18n/t.pipe';
 @Component({
   selector: 'wl-copy-button',
   imports: [HlmButtonImports, NgIcon, TPipe],
-  providers: [provideIcons({ lucideCheck, lucideCopy })],
+  providers: [provideIcons({ phosphorCheck, phosphorCopy })],
   templateUrl: './copy-button.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

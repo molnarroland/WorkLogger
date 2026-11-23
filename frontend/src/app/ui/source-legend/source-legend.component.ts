@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideTriangleAlert } from '@ng-icons/lucide';
+import { phosphorWarning } from '@ng-icons/phosphor-icons/regular';
 import { TPipe } from '../../i18n/t.pipe';
 import { DurationPipe } from '../../shared/duration.pipe';
 import type { BarPart } from '../../shared/colors';
@@ -13,7 +13,7 @@ import { provideSourceIcons } from '../../shared/source-icons';
 @Component({
   selector: 'wl-source-legend',
   imports: [DurationPipe, NgIcon, TPipe],
-  providers: [provideSourceIcons(), provideIcons({ lucideTriangleAlert })],
+  providers: [provideSourceIcons(), provideIcons({ phosphorWarning })],
   templateUrl: './source-legend.component.html',
   styleUrl: './source-legend.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

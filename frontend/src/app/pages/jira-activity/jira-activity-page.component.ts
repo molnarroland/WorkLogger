@@ -1,7 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideActivity, lucideLightbulb, lucidePaperclip, lucideRefreshCw, lucideSearchX } from '@ng-icons/lucide';
+import {
+  phosphorPulse,
+  phosphorLightbulb,
+  phosphorPaperclip,
+  phosphorArrowsClockwise,
+  phosphorMagnifyingGlassMinus,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnCommandBarImports, SnPageCommandsTemplate, SnStatusPage, SnTooltip } from '@spartan-native/desktop-ui';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -40,7 +46,13 @@ const FIELDS = ['status', 'assignee', 'priority', 'resolution', 'labels', 'sprin
   ],
   providers: [
     provideSourceIcons(),
-    provideIcons({ lucideActivity, lucideLightbulb, lucidePaperclip, lucideRefreshCw, lucideSearchX }),
+    provideIcons({
+      phosphorPulse,
+      phosphorLightbulb,
+      phosphorPaperclip,
+      phosphorArrowsClockwise,
+      phosphorMagnifyingGlassMinus,
+    }),
   ],
   templateUrl: './jira-activity-page.component.html',
   styleUrl: './jira-activity-page.component.css',

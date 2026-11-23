@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCircleCheck, lucideCircleSlash, lucideCircleX } from '@ng-icons/lucide';
+import { phosphorCheckCircle, phosphorProhibit, phosphorXCircle } from '@ng-icons/phosphor-icons/regular';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { TPipe } from '../../i18n/t.pipe';
@@ -10,7 +10,7 @@ import type { Task } from '../../shared/task';
 @Component({
   selector: 'wl-task-list',
   imports: [HlmButtonImports, HlmSpinnerImports, NgIcon, TPipe],
-  providers: [provideIcons({ lucideCircleCheck, lucideCircleSlash, lucideCircleX })],
+  providers: [provideIcons({ phosphorCheckCircle, phosphorProhibit, phosphorXCircle })],
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

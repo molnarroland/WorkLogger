@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideChevronUp } from '@ng-icons/lucide';
+import { phosphorCaretDown, phosphorCaretUp } from '@ng-icons/phosphor-icons/regular';
 import { BrnAccordionImports } from '@spartan-ng/brain/accordion';
 import { hlm } from '@spartan-ng/helm/utils';
 import type { ClassValue } from 'clsx';
@@ -9,19 +9,19 @@ import type { ClassValue } from 'clsx';
   selector: 'hlm-accordion-trigger',
   exportAs: 'hlmAccordionTrigger',
   imports: [BrnAccordionImports, NgIcon],
-  providers: [provideIcons({ lucideChevronDown, lucideChevronUp })],
+  providers: [provideIcons({ phosphorCaretDown, phosphorCaretUp })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h3 brnAccordionHeader class="flex">
       <button brnAccordionTrigger data-slot="accordion-trigger" [class]="_computedTriggerClass()">
         <ng-content />
         <ng-icon
-          name="lucideChevronDown"
+          name="phosphorCaretDown"
           data-slot="accordion-trigger-icon"
           class="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
         />
         <ng-icon
-          name="lucideChevronUp"
+          name="phosphorCaretUp"
           data-slot="accordion-trigger-icon"
           class="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:inline group-aria-[expanded=false]/accordion-trigger:hidden"
         />

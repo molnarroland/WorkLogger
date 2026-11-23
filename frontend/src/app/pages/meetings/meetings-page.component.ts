@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCalendarCog, lucideLightbulb, lucideRefreshCw, lucideUsers } from '@ng-icons/lucide';
+import {
+  phosphorCalendarDots,
+  phosphorLightbulb,
+  phosphorArrowsClockwise,
+  phosphorUsers,
+} from '@ng-icons/phosphor-icons/regular';
 import { Router } from '@angular/router';
 import { SnCommandBarImports, SnPageCommandsTemplate, SnStatusPage } from '@spartan-native/desktop-ui';
 import { SnDialogActionsImports } from '@spartan-native/helm';
@@ -37,7 +42,7 @@ import { DayFilterComponent } from '../../ui/day-filter/day-filter.component';
     SnStatusPage,
     TPipe,
   ],
-  providers: [provideIcons({ lucideCalendarCog, lucideLightbulb, lucideRefreshCw, lucideUsers })],
+  providers: [provideIcons({ phosphorCalendarDots, phosphorLightbulb, phosphorArrowsClockwise, phosphorUsers })],
   templateUrl: './meetings-page.component.html',
   styleUrl: './meetings-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -86,8 +91,8 @@ export class MeetingsPageComponent {
     this.version.update((v) => v + 1);
   }
 
-  protected openSettings() {
-    this.router.navigate(['settings'], { queryParams: { tab: 'calendars' } });
+  protected openSetup() {
+    this.router.navigate([], { queryParams: { tab: 'setup' }, queryParamsHandling: 'merge' });
   }
 
   /** A ticket for a title becomes a rule; then the drafts are rebuilt so the month picks it up. */

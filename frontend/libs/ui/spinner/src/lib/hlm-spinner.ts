@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideLoader2 } from '@ng-icons/lucide';
+import { phosphorCircleNotch } from '@ng-icons/phosphor-icons/regular';
 import { classes } from '@spartan-ng/helm/utils';
 
 @Component({
   selector: 'hlm-spinner',
   exportAs: 'hlmSpinner',
   imports: [NgIcon],
-  providers: [provideIcons({ lucideLoader2 })],
+  providers: [provideIcons({ phosphorCircleNotch })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'data-slot': 'spinner',
@@ -21,7 +21,7 @@ export class HlmSpinner {
    * The name of the icon to be used as the spinner.
    * Use provideIcons({ ... }) to register custom icons.
    */
-  public readonly icon = input<string>('lucideLoader2');
+  public readonly icon = input<string>('phosphorCircleNotch');
 
   /** Aria label for the spinner for accessibility. */
   public readonly ariaLabel = input<string>('Loading', { alias: 'aria-label' });

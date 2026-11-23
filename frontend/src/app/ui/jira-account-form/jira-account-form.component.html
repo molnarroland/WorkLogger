@@ -99,7 +99,9 @@
           @for (l of checkLines(); track $index) {
             <li class="line">
               <ng-icon
-                [name]="l.ok === true ? 'lucideCircleCheck' : l.ok === false ? 'lucideCircleX' : 'lucideCircleMinus'"
+                [name]="
+                  l.ok === true ? 'phosphorCheckCircle' : l.ok === false ? 'phosphorXCircle' : 'phosphorMinusCircle'
+                "
                 [class.ok]="l.ok === true"
                 [class.bad]="l.ok === false"
                 [class.sn-text-muted]="l.ok === null"

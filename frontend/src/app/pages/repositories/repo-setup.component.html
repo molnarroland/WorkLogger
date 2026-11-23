@@ -1,0 +1,51 @@
+@if (store.settings(); as s) {
+  <sn-settings-group [title]="'repos.folders' | t" [description]="'repos.foldersHelp' | t">
+    @for (root of s.workspaceRoots; track root) {
+      <sn-settings-row [title]="root">
+        <ng-icon snSettingsIcon name="phosphorFolderOpen" />
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [attr.aria-label]="'repos.removeFolder' | t: { path: root }"
+          (click)="removeRoot(root)"
+        >
+          <ng-icon name="phosphorTrash" aria-hidden="true" />
+        </button>
+      </sn-settings-row>
+    } @empty {
+      <sn-settings-row [title]="'repos.noFolder' | t">
+        <ng-icon snSettingsIcon name="phosphorFolderOpen" />
+      </sn-settings-row>
+    }
+    <div class="pad">
+      <button hlmBtn variant="outline" size="sm" type="button" (click)="choose()">
+        <ng-icon name="phosphorFolderPlus" aria-hidden="true" /> {{ 'repos.addFolder' | t }}
+      </button>
+    </div>
+  </sn-settings-group>
+
+  <sn-settings-group [title]="'repos.setup' | t">
+    <div class="pad stack">
+      <span class="section-title">{{ 'repos.emails' | t }}</span>
+      <wl-chip-list
+        [highlighted]="true"
+        [label]="'repos.emailsAdd' | t"
+        placeholder="you@company.com"
+        [values]="s.authorEmails"
+        (valuesChange)="store.saveSettings({ authorEmails: $event })"
+      />
+    </div>
+    <div class="pad stack">
+      <span class="section-title">{{ 'repos.skipped' | t }}</span>
+      <wl-chip-list
+        [label]="'repos.skippedAdd' | t"
+        [placeholder]="'repos.skippedPlaceholder' | t"
+        [values]="s.excludedFolders"
+        (valuesChange)="store.saveSettings({ excludedFolders: $event })"
+      />
+      <span class="sn-text-muted small">{{ 'repos.skippedHelp' | t }}</span>
+    </div>
+  </sn-settings-group>
+}

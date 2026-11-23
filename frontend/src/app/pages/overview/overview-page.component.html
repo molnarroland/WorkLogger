@@ -1,5 +1,23 @@
 @if (summary(); as s) {
   <div class="page">
+    @if (next(); as n) {
+      <section class="card next" aria-labelledby="overview-next">
+        <h2 id="overview-next" class="section-title">{{ 'overview.nextUp' | t }}</h2>
+        <div class="next-row">
+          <span class="next-dot" aria-hidden="true" [style.background]="n.color"></span>
+          <span class="next-text">
+            <span class="next-day">{{ n.title }}</span>
+            <span class="small sn-text-muted tabular"
+              >{{ n.logged | duration }} / {{ n.expected | duration }} · {{ n.note }}</span
+            >
+          </span>
+          <a hlmBtn size="sm" [routerLink]="['/days', n.day]">{{ 'overview.openDay' | t }}</a>
+        </div>
+        @if (n.more > 0) {
+          <span class="small sn-text-muted">{{ 'overview.moreDays' | t: { n: n.more } }}</span>
+        }
+      </section>
+    }
     <section class="card" aria-labelledby="overview-progress">
       <h2 id="overview-progress" class="sr-only">{{ 'overview.progress' | t }}</h2>
       <div class="headline">
@@ -51,7 +69,7 @@
       <h2 id="overview-todos" class="section-title">{{ 'overview.todosTitle' | t: { month: monthName() } }}</h2>
       @if (empty()) {
         <sn-status-page
-          icon="lucideCalendarX"
+          icon="phosphorCalendarX"
           [title]="'overview.emptyTitle' | t"
           [description]="'overview.emptyBody' | t"
         >
@@ -61,7 +79,7 @@
         </sn-status-page>
       } @else if (!todos().length) {
         <sn-status-page
-          icon="lucideCircleCheck"
+          icon="phosphorCheckCircle"
           [title]="'overview.doneTitle' | t"
           [description]="'overview.doneBody' | t"
         />

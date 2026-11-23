@@ -1,17 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  lucideActivity,
-  lucideBookOpen,
-  lucideMail,
-  lucideCalendar,
-  lucideClock,
-  lucideFlag,
-  lucideHardDrive,
-  lucideListChecks,
-  lucideMessagesSquare,
-  lucideUsers,
-} from '@ng-icons/lucide';
+import { SIDE_ICONS, sideIcon } from '../../shell/side-icons';
 import { NgTemplateOutlet } from '@angular/common';
 import { TPipe } from '../../i18n/t.pipe';
 import { SnTooltip } from '@spartan-native/desktop-ui';
@@ -33,25 +22,14 @@ export interface DockItem {
 @Component({
   selector: 'wl-source-dock',
   imports: [SnTooltip, NgIcon, NgTemplateOutlet, TPipe],
-  providers: [
-    provideIcons({
-      lucideActivity,
-      lucideBookOpen,
-      lucideMail,
-      lucideCalendar,
-      lucideClock,
-      lucideFlag,
-      lucideHardDrive,
-      lucideListChecks,
-      lucideMessagesSquare,
-      lucideUsers,
-    }),
-  ],
+  providers: [provideIcons(SIDE_ICONS)],
   templateUrl: './source-dock.component.html',
   styleUrl: './source-dock.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SourceDockComponent {
+  /** The open page's icon is drawn filled. */
+  protected readonly sideIcon = sideIcon;
   readonly items = input.required<DockItem[]>();
   /** The page on screen (its id), shown pressed. */
   readonly active = input('');

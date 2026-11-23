@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, model, resource, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideChevronDown, lucideChevronRight, lucideFileDiff, lucideGitCommitHorizontal } from '@ng-icons/lucide';
+import {
+  phosphorCaretDown,
+  phosphorCaretRight,
+  phosphorFileMagnifyingGlass,
+  phosphorGitCommit,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnModalSheet, SnStatusPage } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
@@ -26,7 +31,7 @@ interface Open {
 @Component({
   selector: 'wl-commit-sheet',
   imports: [CopyButtonComponent, HlmButtonImports, HlmSpinnerImports, NgIcon, SnModalSheet, SnStatusPage, TPipe],
-  providers: [provideIcons({ lucideChevronDown, lucideChevronRight, lucideFileDiff, lucideGitCommitHorizontal })],
+  providers: [provideIcons({ phosphorCaretDown, phosphorCaretRight, phosphorFileMagnifyingGlass, phosphorGitCommit })],
   templateUrl: './commit-sheet.component.html',
   styleUrl: './commit-sheet.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

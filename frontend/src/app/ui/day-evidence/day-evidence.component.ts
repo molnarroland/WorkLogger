@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowUpRight, lucideMessagesSquare, lucideUsers } from '@ng-icons/lucide';
+import { phosphorArrowUpRight, phosphorChats, phosphorUsers } from '@ng-icons/phosphor-icons/regular';
 import type { ChatDayDto, Focus, MeetingDto } from '../../api/api';
 import { TPipe } from '../../i18n/t.pipe';
 import { hm } from '../../shared/worklogs';
@@ -29,7 +29,7 @@ export interface EvidenceItem {
 @Component({
   selector: 'wl-day-evidence',
   imports: [HlmButtonImports, SnTooltip, NgIcon, TPipe],
-  providers: [provideIcons({ lucideArrowUpRight, lucideMessagesSquare, lucideUsers })],
+  providers: [provideIcons({ phosphorArrowUpRight, phosphorChats, phosphorUsers })],
   templateUrl: './day-evidence.component.html',
   styleUrl: './day-evidence.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

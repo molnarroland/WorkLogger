@@ -2,7 +2,7 @@
   <button
     snCommand
     hideLabel
-    icon="lucideRefreshCw"
+    icon="phosphorArrowsClockwise"
     [label]="'plans.read' | t"
     [disabled]="reading() || store.locked()"
     (click)="refresh()"
@@ -12,7 +12,7 @@
 @if (!read()) {
   <sn-status-page
     class="fill"
-    icon="lucideCalendarClock"
+    icon="phosphorCalendarPlus"
     [title]="'plans.notReadTitle' | t"
     [description]="'plans.notReadBody' | t"
   >
@@ -22,7 +22,7 @@
 } @else if (!any()) {
   <sn-status-page
     class="fill"
-    icon="lucideCalendarClock"
+    icon="phosphorCalendarPlus"
     [title]="'plans.emptyTitle' | t"
     [description]="'plans.emptyBody' | t"
   />
@@ -48,7 +48,7 @@
   @if (!days().length) {
     <sn-status-page
       class="fill"
-      icon="lucideSearchX"
+      icon="phosphorMagnifyingGlassMinus"
       [title]="'filter.noMatch' | t"
       [description]="'filter.noMatchBody' | t"
     >
@@ -100,7 +100,7 @@
                           [snTooltip]="'commits.show' | t"
                           (click)="showCommits(e)"
                         >
-                          <ng-icon name="lucideGitCommitHorizontal" aria-hidden="true" />
+                          <ng-icon name="phosphorGitCommit" aria-hidden="true" />
                         </button>
                       }
                       @if (e.focus && panes().includes(e.focus.pane)) {
@@ -115,7 +115,7 @@
                           [snTooltip]="'focus.showIn' | t: { page: ('pane.' + e.focus.pane | t) }"
                           (click)="open(e.focus)"
                         >
-                          <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+                          <ng-icon name="phosphorArrowUpRight" aria-hidden="true" />
                         </button>
                       }
                     </li>
@@ -137,7 +137,7 @@
                     </button>
                   }
                   <button hlmBtn size="sm" variant="outline" type="button" (click)="choose(d)">
-                    <ng-icon name="lucideTextSearch" aria-hidden="true" /> {{ 'plans.chooseForAll' | t }}
+                    <ng-icon name="phosphorListMagnifyingGlass" aria-hidden="true" /> {{ 'plans.chooseForAll' | t }}
                   </button>
                 </span>
               </div>
@@ -157,7 +157,7 @@
                         [snTooltip]="'commits.show' | t"
                         (click)="showCommits(e)"
                       >
-                        <ng-icon name="lucideGitCommitHorizontal" aria-hidden="true" />
+                        <ng-icon name="phosphorGitCommit" aria-hidden="true" />
                       </button>
                     }
                     <button
@@ -169,7 +169,7 @@
                       [snTooltip]="'worklog.chooseIssueHelp' | t"
                       (click)="choose(d, [e])"
                     >
-                      <ng-icon name="lucideTextSearch" aria-hidden="true" />
+                      <ng-icon name="phosphorListMagnifyingGlass" aria-hidden="true" />
                     </button>
                   </li>
                 }

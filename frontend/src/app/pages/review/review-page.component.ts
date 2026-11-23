@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideInbox, lucideLock, lucidePlus, lucideTriangleAlert } from '@ng-icons/lucide';
+import { phosphorTray, phosphorLock, phosphorPlus, phosphorWarning } from '@ng-icons/phosphor-icons/regular';
 import {
   SnInspectorImports,
   SnMenuImports,
@@ -53,7 +53,7 @@ export type ReviewFilter = 'noTicket' | 'drafts' | 'locked' | 'all';
     EntrySheetsComponent,
     WorklogInspectorComponent,
   ],
-  providers: [provideSourceIcons(), provideIcons({ lucideInbox, lucideLock, lucidePlus, lucideTriangleAlert })],
+  providers: [provideSourceIcons(), provideIcons({ phosphorTray, phosphorLock, phosphorPlus, phosphorWarning })],
   templateUrl: './review-page.component.html',
   styleUrl: './review-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

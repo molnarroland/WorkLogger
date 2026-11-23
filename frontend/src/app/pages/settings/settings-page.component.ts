@@ -1,25 +1,26 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, resource } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideActivity,
-  lucideAppWindow,
-  lucideBlend,
-  lucideBookOpen,
-  lucideCalendarClock,
-  lucideClock,
-  lucideContrast,
-  lucideDatabase,
-  lucideHardDrive,
-  lucideLanguages,
-  lucideMail,
-  lucideMessagesSquare,
-  lucidePalette,
-  lucideSunMoon,
-  lucideType,
-  lucideUsers,
-  lucideWind,
-} from '@ng-icons/lucide';
+  phosphorPulse,
+  phosphorAppWindow,
+  phosphorIntersect,
+  phosphorBookOpen,
+  phosphorCalendarPlus,
+  phosphorClock,
+  phosphorCircleHalf,
+  phosphorDatabase,
+  phosphorHardDrive,
+  phosphorTranslate,
+  phosphorEnvelopeSimple,
+  phosphorChats,
+  phosphorPalette,
+  phosphorMoon,
+  phosphorTextT,
+  phosphorUsers,
+  phosphorWind,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnNumberBox, SnSettingsImports } from '@spartan-native/desktop-ui';
+import { SpartanNativeTheme, skinFamily } from '@spartan-native/theme';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
@@ -46,17 +47,15 @@ import {
 import { ShellStore } from '../../state/shell.store';
 import { ChipListComponent } from '../../ui/chip-list/chip-list.component';
 import { type RuleItem, RuleListComponent } from '../../ui/rule-list/rule-list.component';
-import { CalendarSettingsComponent } from './calendar-settings.component';
 import { ProfilesSettingsComponent } from './profiles-settings.component';
 import { MODULES } from '../../ui/welcome-sheet/welcome-sheet.component';
 
-export type SettingsTab = 'general' | 'modules' | 'profiles' | 'calendars' | 'timesheet' | 'coding' | 'chats';
+export type SettingsTab = 'general' | 'modules' | 'profiles' | 'timesheet' | 'coding' | 'chats';
 
 /** Settings, one page with tabs. Every change saves straight away. */
 @Component({
   selector: 'wl-settings-page',
   imports: [
-    CalendarSettingsComponent,
     ChipListComponent,
     HlmButtonImports,
     HlmInputImports,
@@ -74,42 +73,39 @@ export type SettingsTab = 'general' | 'modules' | 'profiles' | 'calendars' | 'ti
   ],
   providers: [
     provideIcons({
-      lucideActivity,
-      lucideAppWindow,
-      lucideBookOpen,
-      lucideBlend,
-      lucideCalendarClock,
-      lucideClock,
-      lucideContrast,
-      lucideDatabase,
-      lucideHardDrive,
-      lucideLanguages,
-      lucideMail,
-      lucideMessagesSquare,
-      lucidePalette,
-      lucideSunMoon,
-      lucideType,
-      lucideUsers,
-      lucideWind,
+      phosphorPulse,
+      phosphorAppWindow,
+      phosphorBookOpen,
+      phosphorIntersect,
+      phosphorCalendarPlus,
+      phosphorClock,
+      phosphorCircleHalf,
+      phosphorDatabase,
+      phosphorHardDrive,
+      phosphorTranslate,
+      phosphorEnvelopeSimple,
+      phosphorChats,
+      phosphorPalette,
+      phosphorMoon,
+      phosphorTextT,
+      phosphorUsers,
+      phosphorWind,
     }),
   ],
+  // The layout follows the skin's platform (settings-page.component.css).
+  host: { '[attr.data-family]': 'family()' },
   templateUrl: './settings-page.component.html',
   styleUrl: './settings-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPageComponent {
   protected readonly store = inject(ShellStore);
+  private readonly theme = inject(SpartanNativeTheme);
+  /** The family the window is dressed as: macOS and Linux centre a column, Windows fills the width. */
+  protected readonly family = computed(() => skinFamily(this.theme.skin()));
   protected readonly api = inject(API);
   private readonly i18n = inject(I18n);
-  protected readonly tabs: SettingsTab[] = [
-    'general',
-    'modules',
-    'profiles',
-    'calendars',
-    'timesheet',
-    'coding',
-    'chats',
-  ];
+  protected readonly tabs: SettingsTab[] = ['general', 'modules', 'profiles', 'timesheet', 'coding', 'chats'];
   protected readonly languages = LANGUAGES;
   protected readonly appearances = APPEARANCES;
   protected readonly accents = ACCENTS;

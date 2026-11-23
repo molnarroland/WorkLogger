@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, resource } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCalendar, lucideRss } from '@ng-icons/lucide';
+import { phosphorCalendarBlank, phosphorRss } from '@ng-icons/phosphor-icons/regular';
 import { SnSettingsImports } from '@spartan-native/desktop-ui';
 import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -29,7 +29,7 @@ import { type RuleItem, RuleListComponent } from '../../ui/rule-list/rule-list.c
     SnSettingsImports,
     TPipe,
   ],
-  providers: [provideIcons({ lucideCalendar, lucideRss })],
+  providers: [provideIcons({ phosphorCalendarBlank, phosphorRss })],
   templateUrl: './calendar-settings.component.html',
   styleUrl: './calendar-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

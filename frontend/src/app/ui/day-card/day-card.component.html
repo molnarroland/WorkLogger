@@ -11,7 +11,7 @@
     <div class="top">
       <span class="number" [class.today]="isToday()">{{ dayNumber() }}</span>
       @if (missing()) {
-        <ng-icon name="lucideTriangleAlert" class="needs-ticket" />
+        <ng-icon name="phosphorWarning" class="needs-ticket" />
       }
       @if (hrLabel()) {
         <span class="label">{{ hrLabel() }}</span>

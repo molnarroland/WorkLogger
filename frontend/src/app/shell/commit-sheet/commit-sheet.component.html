@@ -6,7 +6,7 @@
       <p class="needs-ticket small">{{ 'commits.failed' | t }}</p>
     } @else if (!commits.value()?.length) {
       <sn-status-page
-        icon="lucideGitCommitHorizontal"
+        icon="phosphorGitCommit"
         [title]="'commits.noneTitle' | t"
         [description]="'commits.noneBody' | t"
       />
@@ -16,7 +16,7 @@
           @let open = expanded()[c.hash];
           <li class="commit">
             <button type="button" class="commit-head" [attr.aria-expanded]="!!open" (click)="toggle(c)">
-              <ng-icon [name]="open ? 'lucideChevronDown' : 'lucideChevronRight'" aria-hidden="true" />
+              <ng-icon [name]="open ? 'phosphorCaretDown' : 'phosphorCaretRight'" aria-hidden="true" />
               <span class="subject truncate" [title]="c.subject">{{ c.subject }}</span>
               <span class="stat tabular small">
                 <span class="add">+{{ c.insertions }}</span> <span class="del">−{{ c.deletions }}</span>
@@ -51,7 +51,7 @@
                           [attr.aria-pressed]="open.path === f.path"
                           (click)="showDiff(c, f.path)"
                         >
-                          <ng-icon name="lucideFileDiff" aria-hidden="true" />
+                          <ng-icon name="phosphorFileMagnifyingGlass" aria-hidden="true" />
                           <span class="path truncate" [title]="f.path">{{ f.path }}</span>
                           <span class="stat tabular">
                             <span class="add">+{{ f.added }}</span> <span class="del">−{{ f.deleted }}</span>

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, resource, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideMail, lucideSearchX } from '@ng-icons/lucide';
+import { phosphorEnvelopeSimple, phosphorMagnifyingGlassMinus } from '@ng-icons/phosphor-icons/regular';
 import { SnStatusPage } from '@spartan-native/desktop-ui';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -30,7 +30,7 @@ import { ListFilterComponent } from '../../ui/list-filter/list-filter.component'
     SnStatusPage,
     TPipe,
   ],
-  providers: [provideIcons({ lucideMail, lucideSearchX })],
+  providers: [provideIcons({ phosphorEnvelopeSimple, phosphorMagnifyingGlassMinus })],
   templateUrl: './email-page.component.html',
   // The same layout as the Jira and Confluence feeds: one line per thread, the same columns.
   styleUrl: '../jira-activity/jira-activity-page.component.css',

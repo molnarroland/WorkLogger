@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCalendarDays, lucideGripVertical, lucidePlus } from '@ng-icons/lucide';
+import { phosphorCalendarDots, phosphorDotsSixVertical, phosphorPlus } from '@ng-icons/phosphor-icons/regular';
 import { SnInspectorImports, SnMenuImports, SnResizable, type SnMenuItem } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
@@ -44,7 +44,7 @@ const LEGEND_GROUPS: { title: string; parts: BarPart[] }[] = [
   },
   {
     title: 'legend.attention',
-    parts: [{ color: 'var(--wl-needs-ticket)', seconds: 0, label: 'source.noTicket', icon: 'lucideTriangleAlert' }],
+    parts: [{ color: 'var(--wl-needs-ticket)', seconds: 0, label: 'source.noTicket', icon: 'phosphorWarning' }],
   },
 ];
 
@@ -63,7 +63,7 @@ const LEGEND_GROUPS: { title: string; parts: BarPart[] }[] = [
     SourceLegendComponent,
     TPipe,
   ],
-  providers: [provideSourceIcons(), provideIcons({ lucideCalendarDays, lucideGripVertical, lucidePlus })],
+  providers: [provideSourceIcons(), provideIcons({ phosphorCalendarDots, phosphorDotsSixVertical, phosphorPlus })],
   templateUrl: './timesheet-page.component.html',
   styleUrl: './timesheet-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

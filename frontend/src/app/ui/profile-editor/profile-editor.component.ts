@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCircleCheck, lucideCircleMinus, lucideCircleX } from '@ng-icons/lucide';
+import { phosphorCheckCircle, phosphorMinusCircle, phosphorXCircle } from '@ng-icons/phosphor-icons/regular';
 import { SnSettingsImports } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -40,7 +40,7 @@ export interface JiraChoice {
     TPipe,
     TokenHelpComponent,
   ],
-  providers: [provideIcons({ lucideCircleCheck, lucideCircleMinus, lucideCircleX })],
+  providers: [provideIcons({ phosphorCheckCircle, phosphorMinusCircle, phosphorXCircle })],
   templateUrl: './profile-editor.component.html',
   styleUrl: './profile-editor.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

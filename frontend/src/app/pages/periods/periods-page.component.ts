@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowRight, lucideFlag, lucidePlus, lucideRefreshCw, lucideTrash2 } from '@ng-icons/lucide';
+import {
+  phosphorArrowRight,
+  phosphorFlag,
+  phosphorPlus,
+  phosphorArrowsClockwise,
+  phosphorTrash,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnCommandBarImports, SnPageCommandsTemplate, SnStatusPage } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -25,7 +31,7 @@ import { PeriodMonthComponent } from '../../ui/period-month/period-month.compone
     SnStatusPage,
     TPipe,
   ],
-  providers: [provideIcons({ lucideArrowRight, lucideFlag, lucidePlus, lucideRefreshCw, lucideTrash2 })],
+  providers: [provideIcons({ phosphorArrowRight, phosphorFlag, phosphorPlus, phosphorArrowsClockwise, phosphorTrash })],
   templateUrl: './periods-page.component.html',
   styleUrl: './periods-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

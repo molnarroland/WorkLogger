@@ -3,7 +3,7 @@
     <button
       snCommand
       hideLabel
-      icon="lucideMessagesSquare"
+      icon="phosphorChats"
       class="chat-command"
       [label]="chatsCollected() ? ('days.openChats' | t: { n: chatCount() }) : ('days.fetchChat' | t)"
       [disabled]="chatsCollected() ? false : store.busy() || current() > store.today()"
@@ -51,7 +51,7 @@
 
       <div class="actions">
         <button hlmBtn variant="outline" size="sm" type="button" (click)="store.addWorklog(current())">
-          <ng-icon name="lucidePlus" aria-hidden="true" /> {{ 'day.addEntry' | t }}
+          <ng-icon name="phosphorPlus" aria-hidden="true" /> {{ 'day.addEntry' | t }}
         </button>
         @switch (mainAction()) {
           @case ('review') {
@@ -64,7 +64,7 @@
               [title]="'days.sendNeedsReview' | t"
               (click)="main()"
             >
-              <ng-icon name="lucideCheck" aria-hidden="true" /> {{ 'days.markReviewed' | t }}
+              <ng-icon name="phosphorCheck" aria-hidden="true" /> {{ 'days.markReviewed' | t }}
             </button>
           }
           @case ('send') {
@@ -77,12 +77,12 @@
               [title]="'days.sendHelp' | t"
               (click)="main()"
             >
-              <ng-icon name="lucideSend" aria-hidden="true" /> {{ 'days.send' | t }}
+              <ng-icon name="phosphorPaperPlaneTilt" aria-hidden="true" /> {{ 'days.send' | t }}
             </button>
           }
           @default {
             <button hlmBtn variant="outline" size="sm" type="button" class="next" [disabled]="!next()" (click)="main()">
-              <ng-icon name="lucideArrowRight" aria-hidden="true" /> {{ 'days.next' | t }}
+              <ng-icon name="phosphorArrowRight" aria-hidden="true" /> {{ 'days.next' | t }}
             </button>
           }
         }
@@ -90,7 +90,7 @@
     } @else {
       <sn-status-page
         class="fill"
-        icon="lucideCalendarX"
+        icon="phosphorCalendarX"
         [title]="
           (info()?.expected ? 'days.emptyTitle' : 'days.freeTitle') | t: { d: (info()?.expected ?? 0 | duration) }
         "
@@ -115,7 +115,7 @@
     [open]="panelOpen()"
     (openChange)="!$event && (inspected() ? selected.set(null) : panelOpen.set(false))"
     [title]="inspected() ? (inspected()!.issueKey ?? ('issue.none' | t)) : ('days.happened' | t)"
-    icon="lucideCalendarDays"
+    icon="phosphorCalendarDots"
   >
     @if (inspected(); as w) {
       <wl-worklog-inspector

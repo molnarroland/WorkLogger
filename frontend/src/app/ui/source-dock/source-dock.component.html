@@ -23,7 +23,7 @@
     [snTooltip]="'dock.item' | t: { page: (it.label | t), n: it.count }"
     (click)="open.emit(it.id)"
   >
-    <ng-icon [name]="it.icon" aria-hidden="true" />
+    <ng-icon [name]="sideIcon(it.icon, it.id === active())" aria-hidden="true" />
     @if (it.count) {
       <span class="count tabular" aria-hidden="true">{{ it.count > 99 ? '99+' : it.count }}</span>
     }

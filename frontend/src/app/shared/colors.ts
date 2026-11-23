@@ -11,7 +11,7 @@ export interface BarPart {
   seconds: number;
   /** i18n key of the part's name */
   label: string;
-  /** The icon the day cards show for it, if any (a lucide name). */
+  /** The icon the day cards show for it, if any (a Phosphor name). */
   icon?: string;
 }
 

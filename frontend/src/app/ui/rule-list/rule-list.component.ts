@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowRight, lucideTrash2 } from '@ng-icons/lucide';
+import { phosphorArrowRight, phosphorTrash } from '@ng-icons/phosphor-icons/regular';
 import { SnDialogActionsImports } from '@spartan-native/helm';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -19,7 +19,7 @@ export interface RuleItem {
 @Component({
   selector: 'wl-rule-list',
   imports: [HlmButtonImports, HlmInputImports, NgIcon, SnDialogActionsImports, TPipe],
-  providers: [provideIcons({ lucideArrowRight, lucideTrash2 })],
+  providers: [provideIcons({ phosphorArrowRight, phosphorTrash })],
   templateUrl: './rule-list.component.html',
   styleUrl: './rule-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

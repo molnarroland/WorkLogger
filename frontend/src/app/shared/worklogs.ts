@@ -2,7 +2,7 @@
  * Display helpers: durations, local dates and times, drag payloads. Pure: no Angular, no Api. What a value means
  * (totals, states, rules) comes from the backend; this only formats it.
  */
-import type { WorklogDto } from '../api/api';
+import type { DayDto, WorklogDto } from '../api/api';
 
 // ── Durations ────────────────────────────────────────────────────────────────
 
@@ -71,4 +71,18 @@ export function dragIds(text: string): number[] {
     .split(',')
     .filter((s) => /^\d+$/.test(s))
     .map(Number);
+}
+
+/** The line under a day (side panel, Overview's Next up): what it still needs. `t` is I18n.t. */
+export function dayNote(d: DayDto, t: (key: string, params?: Record<string, string | number>) => string): string {
+  switch (d.state) {
+    case 'empty':
+      return t('side.nothingLogged');
+    case 'partial':
+      return t('side.short', { d: formatDuration(d.short) });
+    case 'noTicket':
+      return t('day.withoutIssue', { n: d.missing });
+    default:
+      return t('side.toReview', { n: d.drafts });
+  }
 }

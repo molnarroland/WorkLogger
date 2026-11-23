@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/angular-vite';
-import { expect, fn, screen } from 'storybook/test';
+import { expect, fn, screen, within } from 'storybook/test';
 import { sampleSetup } from '../../api/testing/fixtures';
 import { toSetupSteps } from '../../shared/setup-steps';
 import { SetupChecklistComponent } from './setup-checklist.component';
@@ -17,7 +17,9 @@ type Story = StoryObj<SetupChecklistComponent>;
 export const PartlyDone: Story = {
   play: async ({ args, userEvent }) => {
     await expect(screen.getByRole('status')).toHaveTextContent('2 of 5 done');
-    await userEvent.click(screen.getAllByRole('button', { name: 'Add' })[0]);
+    // A source's step opens its Setup tab ("Open"); accounts are added on Settings ("Add").
+    const item = (await screen.findByText('Add your HRmaster site')).closest('sn-checklist-item') as HTMLElement;
+    await userEvent.click(within(item).getByRole('button', { name: 'Open' }));
     await expect(args.act).toHaveBeenCalledWith(expect.objectContaining({ id: 'hrmaster' }));
   },
 };

@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { type ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCheck } from '@ng-icons/lucide';
+import { phosphorCheck } from '@ng-icons/phosphor-icons/regular';
 import { BrnCheckbox } from '@spartan-ng/brain/checkbox';
 import { BrnFieldControlDescribedBy } from '@spartan-ng/brain/field';
 import type { ChangeFn, TouchFn } from '@spartan-ng/brain/forms';
@@ -31,7 +31,7 @@ export const HLM_CHECKBOX_VALUE_ACCESSOR = {
   exportAs: 'hlmCheckbox',
   imports: [BrnCheckbox, NgIcon],
   providers: [HLM_CHECKBOX_VALUE_ACCESSOR],
-  viewProviders: [provideIcons({ lucideCheck })],
+  viewProviders: [provideIcons({ phosphorCheck })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [BrnFieldControlDescribedBy],
   host: {
@@ -61,7 +61,7 @@ export const HLM_CHECKBOX_VALUE_ACCESSOR = {
         <span
           class="[&>ng-icon]:text-[length:--spacing(3.5)] flex items-center justify-center text-current transition-none"
         >
-          <ng-icon name="lucideCheck" />
+          <ng-icon name="phosphorCheck" />
         </span>
       }
     </brn-checkbox>

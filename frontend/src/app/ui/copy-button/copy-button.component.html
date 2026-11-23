@@ -9,7 +9,7 @@
     [attr.aria-label]="ariaLabel() || label()"
     (click)="copy()"
   >
-    <ng-icon [name]="copied() ? 'lucideCheck' : 'lucideCopy'" aria-hidden="true" />
+    <ng-icon [name]="copied() ? 'phosphorCheck' : 'phosphorCopy'" aria-hidden="true" />
   </button>
   <span class="sr-only" aria-live="polite">{{ copied() ? ('ticket.copied' | t) : '' }}</span>
 } @else {

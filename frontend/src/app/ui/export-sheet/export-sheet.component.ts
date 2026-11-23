@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCopy, lucideFileText, lucideSend, lucideTriangleAlert } from '@ng-icons/lucide';
+import {
+  phosphorCopy,
+  phosphorFileText,
+  phosphorPaperPlaneTilt,
+  phosphorWarning,
+} from '@ng-icons/phosphor-icons/regular';
 import { SnModalSheet, SnSettingsImports } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
@@ -22,7 +27,7 @@ import { DurationPipe } from '../../shared/duration.pipe';
     SnSettingsImports,
     TPipe,
   ],
-  providers: [provideIcons({ lucideCopy, lucideFileText, lucideSend, lucideTriangleAlert })],
+  providers: [provideIcons({ phosphorCopy, phosphorFileText, phosphorPaperPlaneTilt, phosphorWarning })],
   templateUrl: './export-sheet.component.html',
   styleUrl: './export-sheet.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

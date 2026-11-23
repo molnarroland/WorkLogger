@@ -3,7 +3,7 @@
     @for (r of items(); track $index) {
       <li class="rule">
         <span class="label" [class.issue-key]="mono()">{{ quoted() ? '“' + r.label + '”' : r.label }}</span>
-        <ng-icon name="lucideArrowRight" class="sn-text-muted" aria-hidden="true" />
+        <ng-icon name="phosphorArrowRight" class="sn-text-muted" aria-hidden="true" />
         <span class="issue-key" [class.missing]="!r.issueKey">{{ r.issueKey ?? ('issue.none' | t) }}</span>
         <button
           hlmBtn
@@ -14,7 +14,7 @@
           [attr.aria-label]="'rules.remove' | t: { label: r.label }"
           (click)="remove.emit($index)"
         >
-          <ng-icon name="lucideTrash2" aria-hidden="true" />
+          <ng-icon name="phosphorTrash" aria-hidden="true" />
         </button>
       </li>
     }

@@ -1,7 +1,7 @@
 @if (store.settings(); as s) {
   <sn-settings-group [title]="'meetings.calendars' | t" [description]="'meetings.googleHelp' | t">
     <sn-settings-row title="Google Calendar API" [subtitle]="'calendars.apiHelp' | t">
-      <ng-icon snSettingsIcon name="lucideCalendar" />
+      <ng-icon snSettingsIcon name="phosphorCalendarBlank" />
       @if (status.value()?.googleConnected) {
         <span class="row">
           <span hlmBadge class="sn-tone-success">{{ 'meetings.connected' | t }}</span>
@@ -27,7 +27,7 @@
           ) | t
         "
       >
-        <ng-icon snSettingsIcon name="lucideCalendar" />
+        <ng-icon snSettingsIcon name="phosphorCalendarBlank" />
         <button
           hlmBtn
           variant="outline"

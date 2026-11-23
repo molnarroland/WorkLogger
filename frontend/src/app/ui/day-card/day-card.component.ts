@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideTriangleAlert } from '@ng-icons/lucide';
+import { phosphorWarning } from '@ng-icons/phosphor-icons/regular';
 import type { DayDto, WorklogDto } from '../../api/api';
 import { I18n, TPipe } from '../../i18n/t.pipe';
 import { DurationPipe } from '../../shared/duration.pipe';
@@ -23,7 +23,7 @@ export interface DropEvent {
 @Component({
   selector: 'wl-day-card',
   imports: [DurationPipe, NgIcon, SourceBarComponent, TPipe],
-  providers: [provideSourceIcons(), provideIcons({ lucideTriangleAlert })],
+  providers: [provideSourceIcons(), provideIcons({ phosphorWarning })],
   templateUrl: './day-card.component.html',
   styleUrl: './day-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

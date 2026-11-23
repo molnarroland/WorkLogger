@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, linkedSignal, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideChevronLeft, lucideChevronRight } from '@ng-icons/lucide';
+import { phosphorCaretLeft, phosphorCaretRight } from '@ng-icons/phosphor-icons/regular';
 import { TPipe } from '../../i18n/t.pipe';
 import { monthTitle } from '../../shared/month';
 import { dayKey, parseDay } from '../../shared/worklogs';
@@ -28,7 +28,7 @@ function monday(day: string): string {
 @Component({
   selector: 'wl-period-picker',
   imports: [HlmButtonImports, NgIcon, TPipe],
-  providers: [provideIcons({ lucideChevronLeft, lucideChevronRight })],
+  providers: [provideIcons({ phosphorCaretLeft, phosphorCaretRight })],
   templateUrl: './period-picker.component.html',
   styleUrl: './period-picker.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

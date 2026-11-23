@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideX } from '@ng-icons/lucide';
+import { phosphorX } from '@ng-icons/phosphor-icons/regular';
 import { SnSearchField } from '@spartan-native/desktop-ui';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -13,7 +13,7 @@ import { TPipe } from '../../i18n/t.pipe';
 @Component({
   selector: 'wl-list-filter',
   imports: [HlmButtonImports, HlmInputImports, NgIcon, SnSearchField, TPipe],
-  providers: [provideIcons({ lucideX })],
+  providers: [provideIcons({ phosphorX })],
   templateUrl: './list-filter.component.html',
   styleUrl: './list-filter.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideChevronLeft, lucideChevronRight } from '@ng-icons/lucide';
+import { phosphorCaretLeft, phosphorCaretRight } from '@ng-icons/phosphor-icons/regular';
 import {
   type BrnPaginatedTabHeaderItem,
   BrnTabsPaginatedList,
@@ -26,7 +26,7 @@ import { listVariants } from './hlm-tabs-list';
   selector: 'hlm-paginated-tabs-list',
   exportAs: 'hlmTabsPaginatedList',
   imports: [CdkObserveContent, NgIcon],
-  providers: [provideIcons({ lucideChevronRight, lucideChevronLeft })],
+  providers: [provideIcons({ phosphorCaretRight, phosphorCaretLeft })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'data-slot': 'tabs-paginated-list',
@@ -44,7 +44,7 @@ import { listVariants } from './hlm-tabs-list';
       (mousedown)="_handlePaginatorPress('before', $event)"
       (touchend)="_stopInterval()"
     >
-      <ng-icon name="lucideChevronLeft" />
+      <ng-icon name="phosphorCaretLeft" />
     </button>
 
     <div
@@ -76,7 +76,7 @@ import { listVariants } from './hlm-tabs-list';
       (mousedown)="_handlePaginatorPress('after', $event)"
       (touchend)="_stopInterval()"
     >
-      <ng-icon name="lucideChevronRight" />
+      <ng-icon name="phosphorCaretRight" />
     </button>
   `,
 })

@@ -18,8 +18,8 @@ export const Grouped: Story = {
     title: 'legend.collected',
     showTime: false,
     parts: [
-      { color: 'var(--wl-source-coding)', seconds: 0, label: 'source.git', icon: 'lucideGitBranch' },
-      { color: 'var(--wl-source-meeting)', seconds: 0, label: 'source.meeting', icon: 'lucideUsers' },
+      { color: 'var(--wl-source-coding)', seconds: 0, label: 'source.git', icon: 'phosphorGitBranch' },
+      { color: 'var(--wl-source-meeting)', seconds: 0, label: 'source.meeting', icon: 'phosphorUsers' },
     ],
   },
 };

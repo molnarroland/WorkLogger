@@ -3,7 +3,7 @@
     <button
       snCommand
       hideLabel
-      icon="lucideSend"
+      icon="phosphorPaperPlaneTilt"
       [label]="'week.send' | t"
       [disabled]="store.busy() || store.locked() || days()[0].day > store.today()"
       (click)="store.sendRange(days()[0].day, days()[6].day)"
@@ -13,7 +13,7 @@
     <button
       snCommand
       hideLabel
-      icon="lucideMessagesSquare"
+      icon="phosphorChats"
       [label]="'week.fetchChat' | t"
       [disabled]="store.busy() || days()[0].day > store.today()"
       (click)="store.run('fetchGoogleChat', { from: days()[0].day, to: days()[6].day })"

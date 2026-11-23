@@ -10,7 +10,7 @@
     <div hlmTabsContent="general" class="panel">
       <sn-settings-group [title]="'settings.general' | t">
         <sn-settings-row [title]="'settings.language' | t">
-          <ng-icon snSettingsIcon name="lucideLanguages" />
+          <ng-icon snSettingsIcon name="phosphorTranslate" />
           <hlm-toggle-group
             type="single"
             variant="outline"
@@ -28,7 +28,7 @@
           </hlm-toggle-group>
         </sn-settings-row>
         <sn-settings-row [title]="'settings.appearance' | t">
-          <ng-icon snSettingsIcon name="lucideSunMoon" />
+          <ng-icon snSettingsIcon name="phosphorMoon" />
           <hlm-toggle-group
             type="single"
             variant="outline"
@@ -44,7 +44,7 @@
           </hlm-toggle-group>
         </sn-settings-row>
         <sn-settings-row [title]="'settings.accent' | t">
-          <ng-icon snSettingsIcon name="lucidePalette" />
+          <ng-icon snSettingsIcon name="phosphorPalette" />
           <hlm-toggle-group
             type="single"
             variant="outline"
@@ -71,7 +71,7 @@
           </hlm-toggle-group>
         </sn-settings-row>
         <sn-settings-row [title]="'settings.skin' | t" [subtitle]="'settings.skinHelp' | t">
-          <ng-icon snSettingsIcon name="lucideAppWindow" />
+          <ng-icon snSettingsIcon name="phosphorAppWindow" />
           <label hlmLabel class="sr-only" for="set-skin">{{ 'settings.skin' | t }}</label>
           <hlm-select [value]="look().skin" [itemToString]="skinLabel" (valueChange)="setLook('skin', $event)">
             <hlm-select-trigger class="select" buttonId="set-skin"><hlm-select-value /></hlm-select-trigger>
@@ -86,7 +86,7 @@
 
       <sn-settings-group [title]="'settings.display' | t" [description]="'settings.displayHelp' | t">
         <sn-settings-row [title]="'settings.transparency' | t">
-          <ng-icon snSettingsIcon name="lucideBlend" />
+          <ng-icon snSettingsIcon name="phosphorIntersect" />
           <hlm-toggle-group
             type="single"
             variant="outline"
@@ -102,7 +102,7 @@
           </hlm-toggle-group>
         </sn-settings-row>
         <sn-settings-row [title]="'settings.contrast' | t">
-          <ng-icon snSettingsIcon name="lucideContrast" />
+          <ng-icon snSettingsIcon name="phosphorCircleHalf" />
           <hlm-toggle-group
             type="single"
             variant="outline"
@@ -118,7 +118,7 @@
           </hlm-toggle-group>
         </sn-settings-row>
         <sn-settings-row [title]="'settings.motion' | t">
-          <ng-icon snSettingsIcon name="lucideWind" />
+          <ng-icon snSettingsIcon name="phosphorWind" />
           <hlm-toggle-group
             type="single"
             variant="outline"
@@ -134,7 +134,7 @@
           </hlm-toggle-group>
         </sn-settings-row>
         <sn-settings-row [title]="'settings.textScale' | t">
-          <ng-icon snSettingsIcon name="lucideType" />
+          <ng-icon snSettingsIcon name="phosphorTextT" />
           <label hlmLabel class="sr-only" for="set-textScale">{{ 'settings.textScale' | t }}</label>
           <hlm-select
             [value]="look().textScale"
@@ -153,7 +153,7 @@
 
       <sn-settings-group [title]="'settings.storage' | t">
         <sn-settings-row [title]="'settings.database' | t" [subtitle]="dbPath.value() ?? ''">
-          <ng-icon snSettingsIcon name="lucideDatabase" />
+          <ng-icon snSettingsIcon name="phosphorDatabase" />
           <button hlmBtn variant="outline" size="sm" type="button" (click)="api.revealPath(dbPath.value() ?? '')">
             {{ 'settings.showFolder' | t }}
           </button>
@@ -222,7 +222,7 @@
           </hlm-select>
         </sn-settings-row>
         <sn-settings-row [title]="'settings.dayStart' | t">
-          <ng-icon snSettingsIcon name="lucideCalendarClock" />
+          <ng-icon snSettingsIcon name="phosphorCalendarPlus" />
           <input
             hlmInput
             type="time"
@@ -359,11 +359,6 @@
     <!-- Profiles -->
     <div hlmTabsContent="profiles" class="panel">
       <wl-profiles-settings [focusKind]="focusKind()" [addKind]="addProfile()" />
-    </div>
-
-    <!-- Calendars -->
-    <div hlmTabsContent="calendars" class="panel">
-      <wl-calendar-settings />
     </div>
   </hlm-tabs>
 }

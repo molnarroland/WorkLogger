@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideX } from '@ng-icons/lucide';
+import { phosphorX } from '@ng-icons/phosphor-icons/regular';
 import { I18n, TPipe } from '../../i18n/t.pipe';
 import { dayTitle } from '../../shared/worklogs';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -9,7 +9,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 @Component({
   selector: 'wl-day-filter',
   imports: [HlmButtonImports, NgIcon, TPipe],
-  providers: [provideIcons({ lucideX })],
+  providers: [provideIcons({ phosphorX })],
   templateUrl: './day-filter.component.html',
   styleUrl: './day-filter.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

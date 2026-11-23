@@ -2,17 +2,17 @@
   <button
     snCommand
     hideLabel
-    icon="lucideCircleArrowDown"
+    icon="phosphorArrowCircleDown"
     [label]="'sessions.fetch' | t"
     [disabled]="store.busy()"
     (click)="fetch()"
   ></button>
-  <button snCommand hideLabel icon="lucideClipboardPaste" [label]="'chats.paste' | t" (click)="openPaste()"></button>
-  <button snCommand hideLabel icon="lucideUserCog" [label]="'profiles.manage' | t" (click)="openProfiles()"></button>
+  <button snCommand hideLabel icon="phosphorClipboard" [label]="'chats.paste' | t" (click)="openPaste()"></button>
+  <button snCommand hideLabel icon="phosphorUserGear" [label]="'profiles.manage' | t" (click)="openProfiles()"></button>
   <button
     snCommand
     hideLabel
-    icon="lucideTrash2"
+    icon="phosphorTrash"
     [label]="'chats.clear' | t"
     [disabled]="!list().length"
     (click)="clear()"
@@ -22,7 +22,7 @@
 @if (!hasAny()) {
   <sn-status-page
     class="fill"
-    icon="lucideMessagesSquare"
+    icon="phosphorChats"
     [title]="'chats.emptyTitle' | t"
     [description]="'chats.emptyBody' | t"
   >
@@ -50,7 +50,7 @@
   @if (!list().length) {
     <sn-status-page
       class="fill"
-      icon="lucideSearchX"
+      icon="phosphorMagnifyingGlassMinus"
       [title]="'filter.noMatch' | t"
       [description]="'filter.noMatchBody' | t"
     >
@@ -73,7 +73,7 @@
               [wlScrollIntoView]="c.id === focus()"
               [title]="'chats.stretchHelp' | t: { from: time(c.first), to: time(c.last) }"
             >
-              <ng-icon [name]="c.type === 'dm' ? 'lucideUser' : 'lucideUsers'" aria-hidden="true" />
+              <ng-icon [name]="c.type === 'dm' ? 'phosphorUser' : 'phosphorUsers'" aria-hidden="true" />
               <span class="name">{{ c.name }}</span>
               @if (c.issueKey) {
                 <span class="issue-key">{{ c.issueKey }}</span>
@@ -96,7 +96,7 @@
       } @else {
         <sn-status-page
           class="messages"
-          icon="lucideMessagesSquare"
+          icon="phosphorChats"
           [title]="'chats.selectTitle' | t"
           [description]="'chats.selectBody' | t"
         />

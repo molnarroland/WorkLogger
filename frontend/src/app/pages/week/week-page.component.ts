@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { provideIcons } from '@ng-icons/core';
-import { lucideMessagesSquare, lucideSend } from '@ng-icons/lucide';
+import { phosphorChats, phosphorPaperPlaneTilt } from '@ng-icons/phosphor-icons/regular';
 import { SnCommandBarImports, SnPageCommandsTemplate } from '@spartan-native/desktop-ui';
 import { API } from '../../api/api';
 import { I18n, TPipe } from '../../i18n/t.pipe';
@@ -29,7 +29,7 @@ const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 @Component({
   selector: 'wl-week-page',
   imports: [SnPageCommandsTemplate, SnCommandBarImports, TPipe, WeekTimelineComponent],
-  providers: [provideIcons({ lucideMessagesSquare, lucideSend })],
+  providers: [provideIcons({ phosphorChats, phosphorPaperPlaneTilt })],
   templateUrl: './week-page.component.html',
   styleUrl: './week-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,7 +75,7 @@ export class WeekPageComponent {
       stepDays: 7,
       today: {
         label: 'week.this',
-        icon: 'lucideCalendarRange',
+        icon: 'phosphorCalendarDots',
         go: () => this.router.navigate(['/week', this.store.today()]),
         current: computed(() => this.days().some((d) => d.day === this.store.today())),
       },

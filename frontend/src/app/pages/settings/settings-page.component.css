@@ -7,7 +7,11 @@
   overflow: auto;
 }
 
-/* One centred column: the tabs and their panels share its width. */
+/*
+ * Per platform, like its own settings app:
+ *  - macOS, Linux, ChromeOS, web: one centred column, the tabs centred above it (System Settings, GNOME);
+ *  - Windows: the whole width, the tabs at its start (Windows Settings).
+ */
 .tabs {
   display: flex;
   flex-direction: column;
@@ -17,6 +21,21 @@
   max-inline-size: 51rem;
   margin-inline: auto;
   padding: 1rem 1.5rem 1.5rem;
+}
+
+.tabs > hlm-tabs-list {
+  align-self: center;
+  max-inline-size: 100%;
+  overflow-x: auto;
+}
+
+:host([data-family='windows']) .tabs {
+  max-inline-size: none;
+  padding-inline: 2rem;
+}
+
+:host([data-family='windows']) .tabs > hlm-tabs-list {
+  align-self: flex-start;
 }
 
 .panel {

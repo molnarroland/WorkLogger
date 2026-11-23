@@ -1,9 +1,8 @@
 <ng-template snPageCommands>
-  <button snCommand hideLabel icon="lucideFolderPlus" [label]="'repos.addFolder' | t" (click)="choose()"></button>
   <button
     snCommand
     hideLabel
-    icon="lucideRefreshCw"
+    icon="phosphorArrowsClockwise"
     [label]="'repos.scan' | t"
     [disabled]="!store.settings()?.workspaceRoots?.length"
     (click)="scan()"
@@ -11,58 +10,6 @@
 </ng-template>
 
 <div class="body">
-  @if (store.settings(); as s) {
-    <sn-settings-group [title]="'repos.folders' | t" [description]="'repos.foldersHelp' | t">
-      @for (root of s.workspaceRoots; track root) {
-        <sn-settings-row [title]="root">
-          <ng-icon snSettingsIcon name="lucideFolderOpen" />
-          <button
-            hlmBtn
-            variant="ghost"
-            size="icon-sm"
-            type="button"
-            [attr.aria-label]="'repos.removeFolder' | t: { path: root }"
-            (click)="removeRoot(root)"
-          >
-            <ng-icon name="lucideTrash2" aria-hidden="true" />
-          </button>
-        </sn-settings-row>
-      } @empty {
-        <sn-settings-row [title]="'repos.noFolder' | t">
-          <ng-icon snSettingsIcon name="lucideFolderOpen" />
-        </sn-settings-row>
-      }
-      <div class="pad">
-        <button hlmBtn variant="outline" size="sm" type="button" (click)="choose()">
-          <ng-icon name="lucideFolderPlus" aria-hidden="true" /> {{ 'repos.addFolder' | t }}
-        </button>
-      </div>
-    </sn-settings-group>
-
-    <sn-settings-group [title]="'repos.setup' | t">
-      <div class="pad stack">
-        <span class="section-title">{{ 'repos.emails' | t }}</span>
-        <wl-chip-list
-          [highlighted]="true"
-          [label]="'repos.emailsAdd' | t"
-          placeholder="you@company.com"
-          [values]="s.authorEmails"
-          (valuesChange)="store.saveSettings({ authorEmails: $event })"
-        />
-      </div>
-      <div class="pad stack">
-        <span class="section-title">{{ 'repos.skipped' | t }}</span>
-        <wl-chip-list
-          [label]="'repos.skippedAdd' | t"
-          [placeholder]="'repos.skippedPlaceholder' | t"
-          [values]="s.excludedFolders"
-          (valuesChange)="store.saveSettings({ excludedFolders: $event })"
-        />
-        <span class="sn-text-muted small">{{ 'repos.skippedHelp' | t }}</span>
-      </div>
-    </sn-settings-group>
-  }
-
   <hlm-accordion>
     <hlm-accordion-item>
       <hlm-accordion-trigger>{{ 'repos.projects' | t: { n: projects.value()?.length ?? 0 } }}</hlm-accordion-trigger>
@@ -106,12 +53,12 @@
     />
   }
   @if (!repos.value()?.length) {
-    <sn-status-page icon="lucideHardDrive" [title]="'repos.emptyTitle' | t" [description]="'repos.emptyBody' | t">
-      <button hlmBtn type="button" (click)="choose()">{{ 'repos.addFolder' | t }}</button>
+    <sn-status-page icon="phosphorHardDrive" [title]="'repos.emptyTitle' | t" [description]="'repos.emptyBody' | t">
+      <a hlmBtn routerLink="." [queryParams]="{ tab: 'setup' }">{{ 'repos.addFolder' | t }}</a>
     </sn-status-page>
   } @else if (!shown().length && !query()) {
     <sn-status-page
-      icon="lucideGitBranch"
+      icon="phosphorGitBranch"
       [title]="'repos.noCommitsTitle' | t"
       [description]="'repos.noCommitsBody' | t"
     >
@@ -120,7 +67,11 @@
       </button>
     </sn-status-page>
   } @else if (!shown().length) {
-    <sn-status-page icon="lucideSearchX" [title]="'filter.noMatch' | t" [description]="'filter.noMatchBody' | t">
+    <sn-status-page
+      icon="phosphorMagnifyingGlassMinus"
+      [title]="'filter.noMatch' | t"
+      [description]="'filter.noMatchBody' | t"
+    >
       <button hlmBtn variant="outline" type="button" (click)="clearFilter()">{{ 'filter.clear' | t }}</button>
     </sn-status-page>
   } @else {
@@ -185,7 +136,7 @@
                 [title]="'repos.removeHelp' | t"
                 (click)="remove(r)"
               >
-                <ng-icon name="lucideTrash2" aria-hidden="true" />
+                <ng-icon name="phosphorTrash" aria-hidden="true" />
               </button>
             </td>
           </tr>

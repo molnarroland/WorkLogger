@@ -31,8 +31,11 @@
       }
     </div>
 
-    <label hlmLabel [for]="id() + '-issue'">{{ 'worklog.issue' | t }}</label>
-    <div class="stack">
+    <!-- An entry without a ticket shows the ticket first (.first: CSS order), since that is what it needs. -->
+    <label hlmLabel class="issue-label" [class.first]="!w().issueKey" [for]="id() + '-issue'">{{
+      'worklog.issue' | t
+    }}</label>
+    <div class="stack" [class.first]="!w().issueKey">
       <div class="with-button">
         <input
           #issue
@@ -55,7 +58,7 @@
           [snTooltip]="'worklog.chooseIssueHelp' | t"
           (click)="chooseIssue.emit(w())"
         >
-          <ng-icon name="lucideTextSearch" aria-hidden="true" /> {{ 'worklog.chooseIssue' | t }}
+          <ng-icon name="phosphorListMagnifyingGlass" aria-hidden="true" /> {{ 'worklog.chooseIssue' | t }}
         </button>
       </div>
       @if (meetingRule(); as r) {
@@ -126,16 +129,16 @@
 <div class="actions">
   @if (isGit()) {
     <button hlmBtn variant="outline" size="sm" type="button" (click)="showCommits.emit(w())">
-      <ng-icon name="lucideGitCommitHorizontal" aria-hidden="true" /> {{ 'commits.show' | t }}
+      <ng-icon name="phosphorGitCommit" aria-hidden="true" /> {{ 'commits.show' | t }}
     </button>
   }
   @if (focus(); as f) {
     <button hlmBtn variant="outline" size="sm" type="button" class="show" (click)="open.emit(f)">
-      <ng-icon name="lucideArrowUpRight" aria-hidden="true" />
+      <ng-icon name="phosphorArrowUpRight" aria-hidden="true" />
       {{ 'focus.showIn' | t: { page: ('pane.' + f.pane | t) } }}
     </button>
   }
   <button hlmBtn variant="destructive" size="sm" type="button" [disabled]="sent()" (click)="remove.emit(w().id)">
-    <ng-icon name="lucideTrash2" aria-hidden="true" /> {{ 'worklog.delete' | t }}
+    <ng-icon name="phosphorTrash" aria-hidden="true" /> {{ 'worklog.delete' | t }}
   </button>
 </div>

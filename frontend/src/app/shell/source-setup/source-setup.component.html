@@ -1,0 +1,24 @@
+@for (s of steps(); track s.id) {
+  <p class="step" [class.done]="s.done">
+    <ng-icon [name]="s.done ? 'phosphorCheckCircle' : 'phosphorCircleDashed'" aria-hidden="true" />
+    <span class="stack">
+      <span class="section-title">{{ 'setup.' + s.id | t }}</span>
+      <span class="sn-text-muted small">{{ 'setup.' + s.id + '.help' | t }}</span>
+    </span>
+    <span class="sr-only">{{ (s.done ? 'setup.done' : 'side.setUp') | t }}</span>
+  </p>
+}
+
+@switch (source()) {
+  @case ('repositories') {
+    <wl-repo-setup />
+  }
+  @case ('meetings') {
+    <wl-calendar-settings />
+  }
+  @default {
+    @if (profile(); as kind) {
+      <wl-profiles-settings [only]="kind" />
+    }
+  }
+}

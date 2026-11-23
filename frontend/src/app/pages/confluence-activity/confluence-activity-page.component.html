@@ -2,7 +2,7 @@
   <button
     snCommand
     hideLabel
-    icon="lucideRefreshCw"
+    icon="phosphorArrowsClockwise"
     [label]="'confluence.refresh' | t"
     [disabled]="feed.isLoading()"
     (click)="refresh()"
@@ -14,14 +14,14 @@
     <hlm-spinner aria-hidden="true" />{{ 'msg.progress.confluence' | t }}
   </div>
 } @else if (error()) {
-  <sn-status-page class="fill" icon="lucideBookOpen" [title]="'confluence.failedTitle' | t" [description]="error()">
+  <sn-status-page class="fill" icon="phosphorBookOpen" [title]="'confluence.failedTitle' | t" [description]="error()">
     <button hlmBtn type="button" (click)="refresh()">{{ 'confluence.refresh' | t }}</button>
     <button hlmBtn variant="outline" type="button" (click)="openProfiles()">{{ 'profiles.manage' | t }}</button>
   </sn-status-page>
 } @else if (profiles() === 0) {
   <sn-status-page
     class="fill"
-    icon="lucideBookOpen"
+    icon="phosphorBookOpen"
     [title]="'confluence.noProfileTitle' | t"
     [description]="'msg.confluence.needProfile' | t"
   >
@@ -30,7 +30,7 @@
 } @else if (!pages()) {
   <sn-status-page
     class="fill"
-    icon="lucideBookOpen"
+    icon="phosphorBookOpen"
     [title]="'confluence.emptyTitle' | t"
     [description]="'confluence.emptyBody' | t"
   />
@@ -56,7 +56,7 @@
   @if (!days().length) {
     <sn-status-page
       class="fill"
-      icon="lucideSearchX"
+      icon="phosphorMagnifyingGlassMinus"
       [title]="'filter.noMatch' | t"
       [description]="'filter.noMatchBody' | t"
     >
@@ -176,7 +176,7 @@
                   }
                   @if (p.suggested.length) {
                     <div class="suggest small">
-                      <ng-icon name="lucideLightbulb" aria-hidden="true" />
+                      <ng-icon name="phosphorLightbulb" aria-hidden="true" />
                       <div class="suggest-body">
                         <span>{{ 'jira.suggest' | t: { n: p.suggested.length, key: p.issueKey } }}</span>
                         <ul class="entries">

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideBadgeCheck, lucideClipboardList } from '@ng-icons/lucide';
+import { phosphorSealCheck, phosphorClipboardText } from '@ng-icons/phosphor-icons/regular';
 import { SnStatusPage, SnTooltip } from '@spartan-native/desktop-ui';
 import { SnSelectableImports } from '@spartan-native/helm';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -36,7 +36,7 @@ const NO_ISSUE = '∅';
     SourceBarComponent,
     TPipe,
   ],
-  providers: [provideIcons({ lucideBadgeCheck, lucideClipboardList })],
+  providers: [provideIcons({ phosphorSealCheck, phosphorClipboardText })],
   templateUrl: './by-ticket-page.component.html',
   styleUrl: './by-ticket-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

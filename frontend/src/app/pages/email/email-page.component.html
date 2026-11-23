@@ -1,11 +1,16 @@
 @if (feed.isLoading() && !threads()) {
   <div class="fill loading sn-text-muted" role="status"><hlm-spinner aria-hidden="true" /></div>
 } @else if (error()) {
-  <sn-status-page class="fill" icon="lucideMail" [title]="'email.failedTitle' | t" [description]="error()" />
+  <sn-status-page
+    class="fill"
+    icon="phosphorEnvelopeSimple"
+    [title]="'email.failedTitle' | t"
+    [description]="error()"
+  />
 } @else if (profiles() === 0) {
   <sn-status-page
     class="fill"
-    icon="lucideMail"
+    icon="phosphorEnvelopeSimple"
     [title]="'email.noProfileTitle' | t"
     [description]="'msg.email.needProfile' | t"
   >
@@ -14,7 +19,7 @@
 } @else if (!threads()) {
   <sn-status-page
     class="fill"
-    icon="lucideMail"
+    icon="phosphorEnvelopeSimple"
     [title]="'email.emptyTitle' | t"
     [description]="'email.emptyBody' | t"
   />
@@ -40,7 +45,7 @@
   @if (!days().length) {
     <sn-status-page
       class="fill"
-      icon="lucideSearchX"
+      icon="phosphorMagnifyingGlassMinus"
       [title]="'filter.noMatch' | t"
       [description]="'filter.noMatchBody' | t"
     >

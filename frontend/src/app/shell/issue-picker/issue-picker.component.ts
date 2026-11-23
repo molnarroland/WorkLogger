@@ -12,7 +12,7 @@ import {
   untracked,
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowUpRight, lucideSearch } from '@ng-icons/lucide';
+import { phosphorArrowUpRight, phosphorMagnifyingGlass } from '@ng-icons/phosphor-icons/regular';
 import { SnModalSheet, SnSearchField, SnTooltip } from '@spartan-native/desktop-ui';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -43,7 +43,7 @@ const KEY = /^[A-Za-z][A-Za-z0-9_]*-\d+$/;
     SnTooltip,
     TPipe,
   ],
-  providers: [provideIcons({ lucideArrowUpRight, lucideSearch })],
+  providers: [provideIcons({ phosphorArrowUpRight, phosphorMagnifyingGlass })],
   templateUrl: './issue-picker.component.html',
   styleUrl: './issue-picker.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
