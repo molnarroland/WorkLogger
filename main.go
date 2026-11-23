@@ -38,7 +38,23 @@ func init() {
 	application.RegisterEvent[app.ActivityLine](app.EventActivity)
 }
 
-const keyringService = "WorkLogger"
+// appID names the data folder and the keychain service: "WorkLogger", or "WorkLogger-<name>" with
+// WORKLOGGER_PROFILE=<name> (letters, digits, - and _), a separate profile to try the first run or a change
+// without touching the real data and tokens.
+var appID = func() string {
+	p := os.Getenv("WORKLOGGER_PROFILE")
+	if p == "" {
+		return "WorkLogger"
+	}
+	for _, r := range p {
+		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_') {
+			log.Fatalf("WORKLOGGER_PROFILE may only hold letters, digits, - and _: %q", p)
+		}
+	}
+	return "WorkLogger-" + p
+}()
+
+var keyringService = appID
 
 // unlockReason is the line under the Touch ID or Windows Hello prompt. macOS puts it after
 // "“WorkLogger” is trying to"; Windows shows it as it is.
@@ -54,7 +70,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dir := filepath.Join(config, "WorkLogger")
+	dir := filepath.Join(config, appID)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		log.Fatal(err)
 	}
