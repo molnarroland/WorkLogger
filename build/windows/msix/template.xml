@@ -17,7 +17,7 @@
         PackageDisplayName="WorkLogger"
         PublisherName="CN=Roland Molnár"
         PublisherDisplayName="Roland Molnár"
-        Version="0.2.1.0"
+        Version="0.3.0.0"
         PackageDescription="Month-end worklogs from git, calendars and chats">
         <Capabilities>
             <Capability Name="runFullTrust" />

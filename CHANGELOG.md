@@ -5,6 +5,35 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-23
+
+### Added
+
+- **Days and Sources in the side panel**: a switcher next to the fold button. Days has Overview, Days, Week, the days
+  left to do and the month's pages (Timesheet, Review, Log in Tempo). Sources lists each source with its count for the
+  month, or "Set up" while it still needs something, then Periods and Plans, Finish setup and the modules.
+- **A Setup tab on every source page**: Repositories (folders, commit emails, skipped folders), Meetings (calendars),
+  Work sessions, Chats, Jira, Confluence and Sent mail (their account). The Activity tab says what is still missing,
+  with a Set up button, and the setup checklist links straight to it.
+- **A guided first run**: what a month looks like, what you use, each account in turn (with Skip for now), then the
+  first Collect, which ends on the first day that needs work.
+- **Next up on the Overview**: the first day that needs work and what it needs.
+- **WORKLOGGER_PROFILE**: run on a separate data folder and keychain service, to try something on a fresh database.
+
+### Changed
+
+- **Collect** has its name in the header, not only an icon.
+- **Days and Week** keep only their own ‹ Today › arrows; the month moves with the picker and ⌘[ / ⌘].
+- **An entry without a ticket** shows the ticket field first in the details panel.
+- **Log in Tempo** is one side panel item, with By ticket and Totals as its tabs.
+- **Settings** has no month header or source bar, and lays out like the system's own: a centred column on macOS and
+  Linux, the whole width on Windows. Calendars moved to Meetings → Setup.
+- **Icons** are Phosphor; the open page's icon is filled.
+
+### Removed
+
+- **All pages** and pinning pages to the side panel: every page has a place in Days or Sources.
+
 ## [0.2.1] - 2026-11-22
 
 ### Changed
@@ -79,6 +108,7 @@ The first public release.
   - Windows: the 64-bit exe in a zip.
   - Linux: the 64-bit binary, compressed with UPX.
 
+[0.3.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.3.0
 [0.2.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.2.1
 [0.2.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.2.0
 [0.1.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.1.1
