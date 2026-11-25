@@ -126,6 +126,7 @@ func main() {
 			return &webview.Session{
 				App: func() *application.App { return wails }, Bridge: bridge, Source: sp.ID, Kind: sp.Kind,
 				Name: sp.Name, Home: sp.Home, SignInURL: sp.SignInURL, SignedInAt: sp.SignedInAt, StateFile: sp.StateFile,
+				Hidden: sp.Hidden,
 			}
 		},
 		StateDir: dir,
@@ -163,7 +164,7 @@ func main() {
 			InvisibleTitleBarHeight: 38,
 		},
 	})
-	// The hidden HRmaster/Google Chat windows never really close, so Windows (which quits only when no window is
+	// A hidden HRmaster/Google Chat window can still be open (a job is using it), so Windows (which quits only when no window is
 	// left) would keep running without the main window. Closing the main window quits the app.
 	mainWin.OnWindowEvent(events.Common.WindowClosing, func(*application.WindowEvent) { wails.Quit() })
 

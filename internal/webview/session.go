@@ -35,6 +35,7 @@ type Session struct {
 	SignInURL  func() string       // where Sign in starts (the site\'s own login page); Home when nil
 	SignedInAt func(u string) bool // whether a loaded page at u means signed in
 	StateFile  string              // remembers the last sign-in check
+	Hidden     func()              // called after you close the window (it is only hidden then); may Release it
 
 	mu    sync.Mutex
 	win   *application.WebviewWindow
@@ -147,13 +148,21 @@ func (s *Session) window(ctx context.Context) (*application.WebviewWindow, error
 		keep := func(*application.WindowEvent) { w.ExecJS(sameWindowJS) }
 		w.OnWindowEvent(events.Mac.WebViewDidFinishNavigation, keep)
 		w.OnWindowEvent(events.Linux.WindowLoadFinished, keep)
-		// Closing only hides it: the page stays signed in and fetching can keep using it.
+		// Closing it by hand only hides it, so a running fetch can keep using it; Hidden then decides whether it
+		// goes. Release and Close let the close through: they have already let go of this window.
 		w.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
+			s.mu.Lock()
+			if s.win != w {
+				s.mu.Unlock()
+				return
+			}
 			e.Cancel()
 			w.Hide()
-			s.mu.Lock()
 			s.shown = false
 			s.mu.Unlock()
+			if s.Hidden != nil {
+				go s.Hidden()
+			}
 		})
 		s.win = w
 	}
@@ -167,6 +176,27 @@ func (s *Session) window(ctx context.Context) (*application.WebviewWindow, error
 	case <-time.After(20 * time.Second):
 		return nil, core.Err("site.notStarted", "name", s.Name)
 	}
+}
+
+// Release closes the window unless it is on screen, so its page (and the webview process behind it) stops
+// using memory; a signed-in site would otherwise keep running hidden for as long as the app does. The sign-in
+// lives in the webview's shared cookie store, so the next use makes a new window that is still signed in.
+// Call it only while nothing drives the page.
+func (s *Session) Release() { s.close(false) }
+
+// Close closes the window, shown or not (its profile was removed).
+func (s *Session) Close() { s.close(true) }
+
+func (s *Session) close(evenShown bool) {
+	s.mu.Lock()
+	w := s.win
+	if w == nil || (s.shown && !evenShown) {
+		s.mu.Unlock()
+		return
+	}
+	s.win, s.ready, s.shown = nil, nil, false
+	s.mu.Unlock()
+	w.Close() // the closing hook sees s.win != w and lets it close
 }
 
 // SignIn shows the site's login page.

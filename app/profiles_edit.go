@@ -103,10 +103,14 @@ func (s *Service) RemoveProfile(id string) (core.Settings, error) {
 			return st, err
 		}
 	}
-	return s.edit(func(st *core.Settings) error {
+	out, err := s.edit(func(st *core.Settings) error {
 		st.Profiles = slices.DeleteFunc(st.Profiles, func(p core.Profile) bool { return p.ID == id })
 		return nil
 	})
+	if err == nil {
+		s.forgetSite(id)
+	}
+	return out, err
 }
 
 // clearTokens deletes a Jira profile's tokens. Locked, it refuses: the profile would go and its tokens stay behind.

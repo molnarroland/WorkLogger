@@ -24,6 +24,8 @@ func (f *fakeSite) Show(context.Context, string) error { return nil }
 func (f *fakeSite) SignIn(context.Context) error       { return nil }
 func (f *fakeSite) LastSignedIn() *bool                { return &f.signed }
 func (f *fakeSite) SignOut(context.Context) error      { return nil }
+func (f *fakeSite) Release()                           {}
+func (f *fakeSite) Close()                             {}
 
 func TestGoogleCalendarFromTheWeb(t *testing.T) {
 	s, _ := newService(t)

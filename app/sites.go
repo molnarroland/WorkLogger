@@ -40,6 +40,7 @@ func (s *Service) siteFor(p core.Profile) (Site, error) {
 		}
 		spec := SiteSpec{
 			ID: id, Kind: p.Kind, Name: p.Title(), Home: home, StateFile: filepath.Join(s.StateDir, "signed-in-"+id),
+			Hidden: s.siteHidden,
 		}
 		if p.Kind == core.ProfileGoogleChat {
 			spec.SignedInAt = web.GoogleChatSignedIn
@@ -54,6 +55,17 @@ func (s *Service) siteFor(p core.Profile) (Site, error) {
 		s.webSites[id] = w
 	}
 	return loggedSite{w, s, p.ID}, nil
+}
+
+// forgetSite closes a removed profile's window and drops it, so a new profile can't inherit it.
+func (s *Service) forgetSite(id string) {
+	s.mu.Lock()
+	w := s.webSites[id]
+	delete(s.webSites, id)
+	s.mu.Unlock()
+	if w != nil {
+		w.Close()
+	}
 }
 
 // profileHome is the page that proves a profile's sign-in: Google Chat for the account, HRmaster's work-time page.

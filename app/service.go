@@ -32,6 +32,8 @@ type Site interface {
 	SignIn(ctx context.Context) error // shows the site's login page
 	LastSignedIn() *bool
 	SignOut(ctx context.Context) error
+	Release() // closes the window unless it is on screen; the next use makes a new one
+	Close()   // closes the window, shown or not
 }
 
 // SiteSpec describes a profile's site window: which page proves the sign-in, where signing in starts, and how
@@ -44,6 +46,7 @@ type SiteSpec struct {
 	SignInURL  func() string    // where Sign in starts; Home when nil
 	SignedInAt func(u string) bool
 	StateFile  string // remembers the last sign-in check
+	Hidden     func() // to call after you close the window (Service.releaseSites when no job runs)
 }
 
 // ReportRefused puts a refused runtime request (internal/webview GuardRuntime) in the activity console. A plain

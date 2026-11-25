@@ -24,8 +24,32 @@ func (s *Service) startJob() (context.Context, func()) {
 	return ctx, func() {
 		cancel()
 		s.jobMu.Lock()
+		defer s.jobMu.Unlock()
 		s.cancel = nil
-		s.jobMu.Unlock()
+		s.releaseSites() // under jobMu: no job can start on a window while it closes
+	}
+}
+
+// releaseSites closes the site windows that aren't on screen, so the signed-in pages a job left open (Google
+// Chat, Calendar, HRmaster) don't keep running hidden, growing, until the app quits. Called with jobMu held.
+func (s *Service) releaseSites() {
+	s.mu.Lock()
+	sites := make([]Site, 0, len(s.webSites))
+	for _, w := range s.webSites {
+		sites = append(sites, w)
+	}
+	s.mu.Unlock()
+	for _, w := range sites {
+		w.Release()
+	}
+}
+
+// siteHidden runs after you close a site window: with no job running it goes now; a running job's end releases it.
+func (s *Service) siteHidden() {
+	s.jobMu.Lock()
+	defer s.jobMu.Unlock()
+	if s.cancel == nil {
+		s.releaseSites()
 	}
 }
 
