@@ -5,6 +5,15 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-25
+
+### Fixed
+
+- **Memory kept growing** while the app ran: the signed-in pages of the Google and HRmaster profiles stayed open
+  hidden. They now close once a job ends and when their window is closed with no job running; the next fetch signs
+  in again from the saved sign-in.
+- **Removing a profile** closes its window too.
+
 ## [0.3.0] - 2026-11-23
 
 ### Added
@@ -108,6 +117,7 @@ The first public release.
   - Windows: the 64-bit exe in a zip.
   - Linux: the 64-bit binary, compressed with UPX.
 
+[0.3.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.3.1
 [0.3.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.3.0
 [0.2.1]: https://github.com/molnarroland/WorkLogger/releases/tag/0.2.1
 [0.2.0]: https://github.com/molnarroland/WorkLogger/releases/tag/0.2.0
